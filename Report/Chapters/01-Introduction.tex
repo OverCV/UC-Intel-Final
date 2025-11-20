@@ -1,0 +1,124 @@
+\chapter{Introducción}
+\label{chap:introduction}
+
+% =============================================================================
+\section{Contexto y Motivación}
+\label{sec:intro:context}
+
+% TODO: Expandir con estadísticas actuales sobre amenazas de malware
+El panorama de la ciberseguridad contemporánea enfrenta desafíos sin precedentes. El incremento exponencial en el volumen y sofisticación de software malicioso (malware) representa una amenaza crítica para sistemas informáticos, infraestructuras críticas, y la seguridad digital de organizaciones e individuos. Según reportes recientes de la industria, se detectan millones de nuevas variantes de malware cada año, con atacantes desarrollando técnicas cada vez más evasivas que desafían los métodos tradicionales de detección.
+
+Los sistemas antivirus convencionales se basan principalmente en firmas estáticas y análisis heurístico, métodos que resultan insuficientes ante el polimorfismo y la ofuscación empleada por malware moderno. Esta limitación motiva la búsqueda de enfoques innovadores que puedan adaptarse dinámicamente a nuevas amenazas sin depender exclusivamente de bases de datos de firmas conocidas.
+
+% =============================================================================
+\section{Problema de Investigación}
+\label{sec:intro:problem}
+
+% TODO: Ajustar con estadísticas específicas de los datasets utilizados
+La detección y clasificación efectiva de malware presenta múltiples desafíos técnicos:
+
+\begin{itemize}
+    \item \textbf{Volumen y velocidad:} La generación masiva de nuevas variantes de malware supera la capacidad de análisis manual.
+    \item \textbf{Polimorfismo y ofuscación:} Las técnicas de evasión modifican el código sin alterar su funcionalidad maliciosa, evadiendo detección basada en firmas.
+    \item \textbf{Variabilidad intra-familia:} Múltiples variantes dentro de una misma familia de malware pueden presentar diferencias significativas en su código.
+    \item \textbf{Costo computacional:} El análisis dinámico mediante sandboxing requiere recursos significativos y tiempo de ejecución.
+\end{itemize}
+
+Estos desafíos plantean la necesidad de desarrollar métodos automatizados, eficientes y robustos capaces de identificar y clasificar malware con alta precisión, incluso ante muestras previamente no vistas.
+
+% =============================================================================
+\section{Pregunta de Investigación}
+\label{sec:intro:research-question}
+
+% TODO: Refinar pregunta según resultados obtenidos
+Este proyecto busca responder la siguiente pregunta central:
+
+\begin{quote}
+    \textit{¿Es posible clasificar eficazmente muestras de malware en sus respectivas familias mediante el análisis de sus representaciones visuales utilizando técnicas de Deep Learning, específicamente Redes Neuronales Convolucionales?}
+\end{quote}
+
+Preguntas secundarias incluyen:
+\begin{itemize}
+    \item ¿Qué arquitecturas CNN son más efectivas para la clasificación de imágenes de malware?
+    \item ¿Cómo se compara el rendimiento de modelos preentrenados versus arquitecturas diseñadas específicamente?
+    \item ¿Qué características visuales de los ejecutables son más discriminativas para la clasificación?
+\end{itemize}
+
+% =============================================================================
+\section{Objetivos}
+\label{sec:intro:objectives}
+
+\subsection{Objetivo General}
+
+Desarrollar e implementar un sistema de clasificación de malware basado en Deep Learning que utilice representaciones visuales de ejecutables para identificar automáticamente familias de malware con alta precisión y eficiencia.
+
+\subsection{Objetivos Específicos}
+
+\begin{enumerate}
+    \item Recopilar y preprocesar tres datasets públicos de malware (Blended Malware Image Dataset, Malevis Dataset, MalImg Dataset) para entrenamiento y evaluación.
+
+    \item Implementar el pipeline de conversión de ejecutables a representaciones visuales adecuadas para análisis mediante CNN.
+
+    \item Diseñar, entrenar y evaluar múltiples arquitecturas de Redes Neuronales Convolucionales para la tarea de clasificación multi-clase de familias de malware.
+
+    \item Realizar análisis comparativo de diferentes arquitecturas, hiperparámetros y técnicas de regularización para optimizar el rendimiento del modelo.
+
+    \item Evaluar el rendimiento del sistema propuesto mediante métricas estándar (precisión, recall, F1-score) y comparar con métodos baseline existentes.
+
+    \item Analizar e interpretar las características visuales aprendidas por el modelo para comprender qué patrones estructurales distinguen diferentes familias de malware.
+\end{enumerate}
+
+% =============================================================================
+\section{Justificación}
+\label{sec:intro:justification}
+
+% TODO: Agregar referencias bibliográficas específicas
+La adopción de técnicas de Deep Learning para análisis de malware se justifica por múltiples razones:
+
+\textbf{Capacidad de aprendizaje automático de características:} A diferencia de métodos tradicionales que requieren ingeniería manual de características, las CNN aprenden automáticamente representaciones jerárquicas discriminativas directamente de los datos crudos.
+
+\textbf{Escalabilidad:} Una vez entrenado, el modelo puede clasificar nuevas muestras en tiempo prácticamente real, permitiendo procesar grandes volúmenes de datos.
+
+\textbf{Robustez ante variaciones:} Las características visuales capturadas por CNN pueden ser invariantes a ciertas técnicas de ofuscación que alteran el código pero preservan estructuras fundamentales.
+
+\textbf{Transferibilidad:} Los modelos entrenados en ciertos datasets pueden adaptarse (fine-tuning) a nuevos conjuntos de datos con menor costo computacional.
+
+\textbf{Aplicabilidad práctica:} El enfoque propuesto puede integrarse en sistemas reales de detección de amenazas, análisis forense digital, y respuesta a incidentes de seguridad.
+
+% =============================================================================
+\section{Alcance y Limitaciones}
+\label{sec:intro:scope}
+
+\subsection{Alcance}
+
+Este proyecto se enfoca específicamente en:
+\begin{itemize}
+    \item Clasificación de familias de malware conocidas presentes en los datasets seleccionados
+    \item Análisis estático mediante representaciones visuales (sin ejecución dinámica)
+    \item Evaluación en entorno controlado con muestras etiquetadas
+    \item Arquitecturas CNN estándar y variantes preentrenadas
+\end{itemize}
+
+\subsection{Limitaciones}
+
+Las principales limitaciones incluyen:
+\begin{itemize}
+    \item Dependencia de datasets públicos con distribución potencialmente diferente a amenazas en entornos reales
+    \item Limitación a familias de malware presentes en los datos de entrenamiento (detección de zero-day requeriría enfoques adicionales)
+    \item Foco en malware de Windows (limitado por los datasets disponibles)
+    \item No considera análisis de comportamiento dinámico ni técnicas híbridas
+\end{itemize}
+
+% =============================================================================
+\section{Estructura del Documento}
+\label{sec:intro:structure}
+
+El resto de este documento se organiza de la siguiente manera:
+
+\textbf{Capítulo \ref{chap:related-work} -- Trabajo Relacionado:} Revisión del estado del arte en detección de malware, aplicaciones de Deep Learning en ciberseguridad, y enfoques basados en análisis visual.
+
+\textbf{Capítulo \ref{chap:methodology} -- Metodología:} Descripción detallada de los datasets utilizados, proceso de preprocesamiento, arquitecturas CNN implementadas, y configuración experimental.
+
+\textbf{Capítulo \ref{chap:experiments} -- Experimentos y Resultados:} Presentación de los resultados experimentales, análisis comparativo de diferentes modelos, y evaluación del rendimiento.
+
+\textbf{Capítulo \ref{chap:conclusion} -- Conclusiones y Trabajo Futuro:} Síntesis de los hallazgos principales, contribuciones del proyecto, limitaciones encontradas, y direcciones futuras de investigación.

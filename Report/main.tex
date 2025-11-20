@@ -42,26 +42,28 @@
 %%% Abstract %%%
 \include{Chapters/00-Abstract}
 
-% %%% Table of Contents, List of Figures and List of Tables %%%
+%%% Table of Contents, List of Figures and List of Tables %%%
 \bookmarktocentry\tableofcontents
-% \listoffigures
-% \listoftables
+\listoffigures
+\listoftables
 
 %%% Print: Glossary and Acronyms %%%
 % \glossarytoc\printnormalglossary
-% \acronymtoc\printacronymglossary
+\acronymtoc\printacronymglossary
 
 %%% Arabic Numeration %%%
 \pagenumbering{arabic}
 
-%%% Chapters (**Insert Yours Here**) %%%
-\include{Chapters/01-Content}
-\include{Chapters/02-User-Guide}
-\include{Chapters/03-Latex-Tutorial}
+%%% Chapters (**Research Paper Structure**) %%%
+\include{Chapters/01-Introduction}
+\include{Chapters/02-Related-Work}
+\include{Chapters/03-Methodology}
+\include{Chapters/04-Experiments-Results}
+\include{Chapters/05-Conclusion}
 
 %%% Bibliography %%%
-% \renewcommand{\refname}{Bibliography}
-% \printbibliography[title={\refname},heading=bibintoc]
+\renewcommand{\refname}{Bibliografía}
+\printbibliography[title={\refname},heading=bibintoc]
 
 %%% Appendices: Work that *YOU* Developed %%%
 \appendix

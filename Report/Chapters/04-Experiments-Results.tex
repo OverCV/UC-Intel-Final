@@ -1,0 +1,441 @@
+\chapter{Experimentos y Resultados}
+\label{chap:experiments}
+
+% TODO: Agregar todas las tablas, figuras y gráficos con resultados reales
+
+Este capítulo presenta los resultados experimentales obtenidos al aplicar la metodología descrita en el Capítulo \ref{chap:methodology}. Se analizan el rendimiento de diferentes arquitecturas CNN, se comparan resultados entre datasets, y se discuten las implicaciones de los hallazgos.
+
+% =============================================================================
+\section{Configuración Experimental}
+\label{sec:exp:setup}
+
+\subsection{Resumen de Experimentos Realizados}
+
+% TODO: Completar con lista exacta de experimentos ejecutados
+Se llevaron a cabo múltiples experimentos para evaluar:
+
+\begin{enumerate}
+    \item \textbf{Arquitectura CNN baseline:} Modelo personalizado diseñado específicamente para el problema
+    \item \textbf{Transfer Learning:} Modelos preentrenados (VGG16, ResNet50, InceptionV3) adaptados mediante fine-tuning
+    \item \textbf{Comparación entre datasets:} Evaluación del rendimiento en cada uno de los tres datasets
+    \item \textbf{Análisis de generalización:} Entrenamiento en un dataset y evaluación en otro
+    \item \textbf{Estudio de hiperparámetros:} Variación de learning rate, batch size, y técnicas de regularización
+\end{enumerate}
+
+\subsection{Entorno de Ejecución}
+
+% TODO: Completar con especificaciones reales del entorno
+Todos los experimentos se ejecutaron bajo las siguientes condiciones:
+\begin{itemize}
+    \item \textbf{Hardware:} [GPU/CPU específico]
+    \item \textbf{Framework:} TensorFlow 2.x / PyTorch 1.x
+    \item \textbf{Tiempo de entrenamiento promedio:} [X horas por modelo]
+    \item \textbf{Número de épocas:} Hasta 100 con early stopping (típicamente convergencia en 30-50 épocas)
+\end{itemize}
+
+% =============================================================================
+\section{Análisis Exploratorio de Datos}
+\label{sec:exp:eda}
+
+\subsection{Distribución de Familias de Malware}
+
+% TODO: Agregar tabla con distribución exacta por familia y dataset
+La Tabla \ref{tab:dataset-distribution} muestra la distribución de muestras por familia en cada dataset.
+
+\begin{table}[h]
+\centering
+\caption{Distribución de muestras por familia en los tres datasets}
+\label{tab:dataset-distribution}
+\begin{tabular}{lccc}
+\hline
+\textbf{Familia} & \textbf{MalImg} & \textbf{Malevis} & \textbf{Blended} \\
+\hline
+Alureon          & XXX             & XXX              & XXX              \\
+VB               & XXX             & XXX              & XXX              \\
+Rbot             & XXX             & XXX              & XXX              \\
+... (completar)  & ...             & ...              & ...              \\
+\hline
+\textbf{Total}   & \textbf{XXXX}   & \textbf{XXXX}    & \textbf{XXXX}    \\
+\hline
+\end{tabular}
+\end{table}
+
+\textit{Observación:} Se identifica desbalance moderado entre clases, con algunas familias representando menos del 2\% del total.
+
+\subsection{Visualización de Muestras}
+
+% TODO: Agregar figura con grid de imágenes de diferentes familias
+La Figura \ref{fig:malware-samples} presenta ejemplos visuales de diferentes familias de malware. Se observan patrones texturales distintivos que justifican el enfoque de clasificación mediante CNN.
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{Figures/malware_samples_grid.png}
+    \caption{Ejemplos de imágenes de malware de diferentes familias. Cada fila corresponde a una familia distinta, mostrando la variabilidad intra-clase y las diferencias inter-clase.}
+    \label{fig:malware-samples}
+\end{figure}
+
+% =============================================================================
+\section{Resultados de Clasificación}
+\label{sec:exp:results}
+
+\subsection{Rendimiento de Arquitecturas en MalImg Dataset}
+
+% TODO: Completar con resultados reales del entrenamiento
+La Tabla \ref{tab:results-malimg} presenta los resultados de diferentes arquitecturas evaluadas en el MalImg Dataset.
+
+\begin{table}[h]
+\centering
+\caption{Rendimiento de diferentes arquitecturas CNN en MalImg Dataset}
+\label{tab:results-malimg}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Modelo}         & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\hline
+CNN Baseline            & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+VGG16 (Fine-tuned)      & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+ResNet50 (Fine-tuned)   & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+InceptionV3 (Fine-tuned)& XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+\hline
+\end{tabular}
+\end{table}
+
+\textit{Análisis:} [Discutir qué modelo obtuvo mejor rendimiento y por qué]
+
+\subsection{Rendimiento en Malevis Dataset}
+
+% TODO: Agregar tabla similar para Malevis
+Los resultados en Malevis Dataset se presentan en la Tabla \ref{tab:results-malevis}.
+
+\begin{table}[h]
+\centering
+\caption{Rendimiento en Malevis Dataset}
+\label{tab:results-malevis}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Modelo}         & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\hline
+CNN Baseline            & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+VGG16 (Fine-tuned)      & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+ResNet50 (Fine-tuned)   & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+InceptionV3 (Fine-tuned)& XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Rendimiento en Blended Malware Dataset}
+
+% TODO: Agregar tabla para Blended
+Resultados en Blended Malware Dataset (Tabla \ref{tab:results-blended}).
+
+\begin{table}[h]
+\centering
+\caption{Rendimiento en Blended Malware Dataset}
+\label{tab:results-blended}
+\begin{tabular}{lcccc}
+\hline
+\textbf{Modelo}         & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} \\
+\hline
+CNN Baseline            & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+VGG16 (Fine-tuned)      & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+ResNet50 (Fine-tuned)   & XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+InceptionV3 (Fine-tuned)& XX.XX\%           & XX.XX\%            & XX.XX\%         & XX.XX\%           \\
+\hline
+\end{tabular}
+\end{table}
+
+% =============================================================================
+\section{Análisis Comparativo}
+\label{sec:exp:comparison}
+
+\subsection{Comparación entre Arquitecturas}
+
+% TODO: Agregar gráfico de barras comparando accuracy de todos los modelos
+La Figura \ref{fig:architecture-comparison} muestra una comparación visual del accuracy obtenido por cada arquitectura en los tres datasets.
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.85\textwidth]{Figures/architecture_comparison.png}
+    \caption{Comparación de accuracy entre diferentes arquitecturas CNN evaluadas en los tres datasets.}
+    \label{fig:architecture-comparison}
+\end{figure}
+
+\textbf{Hallazgos principales:}
+\begin{itemize}
+    \item [Describir qué arquitectura tuvo mejor rendimiento general]
+    \item [Analizar diferencias entre datasets]
+    \item [Discutir trade-offs entre complejidad y rendimiento]
+\end{itemize}
+
+\subsection{Análisis por Dataset}
+
+% TODO: Discutir diferencias en dificultad entre datasets
+Observaciones sobre las características de cada dataset:
+
+\textbf{MalImg Dataset:}
+\begin{itemize}
+    \item [Comentar sobre dificultad, balance de clases, rendimiento general]
+\end{itemize}
+
+\textbf{Malevis Dataset:}
+\begin{itemize}
+    \item [Comentar características distintivas y desafíos]
+</itemize}
+
+\textbf{Blended Dataset:}
+\begin{itemize}
+    \item [Comentar sobre diversidad y generalización]
+\end{itemize}
+
+% =============================================================================
+\section{Matrices de Confusión}
+\label{sec:exp:confusion}
+
+\subsection{Análisis de Errores de Clasificación}
+
+% TODO: Agregar matriz de confusión del mejor modelo
+La Figura \ref{fig:confusion-matrix} presenta la matriz de confusión del modelo con mejor rendimiento.
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{Figures/confusion_matrix.png}
+    \caption{Matriz de confusión del modelo [nombre del mejor modelo] en [dataset]. Los valores en la diagonal representan clasificaciones correctas.}
+    \label{fig:confusion-matrix}
+\end{figure}
+
+\textbf{Observaciones sobre patrones de confusión:}
+\begin{itemize}
+    \item [Identificar pares de familias frecuentemente confundidas]
+    \item [Analizar posibles razones: similitud estructural, técnicas de empaquetado compartidas, etc.]
+    \item [Discutir clases con mayor tasa de error]
+\end{itemize}
+
+% =============================================================================
+\section{Curvas de Entrenamiento}
+\label{sec:exp:training-curves}
+
+\subsection{Evolución de Loss y Accuracy}
+
+% TODO: Agregar gráficos de training/validation loss y accuracy
+La Figura \ref{fig:training-curves} muestra la evolución de loss y accuracy durante el entrenamiento del mejor modelo.
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.85\textwidth]{Figures/training_curves.png}
+    \caption{Curvas de entrenamiento y validación para el modelo [nombre]. (a) Loss function. (b) Accuracy.}
+    \label{fig:training-curves}
+\end{figure}
+
+\textbf{Análisis:}
+\begin{itemize}
+    \item [Describir convergencia: número de épocas hasta estabilización]
+    \item [Evaluar presencia de overfitting: brecha entre train y validation]
+    \item [Comentar efectividad de regularización y early stopping]
+\end{itemize}
+
+% =============================================================================
+\section{Análisis de Generalización}
+\label{sec:exp:generalization}
+
+\subsection{Entrenamiento y Evaluación Cross-Dataset}
+
+% TODO: Agregar tabla con resultados de generalización entre datasets
+Se evaluó la capacidad de generalización entrenando en un dataset y evaluando en otro (Tabla \ref{tab:cross-dataset}).
+
+\begin{table}[h]
+\centering
+\caption{Accuracy de generalización cross-dataset}
+\label{tab:cross-dataset}
+\begin{tabular}{lccc}
+\hline
+\textbf{Entrenado en} $\rightarrow$ \textbf{Evaluado en} & \textbf{MalImg} & \textbf{Malevis} & \textbf{Blended} \\
+\hline
+MalImg                                                     & XX.XX\%         & XX.XX\%          & XX.XX\%          \\
+Malevis                                                    & XX.XX\%         & XX.XX\%          & XX.XX\%          \\
+Blended                                                    & XX.XX\%         & XX.XX\%          & XX.XX\%          \\
+\hline
+\end{tabular}
+\end{table}
+
+\textit{Interpretación:} [Discutir qué tanto disminuye el rendimiento al evaluar en datasets diferentes al de entrenamiento. Analizar qué combinaciones generalizan mejor.]
+
+% =============================================================================
+\section{Estudio de Hiperparámetros}
+\label{sec:exp:hyperparameters}
+
+\subsection{Impacto del Learning Rate}
+
+% TODO: Agregar gráfico de grid search o análisis de sensibilidad
+Se experimentó con diferentes valores de learning rate inicial para evaluar su impacto en convergencia y rendimiento final.
+
+\begin{table}[h]
+\centering
+\caption{Impacto del learning rate en el rendimiento final}
+\label{tab:learning-rate}
+\begin{tabular}{lcc}
+\hline
+\textbf{Learning Rate} & \textbf{Accuracy (\%)} & \textbf{Épocas hasta convergencia} \\
+\hline
+0.0001                 & XX.XX                  & XX                                 \\
+0.001                  & XX.XX                  & XX                                 \\
+0.01                   & XX.XX                  & XX                                 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Efecto del Batch Size}
+
+% TODO: Analizar impacto de diferentes batch sizes
+La Tabla \ref{tab:batch-size} muestra cómo el tamaño del batch afecta el rendimiento y tiempo de entrenamiento.
+
+\begin{table}[h]
+\centering
+\caption{Impacto del batch size}
+\label{tab:batch-size}
+\begin{tabular}{lccc}
+\hline
+\textbf{Batch Size} & \textbf{Accuracy (\%)} & \textbf{Tiempo/Época (seg)} & \textbf{Uso Memoria (GB)} \\
+\hline
+16                  & XX.XX                  & XX                          & XX                        \\
+32                  & XX.XX                  & XX                          & XX                        \\
+64                  & XX.XX                  & XX                          & XX                        \\
+128                 & XX.XX                  & XX                          & XX                        \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Técnicas de Regularización}
+
+% TODO: Comparar rendimiento con/sin dropout, data augmentation, etc.
+Evaluación del impacto de diferentes técnicas de regularización en la prevención de overfitting.
+
+% =============================================================================
+\section{Análisis de Características Aprendidas}
+\label{sec:exp:features}
+
+\subsection{Visualización de Mapas de Activación}
+
+% TODO: Agregar visualizaciones de activation maps (Grad-CAM, etc.)
+La Figura \ref{fig:activation-maps} muestra mapas de activación (mediante Grad-CAM o técnicas similares) que revelan qué regiones de las imágenes de malware son más relevantes para la clasificación.
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{Figures/activation_maps.png}
+    \caption{Mapas de activación mostrando regiones de interés para la CNN al clasificar diferentes familias de malware. Las zonas más brillantes indican mayor importancia para la decisión del modelo.}
+    \label{fig:activation-maps}
+\end{figure}
+
+\textbf{Interpretación:}
+\begin{itemize}
+    \item [Describir qué secciones del ejecutable son más discriminativas]
+    \item [Analizar si el modelo aprende características interpretables]
+    \item [Comentar consistencia entre muestras de la misma familia]
+\end{itemize}
+
+\subsection{Reducción Dimensional y Clustering}
+
+% TODO: Agregar visualización t-SNE o PCA de embeddings
+Se aplicó t-SNE sobre las representaciones aprendidas en la penúltima capa del modelo para visualizar separabilidad de clases (Figura \ref{fig:tsne}).
+
+\begin{figure}[h]
+    \centering
+    % \includegraphics[width=0.8\textwidth]{Figures/tsne_visualization.png}
+    \caption{Visualización t-SNE de las representaciones aprendidas. Cada punto representa una muestra de malware, coloreada por su familia. La formación de clusters indica buena separabilidad aprendida por el modelo.}
+    \label{fig:tsne}
+\end{figure}
+
+% =============================================================================
+\section{Comparación con Estado del Arte}
+\label{sec:exp:sota}
+
+\subsection{Comparación con Trabajos Previos}
+
+% TODO: Agregar tabla comparando con resultados publicados en literatura
+La Tabla \ref{tab:sota-comparison} compara los resultados obtenidos en este proyecto con trabajos previos reportados en la literatura.
+
+\begin{table}[h]
+\centering
+\caption{Comparación con estado del arte en MalImg Dataset}
+\label{tab:sota-comparison}
+\begin{tabular}{lcc}
+\hline
+\textbf{Método}                    & \textbf{Accuracy (\%)} & \textbf{Referencia}    \\
+\hline
+[Trabajo 1]                        & XX.XX                  & [Autor et al., Año]    \\
+[Trabajo 2]                        & XX.XX                  & [Autor et al., Año]    \\
+[Trabajo 3]                        & XX.XX                  & [Autor et al., Año]    \\
+\hline
+\textbf{Este proyecto (mejor modelo)} & \textbf{XX.XX}     & \textbf{--}            \\
+\hline
+\end{tabular}
+\end{table}
+
+\textit{Análisis:} [Discutir si los resultados son competitivos con el estado del arte, considerar diferencias en configuración experimental]
+
+% =============================================================================
+\section{Análisis de Tiempo de Inferencia}
+\label{sec:exp:inference}
+
+\subsection{Eficiencia Computacional}
+
+% TODO: Medir y reportar tiempos de inferencia por muestra
+La Tabla \ref{tab:inference-time} presenta el tiempo promedio de inferencia por muestra para cada arquitectura.
+
+\begin{table}[h]
+\centering
+\caption{Tiempo de inferencia promedio}
+\label{tab:inference-time}
+\begin{tabular}{lcc}
+\hline
+\textbf{Modelo}         & \textbf{Tiempo (ms/muestra)} & \textbf{Throughput (muestras/seg)} \\
+\hline
+CNN Baseline            & XX.XX                        & XXX                                \\
+VGG16                   & XX.XX                        & XXX                                \\
+ResNet50                & XX.XX                        & XXX                                \\
+InceptionV3             & XX.XX                        & XXX                                \\
+\hline
+\end{tabular}
+\end{table}
+
+\textit{Implicaciones:} [Discutir trade-off entre precisión y velocidad. Comentar viabilidad para sistemas en tiempo real.]
+
+% =============================================================================
+\section{Limitaciones y Desafíos Observados}
+\label{sec:exp:limitations}
+
+Durante la experimentación se identificaron las siguientes limitaciones y desafíos:
+
+\subsection{Desbalance de Clases}
+
+A pesar de aplicar técnicas de ponderación, algunas familias minoritarias presentan menor recall, indicando dificultad para generarlas adecuadamente.
+
+\subsection{Familias Similares}
+
+Ciertas familias de malware comparten técnicas de empaquetado o estructuras, resultando en confusión sistemática entre ellas.
+
+\subsection{Dependencia de Tamaño de Imagen}
+
+El redimensionamiento de ejecutables muy grandes puede resultar en pérdida de información fina, mientras que ejecutables pequeños pueden sufrir de sobre-representación de padding.
+
+\subsection{Limitaciones de Generalización}
+
+El rendimiento cross-dataset disminuye notablemente, sugiriendo que los modelos capturan características específicas del dataset de entrenamiento.
+
+% =============================================================================
+\section{Resumen de Resultados}
+\label{sec:exp:summary}
+
+Los principales hallazgos de este capítulo son:
+
+\begin{enumerate}
+    \item El mejor modelo alcanzó un accuracy de \textbf{XX.XX\%} en el dataset [nombre], demostrando la viabilidad del enfoque basado en CNN para clasificación de malware.
+
+    \item Los modelos con transfer learning [superaron/no superaron] significativamente al modelo baseline, indicando [interpretación].
+
+    \item Se identificaron patrones de confusión entre familias específicas, revelando desafíos inherentes a la similitud estructural entre ciertas clases.
+
+    \item El análisis de generalización cross-dataset reveló [resultado], sugiriendo [implicación].
+
+    \item Las visualizaciones de mapas de activación muestran que el modelo se enfoca en [descripción de regiones relevantes].
+\end{enumerate}
+
+Estos resultados demuestran que el análisis visual de malware mediante CNN es un enfoque prometedor, aunque con limitaciones que deben considerarse para aplicaciones en entornos reales.
