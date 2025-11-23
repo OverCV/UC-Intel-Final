@@ -18,7 +18,7 @@
 ```
 [st.header] Dataset Overview
 
-[st.info] Using combined dataset from: repo/malware/
+[st.info] Using combined dataset from: repo/
     Total Samples: {count}
     Number of Classes: {num_classes}
     Image Format: PNG
