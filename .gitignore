@@ -5,6 +5,9 @@ repo/
 .history/
 .explore/
 
+# Large datasets (stored in cloud)
+repo.template/*.zip
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
