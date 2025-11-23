@@ -22,7 +22,7 @@ dependencies = [
     "numpy>=1.24.0",
     
     # Dashboard and Visualization  
-    "solara>=1.29.0",
+    "streamlit",
     "plotly>=5.17.0",
     "anywidget>=0.8.0",
     "matplotlib>=3.7.0",
