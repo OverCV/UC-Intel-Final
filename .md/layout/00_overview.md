@@ -157,5 +157,5 @@ Instead, configure:
 - **Framework:** PyTorch (already in dependencies)
 - **UI:** Streamlit (already in dependencies)
 - **Visualization:** Plotly (interactive charts) + Mermaid (diagrams)
-- **Dataset:** Located in `repo/malware/` (combined/blended)
+- **Dataset:** Located in `repo/` (combined/blended)
 - **Compute:** Flexible (local or remote backend)
