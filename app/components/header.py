@@ -1,20 +1,19 @@
 """
 Header Component
-Persistent header section shown on all pages
+Persistent header with app title, session info, and session controls
 """
-
-import streamlit as st
 
 from components.styling import inject_custom_css
 from components.utils import clear_session
 from state.ui import get_past_sessions
 from state.workflow import get_session_id
+import streamlit as st
 
 
 def render_header():
     """
     Persistent header section shown on all pages
-    Contains app title, session info, quick actions
+    Contains app title, current session, and session management controls
     """
     # Apply custom CSS
     inject_custom_css()
@@ -38,14 +37,14 @@ def render_header():
                 "Past Sessions",
                 options=["Current"] + past_sessions,
                 label_visibility="visible",
-                help="Load a previous training session to review results"
+                help="Load a previous training session to review results",
             )
         else:
             st.caption("No past sessions")
 
     with header_col3:
         # Quick action buttons in header
-        if st.button("New Session", width='stretch'):
+        if st.button("New Session", use_container_width=True):
             clear_session()
             st.rerun()
 

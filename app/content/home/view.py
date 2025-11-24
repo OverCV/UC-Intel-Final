@@ -1,8 +1,9 @@
 """
 Page 1: Home & Setup
-BFS Level: Interface & Section Structure Only
+Project overview and quick start guide
 """
 
+from components.utils import check_gpu_available
 import streamlit as st
 
 
@@ -13,11 +14,8 @@ def render():
     # Section 1: Project Overview
     render_project_overview()
 
-    # Section 2: Quick Start
+    # Section 2: System Status & Quick Actions
     render_quick_start()
-
-    # Section 3: Load Previous Session
-    render_load_session()
 
 
 def render_project_overview():
@@ -36,33 +34,31 @@ def render_project_overview():
 
 
 def render_quick_start():
-    """Section 2: System status and new session"""
-    st.header("Quick Start")
+    """Section 2: System status and workflow guide"""
+    st.header("System Status")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("Dataset", "Combined")
+        st.metric("Dataset", "Combined Malware")
     with col2:
-        st.metric("Pre-trained Models", "5")
+        st.metric("Available Models", "5")
     with col3:
-        st.metric("GPU Status", "Checking...")
+        gpu_status = "Available" if check_gpu_available() else "Not Available"
+        st.metric("GPU Status", gpu_status)
 
-    if st.button("Start New Training Session", type="primary"):
-        # TODO: Create new session, navigate to dataset page
-        st.info("Navigation to Dataset page - TO BE IMPLEMENTED")
+    st.divider()
 
+    st.header("Workflow")
+    st.markdown("""
+    **To start a new training session:**
+    1. Create a new session using the **"New Session"** button in the header
+    2. Navigate to **Dataset** page to configure your data
+    3. Go to **Model** page to design your architecture
+    4. Configure training parameters in **Training** page
+    5. Monitor your training in **Monitor** page
+    6. View results in **Results** and **Interpretability** pages
 
-def render_load_session():
-    """Section 3: Resume previous experiments"""
-    st.header("Load Previous Session")
-
-    # TODO: Load actual sessions from storage
-    sessions = ["No previous sessions"]
-
-    selected_session = st.selectbox("Select Session", sessions)
-
-    if st.button("Load Session"):
-        st.info("Session loading - TO BE IMPLEMENTED")
-
-    # TODO: Add session history table
+    **To resume a previous session:**
+    - Use the **"Past Sessions"** dropdown in the header to load a previous session
+    """)
