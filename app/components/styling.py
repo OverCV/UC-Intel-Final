@@ -3,10 +3,9 @@ Styling Component
 Custom CSS injection for professional styling
 """
 
-import streamlit as st
-
 from constants import GET_CSS
 from state.ui import get_theme_colors
+import streamlit as st
 
 
 def inject_custom_css():

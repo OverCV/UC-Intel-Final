@@ -3,11 +3,10 @@ Main Entry Point - Streamlit Multipage App
 Defines navigation for self-contained content modules
 """
 
-import streamlit as st
-
 from state.cache import init_cache_state
 from state.ui import init_ui_state
 from state.workflow import init_workflow_state
+import streamlit as st
 
 # Configure app
 st.set_page_config(

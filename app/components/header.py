@@ -1,49 +1,84 @@
 """
 Header Component
-Persistent header with app title, session info, and session controls
+Persistent header with app title, session info, config status, and session controls
 """
 
 from components.styling import inject_custom_css
 from components.utils import clear_session
-from state.ui import get_past_sessions
-from state.workflow import get_session_id
+from state.persistence import list_saved_sessions, load_session
+from state.workflow import (
+    get_session_id,
+    has_dataset_config,
+    has_model_config,
+    has_training_config,
+)
 import streamlit as st
 
 
 def render_header():
     """
     Persistent header section shown on all pages
-    Contains app title, current session, and session management controls
+    Contains app title, current session, configuration status, and session controls
     """
     # Apply custom CSS
     inject_custom_css()
 
-    # Main header container
-    header_col1, header_col2, header_col3 = st.columns([2, 1, 1])
+    # Row 1: Title and session ID
+    col1, col2 = st.columns([3, 1])
 
-    with header_col1:
+    with col1:
         st.markdown("### Malware Classification")
+
+    with col2:
         session_id = get_session_id()
         if session_id:
             st.caption(f"Session: {session_id}")
         else:
             st.caption("No active session")
 
-    with header_col2:
-        past_sessions = get_past_sessions()
+    # Row 2: Configuration status + session controls
+    status_col, sessions_col, button_col = st.columns([2, 1, 1])
 
-        if past_sessions:
+    with status_col:
+        # Configuration status indicators
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            icon = "✅" if has_dataset_config() else "⬜"
+            st.markdown(f"{icon} Dataset")
+        with col2:
+            icon = "✅" if has_model_config() else "⬜"
+            st.markdown(f"{icon} Model")
+        with col3:
+            icon = "✅" if has_training_config() else "⬜"
+            st.markdown(f"{icon} Training")
+
+    with sessions_col:
+        # Past sessions dropdown (functional)
+        saved_sessions = list_saved_sessions()
+        current_session = get_session_id()
+
+        if saved_sessions:
+            # Create options with current session first
+            options = ["Current"]
+            options.extend([s for s in saved_sessions if s != current_session])
+
             selected = st.selectbox(
-                "Past Sessions",
-                options=["Current"] + past_sessions,
+                "Load Session",
+                options=options,
                 label_visibility="visible",
-                help="Load a previous training session to review results",
+                help="Load a previous training session",
             )
+
+            # Load session if different from current
+            if selected != "Current" and selected != current_session:
+                if load_session(selected):
+                    st.success(f"Loaded: {selected}")
+                    st.rerun()
         else:
             st.caption("No past sessions")
 
-    with header_col3:
-        # Quick action buttons in header
+    with button_col:
+        # New session button
         if st.button("New Session", use_container_width=True):
             clear_session()
             st.rerun()

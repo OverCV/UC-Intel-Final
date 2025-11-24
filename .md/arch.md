@@ -1,446 +1,830 @@
 # Streamlit UI Architecture
 ## Malware Classification Dashboard
 
-> **⚠️ HISTORICAL DOCUMENT**
-> This document represents the initial architectural vision from the planning phase.
-> For the **current implementation**, see [README.md](../app/README.md) in the `app/` directory.
->
-> **Key Differences:**
-> - Current implementation uses self-contained `content/` folders (not `pages/` + `core/`)
-> - Components are flat structure (not hierarchical subdirectories)
-> - State management split into `state/workflow.py`, `state/ui.py`, `state/cache.py`
-> - Tab-based file organization within content pages
+**Status:** Production Implementation
+**Project:** Proyecto Final - Sistemas Inteligentes II
+**Institution:** Universidad de Caldas
 
 ---
 
-## 📁 Project Structure
+## 📁 Current Project Structure
 
 ```
-streamlit_malware_classifier/
+app/
+├── main.py                              # Entry point + navigation setup
 │
-├── app.py                              # Main entry + navigation
+├── content/                             # Self-contained page modules
+│   ├── home/
+│   │   ├── page.py                      # Entry point
+│   │   └── view.py                      # Home page view logic
+│   │
+│   ├── dataset/                         # Dataset configuration module
+│   │   ├── page.py                      # Entry point
+│   │   ├── view.py                      # Main coordinator with tabs
+│   │   └── tabs/
+│   │       ├── overview.py              # Dataset selection & split configuration
+│   │       ├── distribution.py          # Class distribution visualization
+│   │       ├── augmentation.py          # Data augmentation settings
+│   │       └── samples.py               # Sample image viewer
+│   │
+│   ├── model/                           # Model builder (in progress)
+│   │   ├── page.py
+│   │   └── view.py
+│   │
+│   ├── training/                        # Training configuration (in progress)
+│   │   ├── page.py
+│   │   └── view.py
+│   │
+│   ├── monitor/                         # Training monitor (in progress)
+│   │   ├── page.py
+│   │   └── view.py
+│   │
+│   ├── results/                         # Results & evaluation (planned)
+│   │   ├── page.py
+│   │   └── view.py
+│   │
+│   └── interpret/                       # Model interpretability (planned)
+│       ├── page.py
+│       └── view.py
 │
-├── pages/                              # 7 main pages
-│   ├── 01_🏠_dashboard
-│   ├── 02_📊_dataset_explorer
-│   ├── 03_🔧_model_builder
-│   ├── 04_⚙️_training
-│   ├── 05_📈_results
-│   ├── 06_🔬_experiments
-│   └── 07_🎨_visualization
+├── components/                          # Shared UI components (flat structure)
+│   ├── header.py                        # App header with session info
+│   ├── sidebar.py                       # Configuration status sidebar
+│   ├── theme.py                         # Theme customization
+│   ├── styling.py                       # CSS injection
+│   └── utils.py                         # GPU detection, session management
 │
-├── components/                         # Reusable UI components
-│   ├── sidebar/
-│   │   ├── navigation.py
-│   │   ├── quick_stats.py
-│   │   └── experiment_selector.py
-│   │
-│   ├── dataset/
-│   │   ├── dataset_selector.py
-│   │   ├── split_config.py
-│   │   ├── augmentation_panel.py
-│   │   ├── sample_viewer.py
-│   │   └── preprocessing_preview.py
-│   │
-│   ├── model/
-│   │   ├── architecture_selector.py
-│   │   ├── layer_builder.py
-│   │   ├── activation_selector.py
-│   │   └── model_summary.py
-│   │
-│   ├── training/
-│   │   ├── hyperparameter_panel.py
-│   │   ├── callbacks_config.py
-│   │   ├── training_monitor.py
-│   │   └── live_charts.py
-│   │
-│   ├── results/
-│   │   ├── metrics_cards.py
-│   │   ├── confusion_matrix.py
-│   │   ├── classification_report.py
-│   │   └── roc_curves.py
-│   │
-│   └── visualization/
-│       ├── activation_maps.py
-│       ├── tsne_plot.py
-│       ├── gradcam.py
-│       └── lime_explainer.py
+├── state/                               # Session state management (NO __init__.py)
+│   ├── workflow.py                      # ML workflow state (configs, training)
+│   ├── ui.py                            # UI preferences (theme, past sessions)
+│   ├── cache.py                         # Cached data (dataset scans, splits)
+│   ├── session_state.py                 # Session state utilities
+│   └── persistence.py                   # Session persistence to disk
 │
-├── core/                               # Business logic (non-UI)
-│   ├── data/
-│   │   ├── loaders.py
-│   │   ├── preprocessors.py
-│   │   └── augmentations.py
-│   │
-│   ├── models/
-│   │   ├── baseline_cnn.py
-│   │   ├── transfer_learning.py
-│   │   └── activations.py
-│   │
-│   ├── training/
-│   │   ├── trainer.py
-│   │   └── callbacks.py
-│   │
-│   └── evaluation/
-│       ├── metrics.py
-│       └── visualization.py
+├── utils/                               # Utility functions
+│   ├── dataset_utils.py                 # Dataset scanning & processing
+│   ├── dataset_sections.py              # Dataset section helpers
+│   └── dataset_viz.py                   # Dataset visualizations
 │
-├── utils/
-│   ├── state.py                        # Session state helpers
-│   ├── config.py                       # Config management
-│   └── io.py                           # File I/O
-│
-├── experiments/                        # Data storage
-│   └── registry.json
+├── config.py                            # Application configuration
+├── constants.py                         # Application constants
 │
 └── .streamlit/
-    └── config.toml
+    └── config.toml                      # Streamlit theme & server config
 ```
 
 ---
 
-## 🔄 Data Flow
+## 🏗️ Architecture Principles
+
+### 1. **Self-Contained Page Modules**
+Each page in `content/` is fully self-contained in its own folder with:
+- `page.py` - Entry point that renders header/sidebar and calls view
+- `view.py` - Main view logic and coordinator
+- `tabs/` - Optional subfolder for complex multi-tab pages
+
+### 2. **Tab-Based Content Organization**
+Complex pages (like Dataset) split content into multiple tab files:
+```python
+# content/dataset/view.py
+def render():
+    tabs = st.tabs(["Overview", "Distribution", "Augmentation", "Samples"])
+    with tabs[0]:
+        overview.render()
+    with tabs[1]:
+        distribution.render()
+    # ...
+```
+
+### 3. **No __init__.py Files**
+All imports use absolute paths from project root:
+```python
+from content.dataset.view import render
+from state.workflow import get_dataset_config
+from components.header import render_header
+```
+
+### 4. **State Management Abstraction**
+All session state access goes through `state/` module functions:
+- **NEVER** access `st.session_state` directly
+- **ALWAYS** use functions from `state/workflow.py`, `state/ui.py`, or `state/cache.py`
+
+```python
+# ❌ Don't do this
+value = st.session_state.dataset_config
+
+# ✅ Do this
+from state.workflow import get_dataset_config
+value = get_dataset_config()
+```
+
+### 5. **Flat Component Structure**
+Shared components stay in flat `components/` directory, not nested by category.
+
+---
+
+## 🔄 Data Flow Architecture
 
 ```mermaid
 graph TB
-    UI[Streamlit Pages] --> COMP[UI Components]
-    COMP --> STATE[st.session_state]
-    COMP --> CACHE[st.cache_data/resource]
+    USER[User Interaction] --> PAGE[Page Entry point.py]
+    PAGE --> VIEW[view.py Coordinator]
+    VIEW --> TABS[Tab Renderers]
 
-    STATE --> CORE[Core Logic]
-    CACHE --> CORE
+    TABS --> STATE[State Management]
+    TABS --> COMP[UI Components]
+    TABS --> UTILS[Utility Functions]
 
-    CORE --> DATA[Data Module]
-    CORE --> MODEL[Models Module]
-    CORE --> TRAIN[Training Module]
-    CORE --> EVAL[Evaluation Module]
+    STATE --> WORKFLOW[state/workflow.py]
+    STATE --> UI[state/ui.py]
+    STATE --> CACHE[state/cache.py]
+    STATE --> PERSIST[state/persistence.py]
 
-    DATA --> STORAGE[(Storage)]
-    MODEL --> STORAGE
-    TRAIN --> STORAGE
-    EVAL --> STORAGE
+    COMP --> HEADER[components/header.py]
+    COMP --> SIDEBAR[components/sidebar.py]
+    COMP --> THEME[components/theme.py]
 
-    STORAGE --> UI
+    UTILS --> DATASET[utils/dataset_utils.py]
+    UTILS --> VIZ[utils/dataset_viz.py]
+
+    PERSIST --> DISK[(Session Files)]
+    CACHE --> MEMORY[(st.cache_data/resource)]
 ```
 
 ---
 
-## 🛠️ Streamlit Components We'll Use
+## 🗺️ Navigation Structure
 
-### Essential Components
+### Current Pages
 
-**Layout:**
-- `st.columns()`, `st.tabs()`, `st.container()`, `st.expander()`, `st.sidebar`
-- `st.empty()` for real-time updates
+**Main**
+- 🏠 **Home** (`/home`) - Session setup and overview
 
-**Inputs:**
-- `st.slider()` - continuous values (LR, dropout, epochs)
-- `st.selectbox()` - single choice (optimizer, activation)
-- `st.multiselect()` - multiple choices (datasets, classes to display)
-- `st.checkbox()`, `st.radio()`, `st.toggle()`
-- `st.button()`, `st.download_button()`
-- `st.text_input()`, `st.text_area()`, `st.file_uploader()`
+**Workflow**
+- 📊 **Dataset** (`/dataset`) - Dataset configuration with 4 tabs
+- 🧠 **Model** (`/model`) - Model architecture builder
+- ⚙️ **Training** (`/training`) - Training hyperparameter configuration
+- 📈 **Monitor** (`/monitor`) - Live training monitoring
+- 🎯 **Results** (`/results`) - Results and evaluation metrics
+- 🔍 **Interpretability** (`/interpretability`) - Model interpretation tools
 
-**Display:**
-- `st.dataframe()` - interactive tables
-- `st.metric()` - key stats with delta
-- `st.plotly_chart()` - ALL charts (training curves, confusion matrix, ROC, t-SNE)
-- `st.image()` - malware images, heatmaps
+### Status Indicators (Sidebar)
 
-**Status:**
-- `st.progress()`, `st.spinner()`, `st.status()`
-- `st.success()`, `st.info()`, `st.warning()`, `st.error()`, `st.toast()`
+Configuration status is shown in sidebar:
+- ✅ Dataset configured
+- ✅ Model configured
+- ✅ Training configured
 
-**State & Caching:**
-- `st.session_state` - persist data across pages
-- `@st.cache_data` - cache expensive operations (dataset loading)
-- `@st.cache_resource` - cache singletons (models)
-
-**Execution:**
-- `st.form()` + `st.form_submit_button()` - batch submit hyperparameters
-- `@st.fragment(run_every="1s")` - auto-refresh training metrics
-- `st.rerun()` - force refresh
-
-**Navigation:**
-- `st.set_page_config()`, `st.navigation()`, `st.Page()`
+Status updates automatically based on workflow state.
 
 ---
 
-## 🎨 Page Layouts
+## 📊 Implemented Features
 
-### Page 1: 🏠 Dashboard
+### ✅ Core Infrastructure
 
-```mermaid
-graph TD
-    TITLE[st.title: Dashboard]
-    METRICS[st.columns: 4x st.metric<br/>Total Exps, Best Acc, Active Runs, GPU]
-    TABLE[st.dataframe: Recent Experiments<br/>Top 5, sortable]
-    CHART[st.plotly_chart: Accuracy Trend<br/>Line chart over time]
-    BTNS[st.columns: Quick Action Buttons<br/>New Exp, Resume, View Results]
+**State Management**
+- `state/workflow.py` - ML workflow configuration state
+- `state/ui.py` - UI preferences and theme
+- `state/cache.py` - Cached dataset scans and expensive operations
+- `state/persistence.py` - Session save/load functionality
+- TypedDict definitions for type safety
+
+**Components**
+- Header with session ID and info
+- Sidebar with configuration status
+- Theme customization (4 presets: Green, Blue, Pink, Orange)
+- Dynamic CSS injection
+- GPU detection and memory monitoring
+
+**Navigation**
+- Multi-page navigation with `st.navigation()`
+- URL routing for direct page access
+- Grouped navigation (Main, Workflow)
+
+### ✅ Dataset Module (Complete)
+
+**Tab 1: Overview**
+- Automated dataset scanning from `repo/malware/`
+- Train/validation/test split configuration with sliders
+- Dataset metadata display
+- Configuration validation
+
+**Tab 2: Distribution**
+- Class distribution bar chart
+- Family statistics
+- Sample counts per class
+
+**Tab 3: Augmentation**
+- Augmentation preset selection (None, Light, Medium, Heavy)
+- Custom augmentation configuration
+- Preview of augmentation effects
+
+**Tab 4: Samples**
+- Sample image viewer with pagination
+- Filter by malware family
+- Image grid display
+- Metadata display per sample
+
+**Dataset Utilities**
+- `utils/dataset_utils.py` - Dataset scanning and processing
+- `utils/dataset_viz.py` - Visualization functions
+- Cached dataset loading with `@st.cache_data`
+
+### 🔄 In Progress
+
+**Model Builder**
+- PyTorch architecture configuration
+- Transfer learning support
+- Custom CNN builder
+- Model summary visualization
+
+**Training Configuration**
+- Hyperparameter selection
+- Optimizer configuration
+- Learning rate scheduling
+- Callbacks setup
+
+**Training Monitor**
+- Live training metrics with `@st.fragment(run_every="1s")`
+- Training curves (loss, accuracy)
+- Progress bars
+- Stop/pause controls
+
+### 🔜 Planned
+
+**Results & Evaluation**
+- Confusion matrix visualization
+- Per-class metrics (precision, recall, F1)
+- ROC curves and AUC scores
+- Training history plots
+- Model comparison
+
+**Interpretability**
+- Grad-CAM visualization
+- t-SNE embeddings
+- Activation map visualization
+- LIME explanations
+- Filter visualization
+
+---
+
+## 🛠️ Streamlit Components Used
+
+### Layout Components
+```python
+st.columns()           # Multi-column layouts
+st.tabs()              # Tabbed content organization
+st.container()         # Content grouping
+st.expander()          # Collapsible sections
+st.sidebar             # Sidebar content
+st.empty()             # Placeholder for updates
 ```
 
-### Page 2: 📊 Dataset Explorer
-
-```mermaid
-graph TD
-    TITLE[st.title: Dataset Explorer]
-
-    TABS[st.tabs: 4 tabs]
-
-    TAB1[Tab 1: Selection & Split<br/>- st.multiselect: Choose datasets<br/>- st.slider: Train/Val/Test split<br/>- st.plotly_chart: Family distribution bar]
-
-    TAB2[Tab 2: Preprocessing<br/>- st.columns: Before/After preview<br/>- st.selectbox: Target size<br/>- st.radio: Normalization method]
-
-    TAB3[Tab 3: Augmentation<br/>- st.radio: Preset levels<br/>- st.form: Custom augmentation config<br/>- st.image: Preview grid]
-
-    TAB4[Tab 4: Sample Viewer<br/>- st.selectbox: Filter by family<br/>- st.columns: Image grid<br/>- Pagination controls]
-
-    TABS --> TAB1
-    TABS --> TAB2
-    TABS --> TAB3
-    TABS --> TAB4
+### Input Components
+```python
+st.slider()            # Numeric ranges (split ratios, epochs, LR)
+st.selectbox()         # Single choice (optimizer, activation)
+st.multiselect()       # Multiple choices (datasets, classes)
+st.checkbox()          # Boolean flags
+st.radio()             # Radio button groups
+st.toggle()            # Toggle switches
+st.button()            # Action buttons
+st.file_uploader()     # File uploads
+st.color_picker()      # Theme color selection
 ```
 
-### Page 3: 🔧 Model Builder
-
-```mermaid
-graph TD
-    TITLE[st.title: Model Builder]
-    TYPE[st.radio: Model Type<br/>Custom CNN, Transfer Learning]
-
-    SPLIT[st.columns: 2 columns]
-
-    LEFT[LEFT: Configuration<br/>- st.form: Architecture config<br/>- Conv blocks: filters, kernel, activation<br/>- Dense layers: units, dropout<br/>- st.form_submit_button: Build Model]
-
-    RIGHT[RIGHT: Live Preview<br/>- Architecture diagram text<br/>- st.metric: Total params, Memory<br/>- st.download_button: Export code]
-
-    TRANSFER[If Transfer Learning:<br/>- Model selection grid<br/>- Weights source<br/>- Fine-tuning strategy]
-
-    SPLIT --> LEFT
-    SPLIT --> RIGHT
-    TYPE --> TRANSFER
+### Display Components
+```python
+st.dataframe()         # Interactive tables
+st.metric()            # Key metrics with delta
+st.plotly_chart()      # All visualizations
+st.image()             # Image display
+st.markdown()          # Formatted text
 ```
 
-### Page 4: ⚙️ Training Control Center
-
-```mermaid
-graph TD
-    TITLE[st.title: Training Control]
-
-    CONFIG[st.columns: 3 columns<br/>Optimizer | Scheduler | Callbacks]
-
-    FORM[st.form: Training Parameters<br/>- Epochs, batch size, regularization<br/>- Experiment name, description, tags<br/>- st.form_submit_button: Start Training]
-
-    BTNS[Control Buttons<br/>Start, Pause, Stop, Save Config]
-
-    MONITOR[@st.fragment run_every=1s<br/>Live Monitoring:<br/>- st.status: Training status<br/>- st.progress: Epoch progress<br/>- st.metric: Current metrics<br/>- st.plotly_chart: Live curves<br/>- Log output]
-
-    TITLE --> CONFIG --> FORM --> BTNS --> MONITOR
+### Status Components
+```python
+st.progress()          # Progress bars
+st.spinner()           # Loading indicators
+st.status()            # Status messages
+st.success()           # Success messages
+st.info()              # Info messages
+st.warning()           # Warning messages
+st.error()             # Error messages
+st.toast()             # Toast notifications
 ```
 
-### Page 5: 📈 Results
-
-```mermaid
-graph TD
-    TITLE[st.title: Results]
-    SEL[st.selectbox: Select Experiment]
-
-    TABS[st.tabs: 4 tabs]
-
-    T1[Tab 1: Summary<br/>- st.metric: Overall metrics<br/>- st.plotly_chart: Training history<br/>- st.download_button: Export]
-
-    T2[Tab 2: Confusion Matrix<br/>- st.plotly_chart: Interactive heatmap<br/>- st.dataframe: Most confused pairs]
-
-    T3[Tab 3: Per-Class Metrics<br/>- st.dataframe: Classification report<br/>- st.plotly_chart: F1 bar chart]
-
-    T4[Tab 4: ROC Curves<br/>- st.multiselect: Select classes<br/>- st.plotly_chart: ROC curves<br/>- st.table: AUC scores]
-
-    TABS --> T1
-    TABS --> T2
-    TABS --> T3
-    TABS --> T4
+### State & Caching
+```python
+st.session_state       # (accessed via state/ modules only)
+@st.cache_data         # Cache expensive data operations
+@st.cache_resource     # Cache singletons (models, connections)
 ```
 
-### Page 6: 🔬 Experiments
-
-```mermaid
-graph TD
-    TITLE[st.title: Experiment Tracker]
-
-    FILTERS[st.columns: Filter controls<br/>Dataset, Model, Activation, Status]
-
-    TABLE[st.dataframe: All experiments<br/>Checkbox selection, sortable]
-
-    COMPARE[st.button: Compare Selected]
-
-    COMP_VIEW[If comparing:<br/>- st.columns: Side-by-side summaries<br/>- st.plotly_chart: Overlayed curves<br/>- st.dataframe: Config differences]
-
-    TRENDS[st.plotly_chart: Trend charts<br/>Accuracy vs Time scatter]
-
-    TITLE --> FILTERS --> TABLE --> COMPARE --> COMP_VIEW
-    TABLE --> TRENDS
-```
-
-### Page 7: 🎨 Visualization
-
-```mermaid
-graph TD
-    TITLE[st.title: Advanced Visualization]
-    SEL[st.selectbox: Select Model]
-
-    TABS[st.tabs: 5 tabs]
-
-    T1[Tab 1: Activation Maps<br/>- Sample & layer selection<br/>- st.columns: Feature maps grid]
-
-    T2[Tab 2: t-SNE<br/>- Method, parameters<br/>- st.plotly_chart: Interactive scatter<br/>- Cluster quality metrics]
-
-    T3[Tab 3: Conv Filters<br/>- Layer selection<br/>- st.columns: Filter weights grid]
-
-    T4[Tab 4: Grad-CAM<br/>- st.file_uploader: Upload image<br/>- st.columns: Original, Heatmap, Overlay<br/>- Prediction confidence]
-
-    T5[Tab 5: LIME<br/>- Sample selection<br/>- st.columns: Visualization<br/>- Top contributing segments]
-
-    TABS --> T1
-    TABS --> T2
-    TABS --> T3
-    TABS --> T4
-    TABS --> T5
-```
-
-### Sidebar (Global, All Pages)
-
-```mermaid
-graph TD
-    LOGO[st.logo: Project Logo]
-    NAV[st.navigation: Page links]
-    DIV1[st.divider]
-    EXP[st.selectbox: Active Experiment]
-    DIV2[st.divider]
-    STATS[st.metric: Quick stats x3]
-    DIV3[st.divider]
-    BTNS[st.button: Quick actions]
-    DIV4[st.divider]
-    LINKS[Resource links]
-    DIV5[st.divider]
-    SETTINGS[st.toggle: Settings<br/>Dark mode, Auto-refresh]
+### Execution Control
+```python
+st.form()              # Batch submit forms
+@st.fragment(run_every="1s")  # Auto-refresh fragments
+st.rerun()             # Force page rerun
 ```
 
 ---
 
-## 💻 Key Implementation Patterns
+## 💻 Implementation Patterns
 
-### State Management
+### State Management Pattern
 
 ```python
-# app.py - Initialize once
-if 'experiments' not in st.session_state:
-    st.session_state.experiments = []
-if 'current_experiment' not in st.session_state:
-    st.session_state.current_experiment = None
-if 'training_status' not in st.session_state:
-    st.session_state.training_status = 'idle'
+# state/workflow.py
+
+class WorkflowState(TypedDict, total=False):
+    """Type definition for workflow state fields"""
+    session_id: str
+    dataset_config: dict[str, Any]
+    model_config: dict[str, Any]
+    training_config: dict[str, Any]
+    training_active: bool
+    results: dict[str, Any] | None
+
+def init_workflow_state() -> None:
+    """Initialize workflow state with defaults"""
+    if "session_id" not in st.session_state:
+        st.session_state.session_id = generate_session_id()
+    # ... initialize other fields
+
+def save_dataset_config(config: dict[str, Any]) -> None:
+    """Save dataset config to state and persist to disk"""
+    st.session_state.dataset_config = config
+    from state.persistence import save_session
+    save_session(get_session_id())
+
+def get_dataset_config() -> dict[str, Any]:
+    """Retrieve dataset configuration"""
+    return st.session_state.get("dataset_config", {})
 ```
 
-### Real-time Training with Fragments
+### Page Structure Pattern
 
 ```python
-@st.fragment(run_every="1s")
-def live_training_monitor():
-    if st.session_state.training_status != 'running':
-        return
+# content/dataset/page.py
+from components.header import render_header
+from components.sidebar import render_sidebar
+from content.dataset import view
 
-    metrics = st.session_state.get('latest_metrics', {})
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Epoch", metrics.get('epoch', 0))
-    col2.metric("Loss", f"{metrics.get('loss', 0):.4f}")
-    col3.metric("Acc", f"{metrics.get('acc', 0):.2%}")
-
-    st.progress(metrics.get('epoch', 0) / metrics.get('total_epochs', 100))
-
-    # Update chart
-    history = st.session_state.get('training_history', [])
-    fig = create_training_curve(history)
-    st.plotly_chart(fig)
+render_header()
+render_sidebar()
+view.render()
 ```
 
-### Caching
+```python
+# content/dataset/view.py
+import streamlit as st
+from content.dataset.tabs import overview, distribution, augmentation, samples
+
+def render():
+    st.title("📊 Dataset Configuration")
+
+    tabs = st.tabs([
+        "📋 Overview",
+        "📊 Distribution",
+        "🔄 Augmentation",
+        "🖼️ Samples"
+    ])
+
+    with tabs[0]:
+        overview.render()
+    with tabs[1]:
+        distribution.render()
+    with tabs[2]:
+        augmentation.render()
+    with tabs[3]:
+        samples.render()
+```
+
+### Caching Pattern
 
 ```python
-@st.cache_data
-def load_dataset(name):
-    # Expensive data loading
-    return dataset
+# utils/dataset_utils.py
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def scan_dataset_directory(base_path: str) -> dict[str, Any]:
+    """Expensive dataset scanning operation"""
+    families = []
+    for family_dir in Path(base_path).iterdir():
+        if family_dir.is_dir():
+            samples = list(family_dir.glob("*.png"))
+            families.append({
+                "name": family_dir.name,
+                "count": len(samples),
+                "path": str(family_dir)
+            })
+    return {"families": families, "total": sum(f["count"] for f in families)}
 
 @st.cache_resource
-def load_model(path):
-    # Singleton model loading
-    return model
+def load_trained_model(model_path: str):
+    """Singleton model loading - only loaded once"""
+    import torch
+    return torch.load(model_path)
 ```
 
-### Forms for Batch Submit
+### Real-Time Updates Pattern
 
 ```python
-with st.form("hyperparameters"):
+# content/monitor/view.py
+
+@st.fragment(run_every="1s")
+def live_training_monitor():
+    """Auto-refresh training metrics every second"""
+    from state.workflow import is_training_active, get_results
+
+    if not is_training_active():
+        st.info("No active training session")
+        return
+
+    # Get latest metrics from session state
+    results = get_results()
+    if not results:
+        return
+
+    # Display live metrics
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Epoch", results.get("epoch", 0))
+    col2.metric("Loss", f"{results.get('loss', 0):.4f}")
+    col3.metric("Accuracy", f"{results.get('accuracy', 0):.2%}")
+
+    # Update training curves
+    import plotly.graph_objects as go
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(
+        y=results.get("loss_history", []),
+        name="Loss"
+    ))
+    st.plotly_chart(fig, use_container_width=True)
+```
+
+### Form Submission Pattern
+
+```python
+# content/training/view.py
+
+with st.form("training_config"):
+    st.subheader("Training Configuration")
+
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        lr = st.slider("Learning Rate", 0.0001, 0.01, 0.001)
+        epochs = st.slider("Epochs", 10, 500, 100)
+        batch_size = st.selectbox("Batch Size", [16, 32, 64, 128])
+
     with col2:
-        batch_size = st.selectbox("Batch Size", [16, 32, 64])
+        learning_rate = st.slider(
+            "Learning Rate",
+            0.0001, 0.1, 0.001,
+            format="%.4f"
+        )
+        optimizer = st.selectbox(
+            "Optimizer",
+            ["Adam", "SGD", "RMSprop"]
+        )
+
     with col3:
-        epochs = st.slider("Epochs", 10, 200, 100)
+        weight_decay = st.slider(
+            "Weight Decay",
+            0.0, 0.01, 0.0001,
+            format="%.4f"
+        )
+        momentum = st.slider("Momentum", 0.0, 0.99, 0.9)
 
-    submitted = st.form_submit_button("Start Training")
+    submitted = st.form_submit_button("💾 Save Configuration")
+
     if submitted:
-        st.session_state.config = {'lr': lr, 'batch': batch_size, 'epochs': epochs}
-        st.success("Training started!")
-```
+        from state.workflow import save_training_config
 
-### Multi-page Navigation
+        config = {
+            "epochs": epochs,
+            "batch_size": batch_size,
+            "learning_rate": learning_rate,
+            "optimizer": optimizer,
+            "weight_decay": weight_decay,
+            "momentum": momentum
+        }
 
-```python
-# app.py
-st.set_page_config(page_title="Malware Classifier", layout="wide")
-
-dashboard = st.Page("pages/01_🏠_dashboard.py", title="Dashboard", icon="🏠")
-dataset = st.Page("pages/02_📊_dataset_explorer.py", title="Dataset", icon="📊")
-# ... other pages
-
-pg = st.navigation({
-    "Main": [dashboard],
-    "Workflow": [dataset, model, training, results],
-    "Analysis": [experiments, visualization]
-})
-
-pg.run()
+        save_training_config(config)
+        st.success("✅ Training configuration saved!")
+        st.rerun()
 ```
 
 ---
 
-## 📊 Plotly Chart Examples
+## 📊 Plotly Visualization Patterns
 
+### Distribution Bar Chart
 ```python
-# Confusion matrix
-fig = px.imshow(cm, text_auto=True, color_continuous_scale="Blues")
-st.plotly_chart(fig)
+import plotly.express as px
 
-# Training curves
+fig = px.bar(
+    df,
+    x="family",
+    y="count",
+    title="Malware Family Distribution",
+    color="family",
+    text="count"
+)
+fig.update_traces(textposition="outside")
+st.plotly_chart(fig, use_container_width=True)
+```
+
+### Training Curves
+```python
+import plotly.graph_objects as go
+
 fig = go.Figure()
-fig.add_trace(go.Scatter(y=history['loss'], name='Train Loss'))
-fig.add_trace(go.Scatter(y=history['val_loss'], name='Val Loss'))
-st.plotly_chart(fig)
+fig.add_trace(go.Scatter(
+    y=history['train_loss'],
+    name='Train Loss',
+    mode='lines'
+))
+fig.add_trace(go.Scatter(
+    y=history['val_loss'],
+    name='Val Loss',
+    mode='lines'
+))
+fig.update_layout(
+    title="Training History",
+    xaxis_title="Epoch",
+    yaxis_title="Loss"
+)
+st.plotly_chart(fig, use_container_width=True)
+```
 
-# ROC curves
-for i, class_name in enumerate(classes):
-    fig.add_trace(go.Scatter(x=fpr[i], y=tpr[i], name=f'{class_name} (AUC={auc[i]:.2f})'))
-st.plotly_chart(fig)
+### Confusion Matrix Heatmap
+```python
+import plotly.express as px
 
-# t-SNE scatter
-fig = px.scatter(df, x='x', y='y', color='family', hover_data=['sample_id'])
-st.plotly_chart(fig)
+fig = px.imshow(
+    confusion_matrix,
+    text_auto=True,
+    color_continuous_scale="Blues",
+    labels=dict(x="Predicted", y="Actual"),
+    x=class_names,
+    y=class_names
+)
+st.plotly_chart(fig, use_container_width=True)
+```
+
+### ROC Curves
+```python
+import plotly.graph_objects as go
+
+fig = go.Figure()
+for i, class_name in enumerate(class_names):
+    fig.add_trace(go.Scatter(
+        x=fpr[i],
+        y=tpr[i],
+        name=f'{class_name} (AUC={auc[i]:.3f})',
+        mode='lines'
+    ))
+
+fig.add_trace(go.Scatter(
+    x=[0, 1],
+    y=[0, 1],
+    name='Random',
+    mode='lines',
+    line=dict(dash='dash', color='gray')
+))
+
+fig.update_layout(
+    title="ROC Curves",
+    xaxis_title="False Positive Rate",
+    yaxis_title="True Positive Rate"
+)
+st.plotly_chart(fig, use_container_width=True)
+```
+
+### t-SNE Scatter Plot
+```python
+import plotly.express as px
+
+fig = px.scatter(
+    df,
+    x='tsne_x',
+    y='tsne_y',
+    color='family',
+    hover_data=['sample_id', 'prediction'],
+    title="t-SNE Feature Visualization"
+)
+st.plotly_chart(fig, use_container_width=True)
 ```
 
 ---
 
-Done. Clean, practical, no fluff.
+## 🎯 Development Guidelines
+
+### Adding New Pages
+
+1. **Create page folder** in `content/`
+   ```bash
+   mkdir content/new_page
+   ```
+
+2. **Create page.py** (entry point)
+   ```python
+   from components.header import render_header
+   from components.sidebar import render_sidebar
+   from content.new_page import view
+
+   render_header()
+   render_sidebar()
+   view.render()
+   ```
+
+3. **Create view.py** (main logic)
+   ```python
+   import streamlit as st
+
+   def render():
+       st.title("New Page")
+       # Page content here
+   ```
+
+4. **For complex pages, add tabs/**
+   ```bash
+   mkdir content/new_page/tabs
+   # Create tab_*.py files
+   ```
+
+5. **Register in main.py**
+   ```python
+   st.Page("content/new_page/page.py", title="New Page", icon="🆕")
+   ```
+
+### State Management Rules
+
+**DO:**
+- Define TypedDict for new state fields in appropriate `state/` module
+- Create getter/setter functions for state access
+- Use `@st.cache_data` for expensive data operations
+- Use `@st.cache_resource` for singleton objects (models, connections)
+- Auto-save to disk after state changes
+
+**DON'T:**
+- Access `st.session_state` directly outside `state/` modules
+- Store large objects in session state without caching
+- Forget to initialize state in `init_*_state()` functions
+
+### Component Guidelines
+
+**Shared Components** → `components/`
+- Header, sidebar, theme, styling
+- Reusable across multiple pages
+
+**Page-Specific Logic** → `content/page_name/`
+- Stays within page folder
+- Not imported by other pages
+
+### Import Guidelines
+
+**Always use absolute imports:**
+```python
+# ✅ Good
+from state.workflow import get_dataset_config
+from components.header import render_header
+from content.dataset.tabs import overview
+
+# ❌ Bad
+from ..state.workflow import get_dataset_config
+from .tabs import overview
+```
+
+---
+
+## 🔍 Key Files Reference
+
+### Entry Point
+- `main.py` - App configuration, state initialization, navigation setup
+
+### Core State Management
+- `state/workflow.py` - ML workflow state (session_id, configs, training, results)
+- `state/ui.py` - UI preferences (theme, past_sessions)
+- `state/cache.py` - Cached operations (dataset scans)
+- `state/persistence.py` - Session save/load to disk
+- `state/session_state.py` - Session state utilities
+
+### Shared Components
+- `components/header.py` - App header with session info
+- `components/sidebar.py` - Configuration status display
+- `components/theme.py` - Theme customization UI
+- `components/styling.py` - CSS injection
+- `components/utils.py` - GPU detection, utilities
+
+### Dataset Utilities
+- `utils/dataset_utils.py` - Dataset scanning and processing
+- `utils/dataset_sections.py` - Dataset section helpers
+- `utils/dataset_viz.py` - Visualization functions
+
+### Configuration
+- `config.py` - Application configuration
+- `constants.py` - Application constants
+- `.streamlit/config.toml` - Streamlit configuration
+
+---
+
+## 🚀 Running the Application
+
+```bash
+cd app
+streamlit run main.py
+```
+
+**Default URL:** `http://localhost:8501`
+
+**Direct Page URLs:**
+- `/home` - Home & Session
+- `/dataset` - Dataset Configuration
+- `/model` - Model Builder
+- `/training` - Training Configuration
+- `/monitor` - Training Monitor
+- `/results` - Results & Evaluation
+- `/interpretability` - Model Interpretability
+
+---
+
+## 📋 Next Implementation Steps
+
+### Priority 1: Model Builder
+- [ ] Architecture selection (Custom CNN, Transfer Learning)
+- [ ] Layer configuration UI
+- [ ] Model summary visualization
+- [ ] PyTorch model instantiation
+- [ ] Architecture export/import
+
+### Priority 2: Training Pipeline
+- [ ] Training configuration form
+- [ ] Training loop implementation
+- [ ] Background training with threading
+- [ ] Live metric updates
+- [ ] Checkpoint saving
+- [ ] Training controls (pause, stop, resume)
+
+### Priority 3: Results & Evaluation
+- [ ] Metrics calculation (accuracy, precision, recall, F1)
+- [ ] Confusion matrix visualization
+- [ ] Per-class performance metrics
+- [ ] ROC curves and AUC
+- [ ] Training history plots
+- [ ] Model comparison tools
+
+### Priority 4: Interpretability
+- [ ] Grad-CAM implementation
+- [ ] t-SNE embeddings
+- [ ] Activation map visualization
+- [ ] LIME explanations
+- [ ] Filter visualization
+- [ ] Saliency maps
+
+---
+
+## 🎓 Project Evaluation Criteria
+
+This application supports all five evaluation criteria from the course requirements:
+
+### 1. Diseño del Experimento
+- Clear hypothesis formulation UI
+- Dataset selection and justification
+- Train/val/test split configuration
+- Metric selection
+- Model comparison setup
+
+### 2. Desarrollo del Experimento
+- Reproducible pipeline implementation
+- Hyperparameter tracking
+- Configuration persistence
+- Experiment logging
+- Results storage
+
+### 3. Análisis e Interpretación
+- Numerical metrics visualization
+- Learning curves analysis
+- Confusion matrix analysis
+- Attention/filter visualizations
+- Model comparison tools
+
+### 4. Uso de Juicio de Ingeniería
+- Performance vs. cost analysis
+- Model complexity trade-offs
+- Training time monitoring
+- Deployment recommendations
+- GPU memory monitoring
+
+### 5. Comunicación de los Resultados
+- Clear, structured dashboard
+- Exportable reports
+- Presentation-ready visualizations
+- Session persistence for demos
+- Reproducible experiments
+
+---
+
+**Last Updated:** November 24, 2025
+**Version:** 1.0 (Production)

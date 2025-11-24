@@ -1,37 +1,50 @@
 """
 Sidebar Component
-Persistent sidebar shown on all pages
+Persistent sidebar showing session state, system resources, and theme settings
 """
-
-import streamlit as st
 
 from components.theme import render_theme_settings
 from components.utils import check_gpu_available, get_memory_info
 from state.workflow import (
+    get_dataset_config,
+    get_model_config,
     has_dataset_config,
     has_model_config,
-    has_training_config,
+    has_results,
+    is_training_active,
 )
+import streamlit as st
 
 
 def render_sidebar():
     """
     Persistent sidebar shown on all pages
-    Shows only state information, not navigation
+    Shows session state details, system resources, and theme settings
     """
     st.sidebar.header("Session State")
 
-    st.sidebar.divider()
+    # Show configuration summaries
+    if has_dataset_config():
+        config = get_dataset_config()
+        dataset_name = config.get("dataset_path", "Configured")
+        st.sidebar.caption(f"📊 Dataset: {dataset_name}")
+    else:
+        st.sidebar.caption("📊 Dataset: Not configured")
 
-    st.sidebar.header("Configuration Status")
+    if has_model_config():
+        config = get_model_config()
+        model_name = config.get("architecture", "Configured")
+        st.sidebar.caption(f"🧠 Model: {model_name}")
+    else:
+        st.sidebar.caption("🧠 Model: Not configured")
 
-    dataset_done = has_dataset_config()
-    model_done = has_model_config()
-    training_done = has_training_config()
-
-    st.sidebar.markdown(f"{'✅' if dataset_done else '⬜'} Dataset configured")
-    st.sidebar.markdown(f"{'✅' if model_done else '⬜'} Model configured")
-    st.sidebar.markdown(f"{'✅' if training_done else '⬜'} Training configured")
+    # Show training status
+    if is_training_active():
+        st.sidebar.caption("🔴 Training in progress")
+    elif has_results():
+        st.sidebar.caption("✅ Training complete")
+    else:
+        st.sidebar.caption("⚙️ Training: Not started")
 
     st.sidebar.divider()
 

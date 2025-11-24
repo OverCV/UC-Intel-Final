@@ -3,8 +3,8 @@ Dataset utilities - scanning, loading, and data manipulation
 """
 
 from pathlib import Path
-from PIL import Image
 
+from PIL import Image
 
 # Dataset paths relative to project root
 DATASET_ROOT = Path(__file__).parent.parent.parent / "repo"
@@ -15,12 +15,12 @@ VAL_PATH = DATASET_ROOT / "validation"
 def scan_dataset():
     """Scan repo/training and repo/validation directories"""
     dataset_info = {
-        'train_samples': {},
-        'val_samples': {},
-        'classes': [],
-        'total_train': 0,
-        'total_val': 0,
-        'sample_paths': {}
+        "train_samples": {},
+        "val_samples": {},
+        "classes": [],
+        "total_train": 0,
+        "total_val": 0,
+        "sample_paths": {},
     }
 
     # Scan training directory
@@ -29,12 +29,12 @@ def scan_dataset():
             if class_dir.is_dir():
                 images = list(class_dir.glob("*.png"))
                 class_name = class_dir.name
-                dataset_info['train_samples'][class_name] = len(images)
-                dataset_info['total_train'] += len(images)
+                dataset_info["train_samples"][class_name] = len(images)
+                dataset_info["total_train"] += len(images)
 
                 # Store sample paths for visualization
                 if images:
-                    dataset_info['sample_paths'][class_name] = images[:10]
+                    dataset_info["sample_paths"][class_name] = images[:10]
 
     # Scan validation directory
     if VAL_PATH.exists():
@@ -42,13 +42,13 @@ def scan_dataset():
             if class_dir.is_dir():
                 images = list(class_dir.glob("*.png"))
                 class_name = class_dir.name
-                dataset_info['val_samples'][class_name] = len(images)
-                dataset_info['total_val'] += len(images)
+                dataset_info["val_samples"][class_name] = len(images)
+                dataset_info["total_val"] += len(images)
 
     # Get unique classes
-    dataset_info['classes'] = sorted(
-        set(dataset_info['train_samples'].keys()) |
-        set(dataset_info['val_samples'].keys())
+    dataset_info["classes"] = sorted(
+        set(dataset_info["train_samples"].keys())
+        | set(dataset_info["val_samples"].keys())
     )
 
     return dataset_info

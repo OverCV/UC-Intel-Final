@@ -48,8 +48,8 @@ def render_sample_viewer(dataset_info):
                 img = Image.open(img_path)
                 st.image(img, width="stretch")
                 st.caption(f"{img.size[0]}x{img.size[1]}")
-            except Exception as e:
-                st.error(f"Error: {img_path.name}")
+            except Exception as exception:
+                st.error(f"Error: {img_path.name}. {exception}")
 
 
 def render_preprocessing_preview(dataset_info):
@@ -65,6 +65,7 @@ def render_preprocessing_preview(dataset_info):
         normalization = st.radio(
             "Normalization", ["[0,1] Scale", "[-1,1] Scale", "ImageNet Mean/Std"]
         )
+        st.info(f"Normalization: {normalization}")
     with col3:
         color_mode = st.radio("Color Mode", ["RGB", "Grayscale"])
 
@@ -80,8 +81,8 @@ def render_preprocessing_preview(dataset_info):
                 original = Image.open(sample_path)
                 st.image(original, use_container_width=True)
                 st.caption(f"Size: {original.size[0]}x{original.size[1]}")
-            except Exception as e:
-                st.error(f"Error loading image: {e}")
+            except Exception as exception:
+                st.error(f"Error loading image: {exception}.\n{sample_path.name}")
 
         with col2:
             st.markdown("**After Preprocessing**")
@@ -95,5 +96,5 @@ def render_preprocessing_preview(dataset_info):
 
                 st.image(processed, use_container_width=True)
                 st.caption(f"Size: {size}x{size}, Mode: {color_mode}")
-            except Exception as e:
-                st.error(f"Error processing: {e}")
+            except Exception as exception:
+                st.error(f"Error processing: {exception}.\n{sample_path.name}")

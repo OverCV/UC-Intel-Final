@@ -3,18 +3,19 @@ Utility Functions
 Helper functions for GPU, memory, and session management
 """
 
-import torch
-
 from state.cache import clear_cache_state
-from state.ui import clear_ui_state
-from state.workflow import clear_workflow_state
+from state.persistence import save_session
+from state.workflow import clear_workflow_state, get_session_id
+import streamlit as st
+import torch
 
 
 def check_gpu_available() -> bool:
     """Check if GPU is available"""
     try:
         return torch.cuda.is_available()
-    except:
+    except Exception as exception:
+        st.error(f"Failed to check GPU availability: {exception}")
         return False
 
 
@@ -27,12 +28,22 @@ def get_memory_info() -> str:
             return f"{allocated:.1f}/{total:.1f}GB"
         else:
             return "N/A"
-    except:
+    except Exception as exception:
+        st.error(f"Failed to get memory info: {exception}")
         return "N/A"
 
 
 def clear_session():
-    """Clear all session state (workflow + cache, preserving UI preferences)"""
+    """
+    Clear all session state (workflow + cache, preserving UI preferences)
+    Saves current session to disk before clearing
+    """
+    # Save current session before clearing
+    current_session_id = get_session_id()
+    if current_session_id:
+        save_session(current_session_id)
+
+    # Clear state
     clear_workflow_state()
     clear_cache_state()
     # Note: Intentionally NOT clearing UI state (theme) to preserve user preferences
