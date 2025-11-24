@@ -82,7 +82,14 @@ def render_tsne():
     with col2:
         st.slider("Samples to Plot", 100, 1000, 1000, step=100)
 
-    st.radio("Color Points By", ["True Family", "Predicted Family", "Correct/Incorrect"])
+    st.radio(
+        "Color Points By",
+        [
+            "True Family",
+            "Predicted Family",
+            "Correct/Incorrect",
+        ],
+    )
 
     st.info("2D scatter plot - TO BE IMPLEMENTED")
 

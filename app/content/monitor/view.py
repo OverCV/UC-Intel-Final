@@ -12,7 +12,9 @@ def render():
 
     # Check if training is active
     if not is_training_active():
-        st.info("No active training session. Start training from Training Configuration page.")
+        st.info(
+            "No active training session. Start training from Training Configuration page."
+        )
         return
 
     # Section 1: Training Status
@@ -95,7 +97,7 @@ def render_logs():
             "Logs",
             value="[15:23:45] Epoch 15/100\n[15:23:47] Training...",
             height=200,
-            disabled=True
+            disabled=True,
         )
 
 

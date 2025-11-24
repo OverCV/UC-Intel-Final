@@ -32,7 +32,7 @@ def render_model_type_selection():
     model_type = st.radio(
         "Model Type",
         ["Custom CNN", "Transfer Learning"],
-        key="model_type"
+        key="model_type",
     )
 
     return model_type
@@ -48,16 +48,16 @@ def render_custom_cnn():
     num_blocks = st.number_input("Number of Conv Blocks", 1, 7, 3)
 
     for i in range(num_blocks):
-        with st.expander(f"Convolutional Block {i+1}", expanded=(i == 0)):
+        with st.expander(f"Convolutional Block {i + 1}", expanded=(i == 0)):
             col1, col2 = st.columns(2)
             with col1:
-                st.slider(f"Filters {i+1}", 32, 512, 64, step=32)
-                st.selectbox(f"Kernel Size {i+1}", ["3x3", "5x5", "7x7"])
-                st.selectbox(f"Activation {i+1}", ["ReLU", "Mish", "Swish", "GELU"])
+                st.slider(f"Filters {i + 1}", 32, 512, 64, step=32)
+                st.selectbox(f"Kernel Size {i + 1}", ["3x3", "5x5", "7x7"])
+                st.selectbox(f"Activation {i + 1}", ["ReLU", "Mish", "Swish", "GELU"])
             with col2:
-                st.checkbox(f"Second Conv Layer {i+1}")
-                st.checkbox(f"MaxPooling {i+1}", value=True)
-                st.slider(f"Dropout {i+1}", 0.0, 0.5, 0.25)
+                st.checkbox(f"Second Conv Layer {i + 1}")
+                st.checkbox(f"MaxPooling {i + 1}", value=True)
+                st.slider(f"Dropout {i + 1}", 0.0, 0.5, 0.25)
 
     # Section 3: Dense Layers
     st.header("Dense Layers")
@@ -65,10 +65,10 @@ def render_custom_cnn():
     num_dense = st.number_input("Number of Dense Layers", 1, 5, 2)
 
     for i in range(num_dense):
-        with st.expander(f"Dense Layer {i+1}", expanded=True):
-            st.slider(f"Units {i+1}", 64, 1024, 256, step=64)
-            st.selectbox(f"Dense Activation {i+1}", ["ReLU", "Mish", "Swish", "GELU"])
-            st.slider(f"Dense Dropout {i+1}", 0.0, 0.7, 0.5)
+        with st.expander(f"Dense Layer {i + 1}", expanded=True):
+            st.slider(f"Units {i + 1}", 64, 1024, 256, step=64)
+            st.selectbox(f"Dense Activation {i + 1}", ["ReLU", "Mish", "Swish", "GELU"])
+            st.slider(f"Dense Dropout {i + 1}", 0.0, 0.7, 0.5)
 
     # Section 4: Output Layer (Auto)
     st.header("Output Layer")
@@ -83,17 +83,19 @@ def render_transfer_learning():
 
     base_model = st.radio(
         "Select Base Model",
-        ["VGG16", "VGG19", "ResNet50", "ResNet101", "InceptionV3", "EfficientNetB0"]
+        ["VGG16", "VGG19", "ResNet50", "ResNet101", "InceptionV3", "EfficientNetB0"],
     )
 
-    weights = st.radio("Weights", ["ImageNet (recommended)", "Random (train from scratch)"])
+    weights = st.radio(
+        "Weights", ["ImageNet (recommended)", "Random (train from scratch)"]
+    )
 
     # Section 3: Fine-tuning Strategy
     st.header("Fine-tuning Configuration")
 
     strategy = st.radio(
         "Strategy",
-        ["Feature Extraction (freeze all)", "Partial Fine-tuning", "Full Fine-tuning"]
+        ["Feature Extraction (freeze all)", "Partial Fine-tuning", "Full Fine-tuning"],
     )
 
     if strategy == "Partial Fine-tuning":

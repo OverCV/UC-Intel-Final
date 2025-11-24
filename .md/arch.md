@@ -1,6 +1,16 @@
 # Streamlit UI Architecture
 ## Malware Classification Dashboard
 
+> **⚠️ HISTORICAL DOCUMENT**
+> This document represents the initial architectural vision from the planning phase.
+> For the **current implementation**, see [README.md](../app/README.md) in the `app/` directory.
+>
+> **Key Differences:**
+> - Current implementation uses self-contained `content/` folders (not `pages/` + `core/`)
+> - Components are flat structure (not hierarchical subdirectories)
+> - State management split into `state/workflow.py`, `state/ui.py`, `state/cache.py`
+> - Tab-based file organization within content pages
+
 ---
 
 ## 📁 Project Structure

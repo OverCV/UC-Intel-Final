@@ -8,10 +8,9 @@ import streamlit as st
 from components.theme import render_theme_settings
 from components.utils import check_gpu_available, get_memory_info
 from state.workflow import (
-    get_session_id,
     has_dataset_config,
     has_model_config,
-    has_training_config
+    has_training_config,
 )
 
 
@@ -21,12 +20,6 @@ def render_sidebar():
     Shows only state information, not navigation
     """
     st.sidebar.header("Session State")
-
-    session_id = get_session_id()
-    if session_id:
-        st.sidebar.success(f"Session: {session_id}")
-    else:
-        st.sidebar.warning("No active session")
 
     st.sidebar.divider()
 

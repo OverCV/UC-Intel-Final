@@ -3,15 +3,11 @@ Dataset Configuration - Section Renderers
 Extracted to keep main view file under 300 lines
 """
 
-import random
-from pathlib import Path
-
-import plotly.graph_objects as go
 import streamlit as st
+from pathlib import Path
+import plotly.graph_objects as go
 from PIL import Image
-
-from state.cache import get_dataset_info, get_train_split, get_val_split
-from state.workflow import has_dataset_config, save_dataset_config
+import random
 from utils.dataset_utils import calculate_split_percentages, DATASET_ROOT
 
 
@@ -201,15 +197,15 @@ def render_confirmation():
     st.divider()
     st.header("Configuration Summary")
 
-    train_pct = get_train_split()
-    val_of_remaining = get_val_split()
+    train_pct = st.session_state.get('train_split', 70)
+    val_of_remaining = st.session_state.get('val_split', 50)
     train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
 
-    dataset_info = get_dataset_info()
     config = {
         "dataset_path": str(DATASET_ROOT.relative_to(Path.cwd())),
-        "total_samples": dataset_info['total_train'] + dataset_info['total_val'],
-        "num_classes": len(dataset_info['classes']),
+        "total_samples": st.session_state.dataset_info['total_train'] +
+                         st.session_state.dataset_info['total_val'],
+        "num_classes": len(st.session_state.dataset_info['classes']),
         "split": {
             "train": round(train_final, 1),
             "val": round(val_final, 1),
@@ -223,9 +219,9 @@ def render_confirmation():
 
     with col2:
         if st.button("Save Configuration", type="primary", use_container_width=True):
-            save_dataset_config(config)
+            st.session_state.dataset_config = config
             st.success("Configuration saved!")
             st.balloons()
 
-    if has_dataset_config():
+    if st.session_state.get('dataset_config'):
         st.info("Configuration saved. Navigate to **Model** page to continue.")
