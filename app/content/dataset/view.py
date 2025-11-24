@@ -5,6 +5,8 @@ Page 2: Dataset Configuration
 import streamlit as st
 from pathlib import Path
 import plotly.graph_objects as go
+
+from state.cache import get_dataset_info, set_dataset_info
 from utils.dataset_utils import (
     scan_dataset,
     calculate_split_percentages,
@@ -15,7 +17,7 @@ from utils.dataset_sections import (
     render_sample_visualization,
     render_preprocessing,
     render_augmentation,
-    render_confirmation
+    render_confirmation,
 )
 
 
@@ -24,11 +26,11 @@ def render():
     st.title("Dataset Configuration")
 
     # Initialize dataset cache
-    if 'dataset_info' not in st.session_state:
+    dataset_info = get_dataset_info()
+    if not dataset_info:
         with st.spinner("Scanning dataset..."):
-            st.session_state.dataset_info = scan_dataset()
-
-    dataset_info = st.session_state.dataset_info
+            dataset_info = scan_dataset()
+            set_dataset_info(dataset_info)
 
     render_dataset_overview(dataset_info)
     render_data_split(dataset_info)

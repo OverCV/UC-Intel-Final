@@ -1,70 +1,39 @@
-# Malware Classification Streamlit App
+# Proyecto Final - Sistemas Inteligentes II
 
-## BFS Implementation - Level 1 Complete
+**Profesor:** Jorge Alberto Jaramillo Garzón
+**Institución:** Universidad de Caldas
 
-This is the initial interface structure. All pages are functional skeletons showing layout and navigation. No deep implementation yet.
+## Descripción General
 
-## Structure
+Cada grupo deberá formular, implementar y analizar un experimento de aprendizaje profundo (basado en redes convolucionales o transformers) sobre un problema realista de clasificación, regresión o segmentación, usando un conjunto de datos adecuado.
 
-```
-app/
-├── main.py                  # Main entry point (single-page app with session state navigation)
-├── config.py                # Shared constants
-├── views/                   # View modules (renamed from pages to avoid Streamlit auto-routing)
-│   ├── __init__.py
-│   ├── home.py             # Page 1: Home & Setup
-│   ├── dataset.py          # Page 2: Dataset Configuration
-│   ├── model.py            # Page 3: Model Configuration
-│   ├── training.py         # Page 4: Training Configuration
-│   ├── monitor.py          # Page 5: Training Monitor
-│   ├── results.py          # Page 6: Results & Evaluation
-│   └── interpretability.py # Page 7: Model Interpretability
-└── utils/                  # Utility modules
-    ├── __init__.py
-    └── session_state.py    # Session state management
-```
+El trabajo será evaluado a partir de la evidencia que aporten frente a los siguientes cinco criterios:
 
-## Navigation System
+---
 
-**Single-page app** with session state navigation:
-- NO file-based routing (URL stays at `localhost:8501`)
-- Selectbox in sidebar for page navigation
-- Current page stored in `st.session_state.current_page`
-- Views stored in `views/` (not `pages/`) to avoid Streamlit's auto-discovery
+## Criterios de Evaluación
 
-## Running the App
+### 1. Diseño del Experimento
 
-```bash
-# From project root
-cd app
-streamlit run main.py
-```
+- Plantear una pregunta o hipótesis clara sobre el comportamiento del modelo (p. ej. "¿Mejora la precisión al usar data augmentation X?")
+- Seleccionar y justificar el dataset, las particiones (train/valid/test), las métricas de evaluación y, cuando sea pertinente, modelos base o de comparación
 
-## What Works Now
+### 2. Desarrollo del Experimento
 
-- ✅ Single navigation system (selectbox in sidebar)
-- ✅ No URL routing conflicts
-- ✅ Page structure and section headers
-- ✅ UI elements (buttons, sliders, inputs)
-- ✅ Session state initialization
-- ✅ Configuration constants
+- Implementar de forma correcta y reproducible el pipeline de entrenamiento y validación (preprocesamiento, arquitectura, funciones de pérdida, optimizador, etc.)
+- Ejecutar los entrenamientos definidos en el diseño experimental, controlando hiperparámetros y registrando configuraciones y resultados (p. ej. en código, tablas o logs)
 
-## What's NOT Implemented Yet (marked with TODO)
+### 3. Análisis e Interpretación de los Datos y Resultados
 
-- Dataset loading from `repo/malware`
-- Model architecture building
-- Training execution
-- Results visualization (Plotly charts)
-- GPU detection
-- File storage/loading
-- Mermaid diagrams
-- All actual computation
+- Analizar los resultados numéricos (métricas, curvas de aprendizaje) y gráficos (confusion matrices, ejemplos bien/mal clasificados, visualizaciones de atención o filtros)
+- Comparar modelos/configuraciones y extraer explicaciones coherentes sobre por qué se obtienen esos resultados
 
-## Next Steps
+### 4. Uso de Juicio de Ingeniería para Hacer Recomendaciones
 
-Review the interface and layout. Once approved, we'll implement depth-first:
-1. Dataset loading and visualization
-2. Model builder backend
-3. Training pipeline
-4. Results generation
-5. Interpretability tools
+- Discutir las implicaciones prácticas de los resultados (desempeño vs. costo computacional, complejidad del modelo, tiempo de entrenamiento, etc.)
+- Formular recomendaciones justificadas (qué configuración adoptar, qué mejoras futuras serían razonables, en qué condiciones usar o no el modelo)
+
+### 5. Comunicación de los Resultados
+
+- Presentar un informe escrito claro, estructurado y técnicamente correcto, con figuras y tablas legibles y debidamente referenciadas
+- Realizar una presentación oral o demo en la que el grupo comunique de manera efectiva el problema, la metodología, los resultados y las conclusiones

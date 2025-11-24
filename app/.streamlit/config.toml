@@ -12,6 +12,7 @@ font = "sans serif"
 # Server config
 headless = true
 port = 8501
+runOnSave = true
 
 [browser]
 # Browser config

@@ -3,7 +3,8 @@ Page: Dataset Configuration
 Self-contained page module
 """
 
-from components import render_header, render_sidebar
+from components.header import render_header
+from components.sidebar import render_sidebar
 from content.dataset.view import render
 
 # Render persistent components
