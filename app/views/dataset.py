@@ -1,137 +1,148 @@
 """
 Page 2: Dataset Configuration
-BFS Level: Interface & Section Structure Only
 """
 
 import streamlit as st
+from pathlib import Path
+import plotly.graph_objects as go
+from utils.dataset_utils import (
+    scan_dataset,
+    calculate_split_percentages,
+    DATASET_ROOT
+)
+from utils.dataset_sections import (
+    render_class_distribution,
+    render_sample_visualization,
+    render_preprocessing,
+    render_augmentation,
+    render_confirmation
+)
 
 
 def render():
     """Main render function for Dataset page"""
     st.title("Dataset Configuration")
 
-    # Section 1: Dataset Overview
-    render_dataset_overview()
+    # Initialize dataset cache
+    if 'dataset_info' not in st.session_state:
+        with st.spinner("Scanning dataset..."):
+            st.session_state.dataset_info = scan_dataset()
 
-    # Section 2: Data Split
-    render_data_split()
+    dataset_info = st.session_state.dataset_info
 
-    # Section 3: Sample Visualization
-    render_sample_visualization()
-
-    # Section 4: Class Distribution
-    render_class_distribution()
-
-    # Section 5: Preprocessing Configuration
-    render_preprocessing()
-
-    # Section 6: Data Augmentation
+    render_dataset_overview(dataset_info)
+    render_data_split(dataset_info)
+    render_class_distribution(dataset_info)
+    render_sample_visualization(dataset_info)
+    render_preprocessing(dataset_info)
     render_augmentation()
-
-    # Section 7: Confirm Configuration
     render_confirmation()
 
 
-def render_dataset_overview():
+def render_dataset_overview(dataset_info):
     """Section 1: Show combined dataset info"""
     st.header("Dataset Overview")
-    st.info("Using dataset from: repo/")
-
-    # TODO: Scan repo/malware and show actual stats
-    st.metric("Total Samples", "Loading...")
-    st.metric("Number of Classes", "Loading...")
-
-
-def render_data_split():
-    """Section 2: Configure train/val/test split"""
-    st.header("Train/Validation/Test Split")
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        train_pct = st.slider("Train %", 0, 100, 70)
+        st.metric("Total Training Samples", f"{dataset_info['total_train']:,}")
     with col2:
-        val_pct = st.slider("Val %", 0, 100, 15)
+        st.metric("Total Validation Samples", f"{dataset_info['total_val']:,}")
     with col3:
-        test_pct = st.slider("Test %", 0, 100, 15)
+        st.metric("Number of Classes", len(dataset_info['classes']))
 
-    total = train_pct + val_pct + test_pct
-    if total != 100:
-        st.warning(f"Sum is {total}%, should be 100%")
+    st.info(f"Dataset location: `{DATASET_ROOT.relative_to(Path.cwd()).as_posix()}/`")
 
-    st.checkbox("Stratified Split", value=True)
-    st.number_input("Random Seed", value=72)
+    # Calculate class imbalance
+    if dataset_info['train_samples']:
+        samples_per_class = list(dataset_info['train_samples'].values())
+        max_samples = max(samples_per_class)
+        min_samples = min(samples_per_class)
+        imbalance_ratio = max_samples / min_samples if min_samples > 0 else 0
 
-    # TODO: Add pie chart visualization
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Max Samples/Class", max_samples)
+        with col2:
+            st.metric("Min Samples/Class", min_samples)
 
-
-def render_sample_visualization():
-    """Section 3: Preview dataset images"""
-    st.header("Dataset Preview")
-
-    # TODO: Load actual families from dataset
-    family = st.selectbox("Filter by Family", ["All"])
-
-    st.info("Image grid - TO BE IMPLEMENTED")
-    # TODO: Display 5-column grid of sample images
-
-
-def render_class_distribution():
-    """Section 4: Show class imbalance"""
-    st.header("Class Distribution")
-
-    st.info("Bar chart - TO BE IMPLEMENTED")
-    # TODO: Plotly bar chart of samples per class
-    # TODO: Calculate and show imbalance ratio
+        if imbalance_ratio > 2:
+            st.warning(f"Class imbalance detected: {imbalance_ratio:.1f}x ratio")
+        else:
+            st.success("Classes are relatively balanced")
 
 
-def render_preprocessing():
-    """Section 5: Image preprocessing config"""
-    st.header("Image Preprocessing")
+def render_data_split(dataset_info):
+    """Section 2: Configure train/val/test split with 2 sliders"""
+    st.header("Train/Validation/Test Split")
 
-    target_size = st.selectbox("Target Size", ["224x224", "256x256", "299x299"])
-    normalization = st.radio("Normalization", ["[0,1]", "[-1,1]", "Z-score"])
-    color_mode = st.radio("Color Mode", ["Grayscale", "RGB"])
+    # Current split info
+    current_train = dataset_info['total_train']
+    current_val = dataset_info['total_val']
+    total = current_train + current_val
+
+    if total > 0:
+        current_train_pct = (current_train / total) * 100
+        current_val_pct = (current_val / total) * 100
+        st.info(f"Current dataset split: {current_train_pct:.1f}% train, {current_val_pct:.1f}% validation")
+
+    st.markdown("**Configure Split:**")
+
+    # Slider 1: Training percentage
+    train_pct = st.slider(
+        "Training %",
+        min_value=0,
+        max_value=100,
+        value=70,
+        key="train_split",
+        help="Percentage of data for training"
+    )
+
+    # Slider 2: Validation percentage from remaining
+    remaining = 100 - train_pct
+    val_of_remaining = st.slider(
+        f"Validation % (of remaining {remaining}%)",
+        min_value=0,
+        max_value=100,
+        value=50,
+        key="val_split",
+        help="Percentage of remaining data for validation (rest goes to test)"
+    )
+
+    # Calculate final percentages
+    train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
+
+    # Display final split
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Train", f"{train_final:.1f}%")
+    with col2:
+        st.metric("Validation", f"{val_final:.1f}%")
+    with col3:
+        st.metric("Test", f"{test_final:.1f}%")
+
+    # Pie chart visualization
+    fig = go.Figure(data=[go.Pie(
+        labels=['Train', 'Validation', 'Test'],
+        values=[train_final, val_final, test_final],
+        marker_colors=['#98c127', '#8fd7d7', '#ffb255'],
+        hole=0.3
+    )])
+    fig.update_layout(
+        title="Data Split Distribution",
+        height=300,
+        margin=dict(l=20, r=20, t=40, b=20),
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Before Preprocessing")
-        st.info("Sample image - TO BE IMPLEMENTED")
+        st.checkbox("Stratified Split", value=True,
+                    help="Maintain class proportions in each split")
     with col2:
-        st.subheader("After Preprocessing")
-        st.info("Processed sample - TO BE IMPLEMENTED")
+        st.number_input("Random Seed", value=42, min_value=0,
+                       help="For reproducible splits")
 
 
-def render_augmentation():
-    """Section 6: Data augmentation config"""
-    st.header("Data Augmentation")
-
-    preset = st.radio("Augmentation Preset", ["None", "Light", "Moderate", "Heavy", "Custom"])
-
-    if preset == "Custom":
-        with st.expander("Configure Custom Augmentation"):
-            st.checkbox("Rotation")
-            st.checkbox("Horizontal Flip")
-            st.checkbox("Vertical Flip")
-            st.checkbox("Brightness")
-            st.checkbox("Contrast")
-            st.checkbox("Gaussian Noise")
-
-    if st.button("Preview Augmentation"):
-        st.info("Augmented samples grid - TO BE IMPLEMENTED")
-
-
-def render_confirmation():
-    """Section 7: Summary and navigation"""
-    st.divider()
-    st.success("Dataset Configuration Complete")
-
-    # TODO: Display actual config as JSON
-    st.json({
-        "dataset_path": "repo/malware",
-        "total_samples": "TBD",
-        "split": {"train": 70, "val": 15, "test": 15}
-    })
-
-    if st.button("Next: Model Configuration", type="primary"):
-        # TODO: Save config and navigate
-        st.info("Navigation - TO BE IMPLEMENTED")
