@@ -42,7 +42,7 @@ def render_header():
 
     with header_col3:
         # Quick action buttons in header
-        if st.button("New Session", use_container_width=True):
+        if st.button("New Session", width='stretch'):
             clear_session()
             st.rerun()
 
@@ -94,6 +94,8 @@ def render_sidebar():
 
     render_theme_settings()
 
+    st.write(st.session_state) 
+
 def render_theme_settings():
     """
     Theme customization settings
@@ -139,14 +141,14 @@ def render_theme_settings():
 
         col1, col2 = st.columns(2)
         with col1:
-            if st.button("Soft Green", use_container_width=True):
+            if st.button("Soft Green", width='stretch'):
                 st.session_state.theme_primary = "#98c127"
                 st.session_state.theme_secondary = "#bdd373"
                 st.session_state.theme_background = "#0e1117"
                 st.rerun()
 
         with col2:
-            if st.button("Soft Blue", use_container_width=True):
+            if st.button("Soft Blue", width='stretch'):
                 st.session_state.theme_primary = "#8fd7d7"
                 st.session_state.theme_secondary = "#00b0be"
                 st.session_state.theme_background = "#0e1117"
@@ -154,14 +156,14 @@ def render_theme_settings():
 
         col3, col4 = st.columns(2)
         with col3:
-            if st.button("Soft Pink", use_container_width=True):
+            if st.button("Soft Pink", width='stretch'):
                 st.session_state.theme_primary = "#f45f74"
                 st.session_state.theme_secondary = "#ff8ca1"
                 st.session_state.theme_background = "#0e1117"
                 st.rerun()
 
         with col4:
-            if st.button("Soft Orange", use_container_width=True):
+            if st.button("Soft Orange", width='stretch'):
                 st.session_state.theme_primary = "#ffb255"
                 st.session_state.theme_secondary = "#ffcd8e"
                 st.session_state.theme_background = "#0e1117"

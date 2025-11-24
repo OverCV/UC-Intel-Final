@@ -44,7 +44,7 @@ def render_class_distribution_chart(dataset_info):
         font=dict(color='#fafafa')
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_class_summary(dataset_info):
@@ -90,7 +90,7 @@ def render_sample_grid(dataset_info, selected_class):
         with cols[idx % 5]:
             try:
                 img = Image.open(img_path)
-                st.image(img, use_container_width=True)
+                st.image(img, width='stretch')
                 st.caption(f"{img.size[0]}x{img.size[1]}")
             except Exception as e:
                 st.error(f"Error: {img_path.name}")
@@ -111,7 +111,7 @@ def render_split_pie_chart(train_final, val_final, test_final):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 def render_preprocessing_preview(sample_path, target_size, color_mode):
@@ -122,7 +122,7 @@ def render_preprocessing_preview(sample_path, target_size, color_mode):
         st.markdown("**Original Image**")
         try:
             original = Image.open(sample_path)
-            st.image(original, use_container_width=True)
+            st.image(original, width='stretch')
             st.caption(f"Size: {original.size[0]}x{original.size[1]}")
         except Exception as e:
             st.error(f"Error loading image: {e}")
@@ -137,7 +137,7 @@ def render_preprocessing_preview(sample_path, target_size, color_mode):
             if color_mode == "Grayscale":
                 processed = processed.convert('L')
 
-            st.image(processed, use_container_width=True)
+            st.image(processed, width='stretch')
             st.caption(f"Size: {size}x{size}, Mode: {color_mode}")
         except Exception as e:
             st.error(f"Error processing: {e}")

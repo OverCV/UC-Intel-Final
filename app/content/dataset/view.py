@@ -135,7 +135,7 @@ def render_data_split(dataset_info):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:
@@ -144,5 +144,3 @@ def render_data_split(dataset_info):
     with col2:
         st.number_input("Random Seed", value=42, min_value=0,
                        help="For reproducible splits")
-
-

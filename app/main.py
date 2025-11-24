@@ -1,24 +1,37 @@
 """
-Main Entry Point - Home & Setup Page
-This is the landing page for the Streamlit multi-page app
-
-Streamlit will automatically create navigation from pages/ directory
+Main Entry Point - Streamlit Multipage App
+Defines navigation for self-contained content modules
 """
 
 import streamlit as st
-from components import render_header, render_sidebar
-from views import home
 
-# Page configuration (must be first Streamlit command)
+# Configure app
 st.set_page_config(
-    page_title="Malware Classification - Home",
+    page_title="Malware Classification",
     layout="wide",
     initial_sidebar_state="expanded",
+    menu_items={
+        "Get help": "https://www.google.com",
+        "Report a Bug": "https://www.google.com",
+        "About": "https://www.google.com",
+    }
 )
 
-# Render persistent header and sidebar
-render_header()
-render_sidebar()
+# Define pages
+pages = {
+    "Main": [
+        st.Page("content/home/page.py", title="Home", icon="🏠", url_path="home"),
+    ],
+    "Workflow": [
+        st.Page("content/dataset/page.py", title="Dataset", icon="📊", url_path="dataset"),
+        st.Page("content/model/page.py", title="Model", icon="🧠", url_path="model"),
+        st.Page("content/training/page.py", title="Training", icon="⚙️", url_path="training"),
+        st.Page("content/monitor/page.py", title="Monitor", icon="📈", url_path="monitor"),
+        st.Page("content/results/page.py", title="Results", icon="🎯", url_path="results"),
+        st.Page("content/interpret/page.py", title="Interpretability", icon="🔍", url_path="interpretability"),
+    ]
+}
 
-# Render home page content
-home.render()
+# Set up navigation
+pg = st.navigation(pages)
+pg.run()

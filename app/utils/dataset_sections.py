@@ -49,7 +49,7 @@ def render_class_distribution(dataset_info):
         font=dict(color='#fafafa')
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     col1, col2 = st.columns(2)
     with col1:
@@ -86,7 +86,7 @@ def render_sample_visualization(dataset_info):
             all_samples.extend(paths[:2])
         sample_paths = random.sample(all_samples, min(10, len(all_samples)))
     else:
-        sample_paths = dataset_info['sample_paths'].get(selected_class, [])[:10]
+        sample_paths = dataset_info['sample_paths'].get(selected_class, [])[:9]
 
     if not sample_paths:
         st.info("No samples available for this class")
@@ -97,7 +97,7 @@ def render_sample_visualization(dataset_info):
         with cols[idx % 5]:
             try:
                 img = Image.open(img_path)
-                st.image(img, use_container_width=True)
+                st.image(img, width='stretch')
                 st.caption(f"{img.size[0]}x{img.size[1]}")
             except Exception as e:
                 st.error(f"Error: {img_path.name}")
