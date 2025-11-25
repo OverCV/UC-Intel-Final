@@ -70,7 +70,7 @@ graph TD
     - Show sum value, show warning if not sum to 100%
 
 [st.checkbox] "Stratified Split" - True default
-[st.number_input] "Random Seed" - 72 default
+[st.number_input] "Random Seed" - 73 default
 ```
 
 **Visualization:**

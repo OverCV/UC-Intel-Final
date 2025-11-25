@@ -27,21 +27,48 @@ La detección y clasificación efectiva de malware presenta múltiples desafíos
 Estos desafíos plantean la necesidad de desarrollar métodos automatizados, eficientes y robustos capaces de identificar y clasificar malware con alta precisión, incluso ante muestras previamente no vistas.
 
 % =============================================================================
-\section{Pregunta de Investigación}
-\label{sec:intro:research-question}
+\section{Hipótesis de Investigación}
+\label{sec:intro:hypotheses}
 
-% TODO: Refinar pregunta según resultados obtenidos
-Este proyecto busca responder la siguiente pregunta central:
+Este proyecto plantea tres hipótesis específicas y cuantificables que serán verificadas experimentalmente:
+
+\subsection{H1: Comparación de Arquitecturas de Deep Learning}
 
 \begin{quote}
-    \textit{¿Es posible clasificar eficazmente muestras de malware en sus respectivas familias mediante el análisis de sus representaciones visuales utilizando técnicas de Deep Learning, específicamente Redes Neuronales Convolucionales?}
+    \textit{En la tarea de clasificación de malware sobre el dataset MalImg, un modelo ResNet50 pre-entrenado en ImageNet con fine-tuning superará tanto a una CNN custom de 5 bloques convolucionales como a un Vision Transformer (ViT-Small) en accuracy y F1-score macro. Específicamente, se espera que ResNet50 alcance $\geq$96\% de accuracy, mientras que la CNN custom alcanzará $\geq$93\% y el ViT $\geq$91\%, debido a las características de bajo nivel transferibles desde ImageNet y el tamaño limitado del dataset de malware.}
 \end{quote}
 
-Preguntas secundarias incluyen:
+\textbf{Variables:}
 \begin{itemize}
-    \item ¿Qué arquitecturas CNN son más efectivas para la clasificación de imágenes de malware?
-    \item ¿Cómo se compara el rendimiento de modelos preentrenados versus arquitecturas diseñadas específicamente?
-    \item ¿Qué características visuales de los ejecutables son más discriminativas para la clasificación?
+    \item \textbf{Independiente:} Arquitectura del modelo (CNN custom, ResNet50 fine-tuned, ViT-Small)
+    \item \textbf{Dependientes:} Accuracy, F1-score macro, épocas hasta convergencia, parámetros entrenables
+    \item \textbf{Control:} Dataset (MalImg), épocas máximas, early stopping, learning rate base
+\end{itemize}
+
+\subsection{H2: Impacto de Data Augmentation en Clases Minoritarias}
+
+\begin{quote}
+    \textit{La aplicación de data augmentation moderada (rotación $\pm$15°, flip horizontal, variación de brillo $\pm$20\%) incrementará el recall de las 5 familias de malware con menor representación ($<$100 muestras) en al menos 15 puntos porcentuales, sin degradar el accuracy global del modelo en más de 2\%.}
+\end{quote}
+
+\textbf{Variables:}
+\begin{itemize}
+    \item \textbf{Independiente:} Aplicación de data augmentation (con/sin)
+    \item \textbf{Dependientes:} Recall de clases minoritarias, accuracy global
+    \item \textbf{Control:} Arquitectura (mejor modelo de H1), hiperparámetros de entrenamiento
+\end{itemize}
+
+\subsection{H3: Efecto de la Profundidad en CNN Custom}
+
+\begin{quote}
+    \textit{Incrementar la profundidad de una CNN custom de 3 a 5 bloques convolucionales (32$\rightarrow$64$\rightarrow$128 filtros vs 32$\rightarrow$64$\rightarrow$128$\rightarrow$256$\rightarrow$512 filtros) mejorará el F1-score macro en al menos 8 puntos porcentuales sobre el dataset MalImg, a costa de incrementar el tiempo de entrenamiento en aproximadamente 40\%.}
+\end{quote}
+
+\textbf{Variables:}
+\begin{itemize}
+    \item \textbf{Independiente:} Número de bloques convolucionales (3 vs 5)
+    \item \textbf{Dependientes:} F1-score macro, tiempo de entrenamiento
+    \item \textbf{Control:} Dataset, batch size, learning rate, número máximo de épocas
 \end{itemize}
 
 % =============================================================================
@@ -54,18 +81,25 @@ Desarrollar e implementar un sistema de clasificación de malware basado en Deep
 
 \subsection{Objetivos Específicos}
 
+Los siguientes objetivos están diseñados para verificar las hipótesis planteadas:
+
 \begin{enumerate}
-    \item Recopilar y preprocesar tres datasets públicos de malware (Blended Malware Image Dataset, Malevis Dataset, MalImg Dataset) para entrenamiento y evaluación.
+    \item \textbf{Preparación de datos:} Preprocesar el dataset MalImg, implementando el pipeline de conversión de ejecutables a representaciones visuales con normalización a 224$\times$224 píxeles y partición estratificada (70\% entrenamiento, 15\% validación, 15\% prueba).
 
-    \item Implementar el pipeline de conversión de ejecutables a representaciones visuales adecuadas para análisis mediante CNN.
+    \item \textbf{Implementación de arquitecturas (H1):} Diseñar e implementar tres arquitecturas de clasificación:
+    \begin{itemize}
+        \item CNN custom con configuración de 5 bloques convolucionales
+        \item ResNet50 pre-entrenado con estrategia de fine-tuning parcial
+        \item Vision Transformer (ViT-Small) adaptado para imágenes de malware
+    \end{itemize}
 
-    \item Diseñar, entrenar y evaluar múltiples arquitecturas de Redes Neuronales Convolucionales para la tarea de clasificación multi-clase de familias de malware.
+    \item \textbf{Experimento de arquitecturas (H1):} Entrenar y evaluar las tres arquitecturas bajo condiciones controladas, comparando accuracy, F1-score macro, tiempo de convergencia y número de parámetros.
 
-    \item Realizar análisis comparativo de diferentes arquitecturas, hiperparámetros y técnicas de regularización para optimizar el rendimiento del modelo.
+    \item \textbf{Experimento de augmentation (H2):} Evaluar el impacto de data augmentation moderada sobre el recall de clases minoritarias, utilizando la mejor arquitectura identificada en H1.
 
-    \item Evaluar el rendimiento del sistema propuesto mediante métricas estándar (precisión, recall, F1-score) y comparar con métodos baseline existentes.
+    \item \textbf{Experimento de profundidad (H3):} Comparar el rendimiento de CNN custom con 3 vs 5 bloques convolucionales, analizando el trade-off entre F1-score y tiempo de entrenamiento.
 
-    \item Analizar e interpretar las características visuales aprendidas por el modelo para comprender qué patrones estructurales distinguen diferentes familias de malware.
+    \item \textbf{Análisis e interpretación:} Generar visualizaciones de características aprendidas (mapas de activación, t-SNE) para interpretar qué patrones estructurales distinguen las familias de malware.
 \end{enumerate}
 
 % =============================================================================

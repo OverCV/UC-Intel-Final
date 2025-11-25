@@ -27,7 +27,7 @@ def render_header():
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        st.markdown("### Malware Classification")
+        st.markdown("### Malware Classification 👾")
 
     with col2:
         session_id = get_session_id()
