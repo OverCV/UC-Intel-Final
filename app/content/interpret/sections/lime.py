@@ -8,6 +8,7 @@ import streamlit as st
 from content.interpret.engine.data_loader import get_test_dataloader, get_test_samples
 from content.interpret.engine.lime import compute_lime_explanation
 from content.interpret.engine.model_loader import load_experiment_model
+from content.interpret.tooltips import LIME_TOOLTIPS
 from state.persistence import get_dataset_config_from_file
 from state.workflow import get_session_id
 from training.transforms import create_val_transforms
@@ -15,11 +16,7 @@ from training.transforms import create_val_transforms
 
 def render_lime_section(exp_id: str):
     """Render LIME explanations."""
-    st.header("LIME Explanations")
-    st.caption(
-        "Local Interpretable Model-agnostic Explanations - "
-        "see which regions influence the prediction."
-    )
+    st.header("LIME Explanations", help=LIME_TOOLTIPS["method"])
 
     try:
         model, device, _ = load_experiment_model(exp_id)
@@ -36,14 +33,21 @@ def render_lime_section(exp_id: str):
                 "Select Sample",
                 options=list(sample_options.keys()),
                 key="lime_sample_select",
+                help="Choose a test image to explain.",
             )
             selected_sample = sample_options[selected_sample_name]
 
         with col2:
             num_samples = st.slider(
-                "Perturbation Samples", 50, 200, 100, key="lime_num_samples"
+                "Perturbation Samples", 50, 200, 100,
+                key="lime_num_samples",
+                help=LIME_TOOLTIPS["num_samples"],
             )
-            num_features = st.slider("Top Features", 5, 20, 10, key="lime_num_features")
+            num_features = st.slider(
+                "Top Features", 5, 20, 10,
+                key="lime_num_features",
+                help=LIME_TOOLTIPS["num_features"],
+            )
 
         if st.button("Compute LIME Explanation", key="lime_run"):
             with st.spinner("Computing LIME (this may take a moment)..."):
@@ -109,7 +113,7 @@ def _display_lime_results():
         st.image(orig_img.resize((224, 224)), use_container_width=True)
 
     with col2:
-        st.subheader("Superpixels")
+        st.subheader("Superpixels", help=LIME_TOOLTIPS["superpixels"])
         img_array = np.array(orig_img.resize((224, 224)))
         segments = explanation["segments"]
         seg_resized = np.array(
@@ -119,7 +123,7 @@ def _display_lime_results():
         st.image(boundaries, use_container_width=True)
 
     with col3:
-        st.subheader("Explanation")
+        st.subheader("Explanation", help="Green = supports prediction, Red = contradicts.")
         pos_mask = explanation["positive_mask"]
         neg_mask = explanation["negative_mask"]
 

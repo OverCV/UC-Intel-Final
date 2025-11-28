@@ -8,7 +8,7 @@ import random
 
 from PIL import Image, ImageEnhance
 
-# from state.cache import get_dataset_info
+from content.dataset.tooltips import SECTION_TOOLTIPS, CONTROL_TOOLTIPS
 from state.workflow import has_dataset_config, save_dataset_config
 import streamlit as st
 from utils.dataset_utils import DATASET_ROOT, calculate_split_percentages
@@ -24,7 +24,7 @@ def render(dataset_info):
 
 def render_augmentation_config():
     """Data augmentation preset selection and custom config"""
-    st.subheader("Data Augmentation")
+    st.subheader("Data Augmentation", help=SECTION_TOOLTIPS["augmentation_config"])
 
     st.info(
         "🔄 Augmentation is applied during training, not during dataset preparation"
@@ -56,10 +56,11 @@ def render_augmentation_config():
 
         col1, col2 = st.columns(2)
         with col1:
-            h_flip = st.checkbox("Horizontal Flip", value=True, key="aug_h_flip")
-            v_flip = st.checkbox("Vertical Flip", value=True, key="aug_v_flip")
+            h_flip = st.checkbox("Horizontal Flip", value=True, key="aug_h_flip", help="Flip image left-right. Safe for malware images.")
+            v_flip = st.checkbox("Vertical Flip", value=True, key="aug_v_flip", help="Flip image top-bottom.")
             rotation = st.checkbox(
-                "Orthogonal Rotation", value=True, key="aug_rotation"
+                "Orthogonal Rotation", value=True, key="aug_rotation",
+                help=CONTROL_TOOLTIPS["orthogonal_rotation"],
             )
             rotation_angles = [90, 180, 270]
             if rotation:

@@ -9,6 +9,7 @@ from content.interpret.engine.data_loader import get_test_samples
 from content.interpret.engine.gradcam import get_conv_layers
 from content.interpret.engine.model_loader import load_experiment_model
 from content.interpret.sections.lime import render_lime_section
+from content.interpret.tooltips import ACTIVATION_TOOLTIPS, FILTER_TOOLTIPS
 from PIL import Image
 from state.persistence import get_dataset_config_from_file
 from state.workflow import get_session_id
@@ -36,8 +37,7 @@ def render_other_sections(exp_id: str):
 
 def render_activation_maps_section(exp_id: str):
     """Render activation maps visualization."""
-    st.header("Activation Maps")
-    st.caption("Visualize what each convolutional filter detects for a given input.")
+    st.header("Activation Maps", help=ACTIVATION_TOOLTIPS["method"])
 
     try:
         model, device, _ = load_experiment_model(exp_id)
@@ -68,11 +68,14 @@ def render_activation_maps_section(exp_id: str):
                 "Select Layer",
                 options=layer_names,
                 key="actmap_layer",
+                help=ACTIVATION_TOOLTIPS["layer_selection"],
             )
             target_layer = dict(conv_layers)[selected_layer_name]
 
         max_filters = st.slider(
-            "Max Filters to Show", 8, 64, 32, step=8, key="actmap_max"
+            "Max Filters to Show", 8, 64, 32, step=8,
+            key="actmap_max",
+            help=ACTIVATION_TOOLTIPS["max_filters"],
         )
 
         if st.button("Generate Activation Maps", key="actmap_run"):
@@ -134,8 +137,7 @@ def _display_activation_maps(max_filters: int):
 
 def render_filter_weights_section(exp_id: str):
     """Render learned filter weights visualization."""
-    st.header("Learned Filters")
-    st.caption("Visualize the learned convolutional kernels.")
+    st.header("Learned Filters", help=FILTER_TOOLTIPS["method"])
 
     try:
         model, _, _ = load_experiment_model(exp_id)

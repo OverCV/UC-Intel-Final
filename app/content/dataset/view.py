@@ -4,6 +4,7 @@ Organizes content into tabs and delegates to tab-specific renderers
 """
 
 from content.dataset.tabs import augmentation, distribution, overview, samples
+from content.dataset.tooltips import TAB_TOOLTIPS
 from state.cache import get_dataset_info, set_dataset_info
 from state.workflow import get_dataset_config, has_dataset_config
 import streamlit as st
@@ -12,7 +13,7 @@ from utils.dataset_utils import scan_dataset
 
 def render():
     """Main render function for Dataset page"""
-    st.title("Dataset Configuration")
+    st.title("Dataset Configuration", help="Configure your malware image dataset for training.")
 
     # Initialize dataset cache
     dataset_info = get_dataset_info()

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import plotly.graph_objects as go
 import streamlit as st
+from content.dataset.tooltips import SECTION_TOOLTIPS, CONTROL_TOOLTIPS
 from utils.dataset_utils import DATASET_ROOT, calculate_split_percentages
 
 
@@ -21,7 +22,7 @@ def render(dataset_info):
 
 def render_dataset_overview(dataset_info):
     """Dataset statistics and info"""
-    st.subheader("Dataset Overview")
+    st.subheader("Dataset Overview", help=SECTION_TOOLTIPS["dataset_overview"])
 
     col1, col2 = st.columns(2)
     with col1:
@@ -52,7 +53,7 @@ def render_dataset_overview(dataset_info):
 
 def render_data_split(dataset_info):
     """Train/val/test split configuration"""
-    st.subheader("Train/Validation/Test Split")
+    st.subheader("Train/Validation/Test Split", help=SECTION_TOOLTIPS["data_split"])
 
     # Current split info
     total = dataset_info["total_samples"]
@@ -213,7 +214,7 @@ def render_data_split(dataset_info):
 
 def render_class_imbalance_handling(dataset_info):
     """Class imbalance mitigation options"""
-    st.subheader("Class Imbalance Handling")
+    st.subheader("Class Imbalance Handling", help=SECTION_TOOLTIPS["class_imbalance"])
 
     # Calculate imbalance for selected classes
     if "selected_classes" in st.session_state and st.session_state.selected_classes:

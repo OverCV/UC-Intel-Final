@@ -3,6 +3,7 @@ Training Configuration Page
 Form-based training config with sidebar library
 """
 
+from content.training.tooltips import HYPERPARAMETER_TOOLTIPS, OPTIMIZER_TOOLTIPS, EARLY_STOPPING_TOOLTIPS, SCHEDULER_TOOLTIPS
 from state.workflow import (
     add_training_to_library,
     delete_training_from_library,
@@ -15,7 +16,7 @@ import streamlit as st
 
 def render():
     """Main render function for Training page"""
-    st.title("Training Configuration")
+    st.title("Training Configuration", help="Configure hyperparameters for model training.")
 
     # Initialize state
     if "training_selected_id" not in st.session_state:
@@ -133,7 +134,7 @@ def _render_training_form() -> dict:
     st.divider()
 
     # Optimizer
-    st.subheader("Optimizer")
+    st.subheader("Optimizer", help="Algorithm that updates model weights during training.")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -141,7 +142,7 @@ def _render_training_form() -> dict:
             "Optimizer",
             ["Adam", "AdamW", "SGD with Momentum", "RMSprop"],
             key="train_optimizer",
-            help="Algorithm that updates model weights.",
+            help=OPTIMIZER_TOOLTIPS.get(st.session_state.get("train_optimizer", "Adam").lower().replace(" with momentum", ""), ""),
         )
 
     with col2:
@@ -152,43 +153,47 @@ def _render_training_form() -> dict:
             step=0.0001,
             key="train_lr",
             format="%.4f",
-            help="Controls how much weights change per update.",
+            help=HYPERPARAMETER_TOOLTIPS["learning_rate"],
         )
 
     # LR Scheduler
-    st.subheader("Learning Rate Schedule")
+    st.subheader("Learning Rate Schedule", help="Adjust learning rate during training to improve convergence.")
     lr_strategy = st.radio(
         "Strategy",
         ["Constant", "ReduceLROnPlateau", "Cosine Annealing"],
         key="train_lr_strategy",
         horizontal=True,
-        help="How learning rate changes during training.",
+        help=SCHEDULER_TOOLTIPS.get(lr_strategy.lower().replace(" ", "_") if lr_strategy else "none", "How learning rate changes during training."),
     )
 
     # Training parameters
-    st.subheader("Training Parameters")
+    st.subheader("Training Parameters", help="Core training loop settings.")
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        epochs = st.slider("Max Epochs", 10, 200, key="train_epochs")
+        epochs = st.slider(
+            "Max Epochs", 10, 200,
+            key="train_epochs",
+            help=HYPERPARAMETER_TOOLTIPS["epochs"],
+        )
 
     with col2:
         batch_size = st.selectbox(
             "Batch Size",
             [16, 32, 64, 128],
             key="train_batch_size",
-            help="Samples per weight update.",
+            help=HYPERPARAMETER_TOOLTIPS["batch_size"],
         )
 
     with col3:
         shuffle = st.checkbox("Shuffle Data", key="train_shuffle")
 
     # Regularization
-    st.subheader("Regularization")
+    st.subheader("Regularization", help="Techniques to prevent overfitting by constraining model complexity.")
     col1, col2 = st.columns(2)
 
     with col1:
-        l2 = st.checkbox("L2 Weight Decay", key="train_l2")
+        l2 = st.checkbox("L2 Weight Decay", key="train_l2", help=HYPERPARAMETER_TOOLTIPS["weight_decay"])
 
     with col2:
         if l2:
@@ -209,14 +214,14 @@ def _render_training_form() -> dict:
     )
 
     # Callbacks
-    st.subheader("Callbacks")
+    st.subheader("Callbacks", help="Automated actions during training: early stopping and checkpointing.")
     col1, col2 = st.columns(2)
 
     with col1:
-        early_stopping = st.checkbox("Early Stopping", key="train_early_stopping")
+        early_stopping = st.checkbox("Early Stopping", key="train_early_stopping", help=EARLY_STOPPING_TOOLTIPS["enabled"])
         if early_stopping:
             es_patience = st.slider(
-                "Patience", 5, 30, key="train_es_patience", help="Epochs to wait."
+                "Patience", 5, 30, key="train_es_patience", help=EARLY_STOPPING_TOOLTIPS["patience"]
             )
         else:
             es_patience = 10

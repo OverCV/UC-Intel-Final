@@ -11,28 +11,43 @@ from content.interpret.engine.embeddings import (
     extract_features,
 )
 from content.interpret.engine.model_loader import load_experiment_model
+from content.interpret.tooltips import EMBEDDINGS_TOOLTIPS
 
 
 def render_embeddings(exp_id: str):
     """Section: t-SNE/UMAP/PCA embeddings visualization"""
-    st.header("Feature Space Visualization")
+    st.header("Feature Space Visualization", help="Visualize learned features in 2D. Well-separated clusters indicate good class discrimination.")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        method = st.selectbox("Method", ["t-SNE", "PCA", "UMAP"], key="embed_method")
+        method = st.selectbox(
+            "Method", ["t-SNE", "PCA", "UMAP"],
+            key="embed_method",
+            help="t-SNE: best for visualization. PCA: fast, linear. UMAP: balance of both.",
+        )
 
     with col2:
         n_samples = st.slider(
-            "Max Samples", 100, 1000, 500, step=50, key="embed_samples"
+            "Max Samples", 100, 1000, 500, step=50,
+            key="embed_samples",
+            help="Number of test samples to visualize. More = slower but more representative.",
         )
 
     perplexity = 30
     n_neighbors = 15
     if method == "t-SNE":
-        perplexity = st.slider("Perplexity", 5, 50, 30, key="embed_perplexity")
+        perplexity = st.slider(
+            "Perplexity", 5, 50, 30,
+            key="embed_perplexity",
+            help=EMBEDDINGS_TOOLTIPS["perplexity"],
+        )
     elif method == "UMAP":
-        n_neighbors = st.slider("N Neighbors", 5, 50, 15, key="embed_neighbors")
+        n_neighbors = st.slider(
+            "N Neighbors", 5, 50, 15,
+            key="embed_neighbors",
+            help=EMBEDDINGS_TOOLTIPS["n_neighbors"],
+        )
 
     if st.button("Compute Embeddings", key="embed_run"):
         with st.spinner(f"Extracting features and computing {method}..."):
@@ -84,9 +99,15 @@ def render_embeddings(exp_id: str):
 
     col1, col2 = st.columns(2)
     with col1:
-        st.metric("Silhouette Score", f"{metrics['silhouette']:.3f}")
+        st.metric(
+            "Silhouette Score", f"{metrics['silhouette']:.3f}",
+            help=EMBEDDINGS_TOOLTIPS["silhouette_score"],
+        )
     with col2:
-        st.metric("Davies-Bouldin Index", f"{metrics['davies_bouldin']:.3f}")
+        st.metric(
+            "Davies-Bouldin Index", f"{metrics['davies_bouldin']:.3f}",
+            help=EMBEDDINGS_TOOLTIPS["davies_bouldin"],
+        )
 
     st.divider()
 

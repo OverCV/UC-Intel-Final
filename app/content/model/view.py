@@ -2,6 +2,7 @@
 
 from components.model_card import render_model_library
 from content.model import custom_cnn, summary, transfer_learning, transformer
+from content.model.tooltips import MODEL_TYPES
 from state.workflow import (
     add_model_to_library,
     delete_model_from_library,
@@ -16,7 +17,7 @@ import streamlit as st
 
 def render():
     """Main render function for Model page"""
-    st.title("Model Configuration")
+    st.title("Model Configuration", help="Design and save neural network architectures for malware classification.")
 
     if not has_dataset_config():
         st.warning("Please configure dataset first to determine number of classes")
@@ -186,20 +187,20 @@ def _render_model_editor(num_classes: int):
 
 def _render_model_type_selection():
     """Section: Choose model architecture type"""
-    st.subheader("Architecture Type")
+    st.subheader("Architecture Type", help="Choose the neural network architecture for your model.")
 
     model_type = st.segmented_control(
         "Select Model Type",
         options=["Custom CNN", "Transformer", "Transfer Learning"],
         default="Custom CNN",
         key="model_type",
-        help="Choose the type of model architecture",
     )
 
+    # Use tooltips from centralized file
     descriptions = {
-        "Custom CNN": "🔧 **Build from scratch.** Stack convolutional layers manually. Full control over architecture depth, filters, and regularization.",
-        "Transformer": "🧪 **Experimental.** Vision Transformer (ViT) architecture. State-of-the-art but computationally expensive and data-hungry.",
-        "Transfer Learning": "🎯 **Recommended.** Use pre-trained models (ResNet, VGG, EfficientNet) fine-tuned on your malware dataset. Faster training, better results with less data.",
+        "Custom CNN": f"🔧 **{MODEL_TYPES['custom_cnn']['name']}**: {MODEL_TYPES['custom_cnn']['description']}",
+        "Transformer": f"🧪 **{MODEL_TYPES['transformer']['name']}**: {MODEL_TYPES['transformer']['description']}",
+        "Transfer Learning": f"🎯 **{MODEL_TYPES['transfer_learning']['name']}**: {MODEL_TYPES['transfer_learning']['description']}",
     }
 
     st.info(descriptions.get(model_type, ""))

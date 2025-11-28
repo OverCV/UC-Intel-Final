@@ -6,6 +6,12 @@ Display training results with expandable cards per experiment
 import pandas as pd
 import streamlit as st
 
+from content.results.tooltips import (
+    METRICS_TOOLTIPS,
+    CONFUSION_MATRIX_TOOLTIPS,
+    HISTORY_TOOLTIPS,
+    EXPORT_TOOLTIPS,
+)
 from content.results.advanced_charts import (
     render_accuracy_summary,
     render_classification_table,
@@ -32,7 +38,7 @@ from state.workflow import (
 
 def render():
     """Main render function for Results page."""
-    st.title("Results & Evaluation")
+    st.title("Results & Evaluation", help="View and analyze completed training experiments.")
 
     # Get completed experiments
     experiments = get_experiments()
@@ -108,23 +114,23 @@ def _render_metrics_row(experiment: dict):
 
     with cols[0]:
         val = metrics.get("val_loss", 0)
-        st.metric("Val Loss", f"{val:.4f}")
+        st.metric("Val Loss", f"{val:.4f}", help=HISTORY_TOOLTIPS["loss_curve"])
 
     with cols[1]:
         val = metrics.get("val_acc", 0) * 100
-        st.metric("Val Accuracy", f"{val:.1f}%")
+        st.metric("Val Accuracy", f"{val:.1f}%", help=METRICS_TOOLTIPS["accuracy"])
 
     with cols[2]:
         val = metrics.get("val_precision", 0) if "val_precision" in metrics else None
-        st.metric("Val Precision", f"{val*100:.1f}%" if val else "N/A")
+        st.metric("Val Precision", f"{val*100:.1f}%" if val else "N/A", help=METRICS_TOOLTIPS["precision"])
 
     with cols[3]:
         val = metrics.get("val_recall", 0) if "val_recall" in metrics else None
-        st.metric("Val Recall", f"{val*100:.1f}%" if val else "N/A")
+        st.metric("Val Recall", f"{val*100:.1f}%" if val else "N/A", help=METRICS_TOOLTIPS["recall"])
 
     with cols[4]:
         val = metrics.get("val_f1", 0) if "val_f1" in metrics else None
-        st.metric("Val F1", f"{val*100:.1f}%" if val else "N/A")
+        st.metric("Val F1", f"{val*100:.1f}%" if val else "N/A", help=METRICS_TOOLTIPS["f1_score"])
 
 
 def _render_training_curves(experiment: dict):
@@ -223,11 +229,11 @@ def _render_advanced_metrics(experiment: dict):
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown("##### Confusion Matrix")
+        st.markdown("##### Confusion Matrix", help=CONFUSION_MATRIX_TOOLTIPS["matrix"])
         render_confusion_matrix(test_results, exp_id)
 
     with col2:
-        st.markdown("##### Per-Class Metrics")
+        st.markdown("##### Per-Class Metrics", help=METRICS_TOOLTIPS["macro_avg"])
         render_per_class_metrics(test_results, exp_id)
 
     st.markdown("---")
@@ -252,9 +258,10 @@ def _render_export_section(experiment: dict):
                 file_name=f"{exp_id}_history.csv",
                 mime="text/csv",
                 key=f"download_history_{exp_id}",
+                help=EXPORT_TOOLTIPS["export_report"],
             )
         else:
             st.button("Download Training History (CSV)", disabled=True, key=f"download_history_{exp_id}")
 
     with col2:
-        st.button("Download Model (.pt)", disabled=True, help="Coming soon", key=f"download_model_{exp_id}")
+        st.button("Download Model (.pt)", disabled=True, help=EXPORT_TOOLTIPS["export_model"], key=f"download_model_{exp_id}")

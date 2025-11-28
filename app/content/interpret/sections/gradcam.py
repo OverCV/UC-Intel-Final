@@ -13,6 +13,7 @@ from content.interpret.engine.gradcam import (
     get_top_predictions,
 )
 from content.interpret.engine.model_loader import load_experiment_model
+from content.interpret.tooltips import GRADCAM_TOOLTIPS
 from state.persistence import get_dataset_config_from_file
 from state.workflow import get_session_id
 from training.transforms import create_val_transforms
@@ -20,7 +21,7 @@ from training.transforms import create_val_transforms
 
 def render_gradcam(exp_id: str):
     """Section: Grad-CAM visualization"""
-    st.header("Grad-CAM: What the Model Sees")
+    st.header("Grad-CAM: What the Model Sees", help=GRADCAM_TOOLTIPS["method"])
 
     try:
         model, device, _ = load_experiment_model(exp_id)
@@ -44,6 +45,7 @@ def render_gradcam(exp_id: str):
                 "Select Sample",
                 options=list(sample_options.keys()),
                 key="gradcam_sample_select",
+                help="Choose a test image to analyze.",
             )
             selected_sample = sample_options[selected_sample_name]
 
@@ -53,10 +55,15 @@ def render_gradcam(exp_id: str):
                 options=layer_names,
                 index=len(layer_names) - 1,
                 key="gradcam_layer_select",
+                help=GRADCAM_TOOLTIPS["target_layer"],
             )
             target_layer = dict(conv_layers)[selected_layer_name]
 
-        opacity = st.slider("Overlay Opacity", 0.0, 1.0, 0.5, key="gradcam_opacity")
+        opacity = st.slider(
+            "Overlay Opacity", 0.0, 1.0, 0.5,
+            key="gradcam_opacity",
+            help=GRADCAM_TOOLTIPS["opacity"],
+        )
 
         if st.button("Generate Grad-CAM", key="gradcam_run"):
             with st.spinner("Computing Grad-CAM..."):
@@ -105,7 +112,7 @@ def render_gradcam(exp_id: str):
             st.image(img_resized, use_container_width=True)
 
         with col2:
-            st.subheader("Heatmap")
+            st.subheader("Heatmap", help=GRADCAM_TOOLTIPS["heatmap"])
             heatmap_colored = plt.cm.jet(heatmap)[:, :, :3]
             st.image(heatmap_colored, use_container_width=True)
 
