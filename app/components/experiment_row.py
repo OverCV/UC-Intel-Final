@@ -115,19 +115,17 @@ def render_experiment_row(
         if status == "training":
             current_epoch = experiment.get("current_epoch", 0)
             max_epochs = experiment.get("max_epochs", 100)
-
-            # Batch-level progress within epoch
             current_batch = experiment.get("current_batch", 0)
             total_batches = experiment.get("total_batches", 0)
 
+            # Epoch progress bar
+            epoch_progress = current_epoch / max_epochs if max_epochs > 0 else 0
+            st.progress(epoch_progress, text=f"Epoch {current_epoch}/{max_epochs}")
+
+            # Batch progress bar (within current epoch)
             if total_batches > 0:
-                # Show batch progress during epoch
                 batch_progress = current_batch / total_batches
-                st.progress(batch_progress, text=f"Epoch {current_epoch + 1}/{max_epochs} - Batch {current_batch}/{total_batches}")
-            else:
-                # Fall back to epoch progress
-                progress = current_epoch / max_epochs if max_epochs > 0 else 0
-                st.progress(progress, text=f"Epoch {current_epoch}/{max_epochs}")
+                st.progress(batch_progress, text=f"Batch {current_batch}/{total_batches}")
 
             metrics = experiment.get("metrics", {})
             prev_metrics = experiment.get("prev_metrics", {})

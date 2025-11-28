@@ -196,6 +196,7 @@ def _run_training(session_id: str, experiment_id: str):
             "best_epoch": results["best_epoch"],
             "duration": results["duration"],
             "metrics": final_metrics,
+            "history": results["history"],  # Save full training history for charts
         })
 
         print(f"[Training] Experiment {experiment_id} completed successfully")
