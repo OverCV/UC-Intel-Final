@@ -6,6 +6,12 @@ Display training results with expandable cards per experiment
 import pandas as pd
 import streamlit as st
 
+from content.results.advanced_charts import (
+    render_accuracy_summary,
+    render_classification_table,
+    render_confusion_matrix,
+    render_per_class_metrics,
+)
 from content.results.charts import (
     render_accuracy_chart,
     render_loss_chart,
@@ -14,10 +20,13 @@ from content.results.charts import (
     render_prf_chart,
     render_train_val_f1_comparison,
 )
+from state.persistence import get_dataset_config_from_file, get_model_from_file
 from state.workflow import (
     get_experiments,
     get_model_from_library,
+    get_session_id,
     get_training_from_library,
+    update_experiment,
 )
 
 
@@ -167,11 +176,62 @@ def _render_training_curves(experiment: dict):
 
 
 def _render_advanced_metrics(experiment: dict):
-    """Render advanced metrics tab content."""
-    st.info(
-        "Advanced metrics (confusion matrix, per-class precision/recall, ROC curves) "
-        "require running inference on the test set. Coming soon."
-    )
+    """Render advanced metrics - runs test evaluation if needed."""
+    exp_id = experiment["id"]
+
+    # Check if test results already exist
+    test_results = experiment.get("test_results")
+
+    if not test_results:
+        # Run evaluation automatically
+        with st.spinner("Running test set evaluation... This may take a moment."):
+            try:
+                from training.evaluator import run_test_evaluation
+
+                session_id = get_session_id()
+                model_entry = get_model_from_file(session_id, experiment.get("model_id"))
+                dataset_config = get_dataset_config_from_file(session_id)
+
+                if not model_entry:
+                    st.error("Model configuration not found.")
+                    return
+
+                test_results = run_test_evaluation(
+                    exp_id,
+                    model_entry.get("config", {}),
+                    dataset_config,
+                )
+
+                # Save results to experiment for caching
+                update_experiment(exp_id, {"test_results": test_results})
+                st.rerun()
+
+            except Exception as e:
+                st.error(f"Evaluation failed: {e}")
+                import traceback
+                st.code(traceback.format_exc())
+                return
+
+    # Display test results
+    st.markdown("##### Test Set Performance")
+    render_accuracy_summary(test_results)
+
+    st.markdown("---")
+
+    # Two columns: confusion matrix and per-class metrics
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown("##### Confusion Matrix")
+        render_confusion_matrix(test_results)
+
+    with col2:
+        st.markdown("##### Per-Class Metrics")
+        render_per_class_metrics(test_results)
+
+    st.markdown("---")
+    st.markdown("##### Classification Report")
+    render_classification_table(test_results)
 
 
 def _render_export_section(experiment: dict):

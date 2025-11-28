@@ -31,11 +31,13 @@ def render_loss_chart(history: dict):
 
     epochs = list(range(1, len(train_loss) + 1))
 
-    df = pd.DataFrame({
-        "Epoch": epochs * 2,
-        "Loss": train_loss + val_loss,
-        "Type": ["Train"] * len(train_loss) + ["Validation"] * len(val_loss),
-    })
+    df = pd.DataFrame(
+        {
+            "Epoch": epochs * 2,
+            "Loss": train_loss + val_loss,
+            "Type": ["Train"] * len(train_loss) + ["Validation"] * len(val_loss),
+        }
+    )
 
     fig = px.line(
         df,
@@ -68,11 +70,13 @@ def render_accuracy_chart(history: dict):
     train_acc_pct = [acc * 100 for acc in train_acc]
     val_acc_pct = [acc * 100 for acc in val_acc]
 
-    df = pd.DataFrame({
-        "Epoch": epochs * 2,
-        "Accuracy (%)": train_acc_pct + val_acc_pct,
-        "Type": ["Train"] * len(train_acc_pct) + ["Validation"] * len(val_acc_pct),
-    })
+    df = pd.DataFrame(
+        {
+            "Epoch": epochs * 2,
+            "Accuracy (%)": train_acc_pct + val_acc_pct,
+            "Type": ["Train"] * len(train_acc_pct) + ["Validation"] * len(val_acc_pct),
+        }
+    )
 
     fig = px.line(
         df,
@@ -107,15 +111,17 @@ def render_prf_chart(history: dict):
     recall_pct = [v * 100 for v in val_recall]
     f1_pct = [v * 100 for v in val_f1]
 
-    df = pd.DataFrame({
-        "Epoch": epochs * 3,
-        "Score (%)": precision_pct + recall_pct + f1_pct,
-        "Metric": (
-            ["Precision"] * len(precision_pct) +
-            ["Recall"] * len(recall_pct) +
-            ["F1"] * len(f1_pct)
-        ),
-    })
+    df = pd.DataFrame(
+        {
+            "Epoch": epochs * 3,
+            "Score (%)": precision_pct + recall_pct + f1_pct,
+            "Metric": (
+                ["Precision"] * len(precision_pct)
+                + ["Recall"] * len(recall_pct)
+                + ["F1"] * len(f1_pct)
+            ),
+        }
+    )
 
     fig = px.line(
         df,
@@ -148,14 +154,16 @@ def render_lr_chart(history: dict):
     epochs = list(range(1, len(lr_history) + 1))
 
     fig = go.Figure()
-    fig.add_trace(go.Scatter(
-        x=epochs,
-        y=lr_history,
-        mode="lines+markers",
-        line=dict(color=COLORS["lr"]),
-        marker=dict(size=6),
-        name="Learning Rate",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=epochs,
+            y=lr_history,
+            mode="lines+markers",
+            line=dict(color=COLORS["lr"]),
+            marker=dict(size=6),
+            name="Learning Rate",
+        )
+    )
 
     fig.update_layout(
         margin=dict(t=30, b=30),
@@ -185,15 +193,17 @@ def render_overfitting_gap_chart(history: dict):
     fig = go.Figure()
 
     # Add area fill for visual clarity
-    fig.add_trace(go.Scatter(
-        x=epochs,
-        y=gap,
-        mode="lines",
-        fill="tozeroy",
-        line=dict(color=COLORS["gap"]),
-        fillcolor="rgba(255, 102, 146, 0.3)",
-        name="Overfitting Gap",
-    ))
+    fig.add_trace(
+        go.Scatter(
+            x=epochs,
+            y=gap,
+            mode="lines",
+            fill="tozeroy",
+            line=dict(color=COLORS["gap"]),
+            fillcolor="rgba(255, 102, 146, 0.3)",
+            name="Overfitting Gap",
+        )
+    )
 
     # Add zero reference line
     fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
@@ -224,11 +234,13 @@ def render_train_val_f1_comparison(history: dict):
     train_f1_pct = [f * 100 for f in train_f1]
     val_f1_pct = [f * 100 for f in val_f1]
 
-    df = pd.DataFrame({
-        "Epoch": epochs * 2,
-        "F1 Score (%)": train_f1_pct + val_f1_pct,
-        "Type": ["Train"] * len(train_f1_pct) + ["Validation"] * len(val_f1_pct),
-    })
+    df = pd.DataFrame(
+        {
+            "Epoch": epochs * 2,
+            "F1 Score (%)": train_f1_pct + val_f1_pct,
+            "Type": ["Train"] * len(train_f1_pct) + ["Validation"] * len(val_f1_pct),
+        }
+    )
 
     fig = px.line(
         df,
