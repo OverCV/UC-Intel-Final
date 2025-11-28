@@ -3,34 +3,33 @@ Model Configuration Page
 Full implementation with layer builder for Custom CNN
 """
 
-import streamlit as st
 from datetime import datetime
 from typing import Any
 
-from state.workflow import (
-    get_dataset_config,
-    has_dataset_config,
-    save_model_config,
-)
 from config import (
     ACTIVATION_FUNCTIONS,
     KERNEL_SIZES,
     PRETRAINED_MODELS,
 )
 from content.model.layer_builder import (
-    init_layer_stack,
-    get_layer_stack,
     export_layer_stack,
+    get_layer_stack,
+    init_layer_stack,
 )
+from content.model.layer_configs import validate_layer_stack
 from content.model.layer_renderer import (
-    render_preset_selector,
     render_add_layer_section,
     render_layer_stack,
     render_output_layer,
-    render_architecture_preview,
+    render_preset_selector,
     render_validation_status,
 )
-from content.model.layer_configs import validate_layer_stack
+from state.workflow import (
+    get_dataset_config,
+    has_dataset_config,
+    save_model_config,
+)
+import streamlit as st
 
 
 def render():
@@ -131,7 +130,7 @@ def render_model_type_selection():
             "Select Model Type",
             ["Custom CNN", "Transfer Learning", "Transformer"],
             key="model_type",
-            help="Choose the type of model architecture to use"
+            help="Choose the type of model architecture to use",
         )
 
     with col2:
@@ -152,11 +151,6 @@ def render_custom_cnn(num_classes: int) -> dict[str, Any]:
 
     # Preset selector
     render_preset_selector()
-
-    st.markdown("---")
-
-    # Architecture preview
-    render_architecture_preview()
 
     st.markdown("---")
 
@@ -200,7 +194,7 @@ def render_transfer_learning(num_classes: int) -> dict[str, Any]:
             "Select Base Model",
             options=PRETRAINED_MODELS,
             key="transfer_base_model",
-            help="Pre-trained model to use as backbone"
+            help="Pre-trained model to use as backbone",
         )
 
     with col2:
@@ -208,7 +202,7 @@ def render_transfer_learning(num_classes: int) -> dict[str, Any]:
             "Initial Weights",
             ["ImageNet", "Random"],
             key="transfer_weights",
-            help="Use pre-trained weights or random initialization"
+            help="Use pre-trained weights or random initialization",
         )
 
     # Fine-tuning Strategy
@@ -218,7 +212,7 @@ def render_transfer_learning(num_classes: int) -> dict[str, Any]:
         "Training Strategy",
         ["Feature Extraction", "Partial Fine-tuning", "Full Fine-tuning"],
         key="transfer_strategy",
-        help="How to train the pre-trained model"
+        help="How to train the pre-trained model",
     )
 
     unfreeze_layers = 0
@@ -228,7 +222,7 @@ def render_transfer_learning(num_classes: int) -> dict[str, Any]:
             min_value=0,
             max_value=50,
             key="transfer_unfreeze_layers",
-            help="Number of top layers to make trainable"
+            help="Number of top layers to make trainable",
         )
 
     # Classification Head
@@ -240,22 +234,20 @@ def render_transfer_learning(num_classes: int) -> dict[str, Any]:
         global_pooling = st.checkbox(
             "Global Average Pooling",
             key="transfer_global_pooling",
-            help="Add global pooling before dense layers"
+            help="Add global pooling before dense layers",
         )
 
     with col2:
         add_dense = st.checkbox(
             "Add Dense Layer",
             key="transfer_add_dense",
-            help="Add extra dense layer before output"
+            help="Add extra dense layer before output",
         )
 
         dense_units = 512
         if add_dense:
             dense_units = st.selectbox(
-                "Dense Units",
-                options=[256, 512, 1024],
-                key="transfer_dense_units"
+                "Dense Units", options=[256, 512, 1024], key="transfer_dense_units"
             )
 
     with col3:
@@ -264,7 +256,7 @@ def render_transfer_learning(num_classes: int) -> dict[str, Any]:
             min_value=0.0,
             max_value=0.7,
             key="transfer_dropout",
-            help="Dropout before final layer"
+            help="Dropout before final layer",
         )
 
     st.info(f"Output Layer: {num_classes} units with Softmax activation")
@@ -278,7 +270,7 @@ def render_transfer_learning(num_classes: int) -> dict[str, Any]:
         "add_dense": add_dense,
         "dense_units": dense_units if add_dense else 0,
         "dropout": dropout,
-        "num_classes": num_classes
+        "num_classes": num_classes,
     }
 
 
@@ -302,14 +294,14 @@ def render_transformer(num_classes: int) -> dict[str, Any]:
             "Patch Size",
             options=[8, 14, 16, 32],
             key="transformer_patch_size",
-            help="Size of image patches (smaller = more patches)"
+            help="Size of image patches (smaller = more patches)",
         )
 
         embed_dim = st.selectbox(
             "Embedding Dimension",
             options=[384, 512, 768, 1024],
             key="transformer_embed_dim",
-            help="Dimension of patch embeddings"
+            help="Dimension of patch embeddings",
         )
 
     with col2:
@@ -318,14 +310,14 @@ def render_transformer(num_classes: int) -> dict[str, Any]:
             min_value=6,
             max_value=24,
             key="transformer_depth",
-            help="Number of transformer blocks"
+            help="Number of transformer blocks",
         )
 
         num_heads = st.selectbox(
             "Attention Heads",
             options=[6, 8, 12, 16],
             key="transformer_num_heads",
-            help="Number of attention heads"
+            help="Number of attention heads",
         )
 
     # MLP Configuration
@@ -340,7 +332,7 @@ def render_transformer(num_classes: int) -> dict[str, Any]:
             max_value=8.0,
             step=0.5,
             key="transformer_mlp_ratio",
-            help="MLP hidden dim = embed_dim * mlp_ratio"
+            help="MLP hidden dim = embed_dim * mlp_ratio",
         )
 
     with col2:
@@ -349,12 +341,14 @@ def render_transformer(num_classes: int) -> dict[str, Any]:
             min_value=0.0,
             max_value=0.5,
             key="transformer_dropout",
-            help="Dropout rate in transformer blocks"
+            help="Dropout rate in transformer blocks",
         )
 
     # Display estimated parameters
     num_patches = (224 // patch_size) ** 2
-    st.info(f"Image will be split into {num_patches} patches of size {patch_size}x{patch_size}")
+    st.info(
+        f"Image will be split into {num_patches} patches of size {patch_size}x{patch_size}"
+    )
     st.info(f"Output Layer: {num_classes} units with Softmax activation")
 
     return {
@@ -365,7 +359,7 @@ def render_transformer(num_classes: int) -> dict[str, Any]:
         "mlp_ratio": mlp_ratio,
         "dropout": dropout,
         "num_classes": num_classes,
-        "num_patches": num_patches
+        "num_patches": num_patches,
     }
 
 
@@ -374,7 +368,7 @@ def build_model_config(
     num_classes: int,
     cnn_config: dict[str, Any] | None,
     transfer_config: dict[str, Any] | None,
-    transformer_config: dict[str, Any] | None
+    transformer_config: dict[str, Any] | None,
 ) -> dict[str, Any]:
     """Build complete model configuration"""
 
@@ -391,12 +385,16 @@ def build_model_config(
         config["implementation"] = "pytorch"
 
     elif model_type == "Transfer Learning" and transfer_config:
-        config["architecture"] = f"{transfer_config['base_model']}_{transfer_config['strategy'].replace(' ', '_')}"
+        config["architecture"] = (
+            f"{transfer_config['base_model']}_{transfer_config['strategy'].replace(' ', '_')}"
+        )
         config["transfer_config"] = transfer_config
         config["implementation"] = "pytorch"
 
     elif model_type == "Transformer" and transformer_config:
-        config["architecture"] = f"ViT_D{transformer_config['depth']}_H{transformer_config['num_heads']}"
+        config["architecture"] = (
+            f"ViT_D{transformer_config['depth']}_H{transformer_config['num_heads']}"
+        )
         config["transformer_config"] = transformer_config
         config["implementation"] = "manual"
 
@@ -431,7 +429,9 @@ def render_architecture_summary(model_config: dict[str, Any]):
             layer_counts[lt] = layer_counts.get(lt, 0) + 1
 
         if layer_counts:
-            counts_str = ", ".join([f"{count} {ltype}" for ltype, count in layer_counts.items()])
+            counts_str = ", ".join(
+                [f"{count} {ltype}" for ltype, count in layer_counts.items()]
+            )
             st.write(f"**Layer Composition:** {counts_str}")
 
     elif model_config["model_type"] == "Transfer Learning":
@@ -439,12 +439,14 @@ def render_architecture_summary(model_config: dict[str, Any]):
         st.write(f"**Base Model:** {transfer_cfg['base_model']}")
         st.write(f"**Weights:** {transfer_cfg['weights']}")
         st.write(f"**Strategy:** {transfer_cfg['strategy']}")
-        if transfer_cfg['strategy'] == "Partial Fine-tuning":
+        if transfer_cfg["strategy"] == "Partial Fine-tuning":
             st.write(f"**Unfrozen Layers:** {transfer_cfg['unfreeze_layers']}")
 
     elif model_config["model_type"] == "Transformer":
         transformer_cfg = model_config["transformer_config"]
-        st.write(f"**Patch Size:** {transformer_cfg['patch_size']}x{transformer_cfg['patch_size']}")
+        st.write(
+            f"**Patch Size:** {transformer_cfg['patch_size']}x{transformer_cfg['patch_size']}"
+        )
         st.write(f"**Embedding Dim:** {transformer_cfg['embed_dim']}")
         st.write(f"**Depth:** {transformer_cfg['depth']} layers")
         st.write(f"**Attention Heads:** {transformer_cfg['num_heads']}")
@@ -490,7 +492,7 @@ def render_save_section(model_config: dict[str, Any]):
             "Save Model Config",
             type="primary",
             use_container_width=True,
-            disabled=not is_valid
+            disabled=not is_valid,
         ):
             save_model_config(model_config)
             st.success("Model configuration saved!")

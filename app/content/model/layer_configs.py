@@ -11,12 +11,24 @@ LAYER_TYPES = {
         "icon": "🔲",
         "category": "feature_extraction",
         "params": {
-            "filters": {"type": "select", "options": [16, 32, 64, 128, 256, 512], "default": 32},
+            "filters": {
+                "type": "select",
+                "options": [16, 32, 64, 128, 256, 512],
+                "default": 32,
+            },
             "kernel_size": {"type": "select", "options": [1, 3, 5, 7], "default": 3},
-            "activation": {"type": "select", "options": ["relu", "leaky_relu", "gelu", "swish", "none"], "default": "relu"},
-            "padding": {"type": "select", "options": ["same", "valid"], "default": "same"},
+            "activation": {
+                "type": "select",
+                "options": ["relu", "leaky_relu", "gelu", "swish", "none"],
+                "default": "relu",
+            },
+            "padding": {
+                "type": "select",
+                "options": ["same", "valid"],
+                "default": "same",
+            },
         },
-        "description": "Extracts features using learnable filters"
+        "description": "Extracts features using learnable filters",
     },
     "MaxPooling2D": {
         "display_name": "Max Pooling 2D",
@@ -25,7 +37,7 @@ LAYER_TYPES = {
         "params": {
             "pool_size": {"type": "select", "options": [2, 3, 4], "default": 2},
         },
-        "description": "Reduces spatial dimensions by taking max value"
+        "description": "Reduces spatial dimensions by taking max value",
     },
     "AveragePooling2D": {
         "display_name": "Average Pooling 2D",
@@ -34,61 +46,107 @@ LAYER_TYPES = {
         "params": {
             "pool_size": {"type": "select", "options": [2, 3, 4], "default": 2},
         },
-        "description": "Reduces spatial dimensions by taking average"
+        "description": "Reduces spatial dimensions by taking average",
     },
     "BatchNorm": {
         "display_name": "Batch Normalization",
         "icon": "📏",
         "category": "normalization",
         "params": {},
-        "description": "Normalizes activations for faster training"
+        "description": "Normalizes activations for faster training",
     },
     "Dropout": {
         "display_name": "Dropout",
         "icon": "💧",
         "category": "regularization",
         "params": {
-            "rate": {"type": "slider", "min": 0.0, "max": 0.7, "step": 0.05, "default": 0.25},
+            "rate": {
+                "type": "slider",
+                "min": 0.0,
+                "max": 0.7,
+                "step": 0.05,
+                "default": 0.25,
+            },
         },
-        "description": "Randomly drops neurons for regularization"
+        "description": "Randomly drops neurons for regularization",
     },
     "Flatten": {
         "display_name": "Flatten",
         "icon": "📐",
         "category": "transition",
         "params": {},
-        "description": "Converts 2D feature maps to 1D vector"
+        "description": "Converts 2D feature maps to 1D vector",
     },
     "GlobalAvgPool": {
         "display_name": "Global Average Pooling",
         "icon": "🌐",
         "category": "transition",
         "params": {},
-        "description": "Alternative to Flatten - averages each feature map"
+        "description": "Alternative to Flatten - averages each feature map",
     },
     "Dense": {
         "display_name": "Dense (Fully Connected)",
         "icon": "🧠",
         "category": "classification",
         "params": {
-            "units": {"type": "select", "options": [64, 128, 256, 512, 1024], "default": 256},
-            "activation": {"type": "select", "options": ["relu", "leaky_relu", "gelu", "swish", "none"], "default": "relu"},
+            "units": {
+                "type": "select",
+                "options": [64, 128, 256, 512, 1024],
+                "default": 256,
+            },
+            "activation": {
+                "type": "select",
+                "options": ["relu", "leaky_relu", "gelu", "swish", "none"],
+                "default": "relu",
+            },
         },
-        "description": "Fully connected layer for classification"
+        "description": "Fully connected layer for classification",
     },
 }
 
 # Preset architectures
 PRESETS = {
     "profesor": {
-        "name": "Convencional",
+        "name": "Conventional",
         "description": "Conv → Conv → Pool → Conv → Conv → Pool → Dropout → Flatten → Dense → Dropout → Dense → Dropout",
         "layers": [
-            {"type": "Conv2D", "params": {"filters": 32, "kernel_size": 3, "activation": "relu", "padding": "same"}},
-            {"type": "Conv2D", "params": {"filters": 32, "kernel_size": 3, "activation": "relu", "padding": "same"}},
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 32,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 32,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
             {"type": "MaxPooling2D", "params": {"pool_size": 2}},
-            {"type": "Conv2D", "params": {"filters": 64, "kernel_size": 3, "activation": "relu", "padding": "same"}},
-            {"type": "Conv2D", "params": {"filters": 64, "kernel_size": 3, "activation": "relu", "padding": "same"}},
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 64,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 64,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
             {"type": "MaxPooling2D", "params": {"pool_size": 2}},
             {"type": "Dropout", "params": {"rate": 0.25}},
             {"type": "Flatten", "params": {}},
@@ -96,45 +154,109 @@ PRESETS = {
             {"type": "Dropout", "params": {"rate": 0.5}},
             {"type": "Dense", "params": {"units": 256, "activation": "relu"}},
             {"type": "Dropout", "params": {"rate": 0.5}},
-        ]
+        ],
     },
     "lenet": {
         "name": "LeNet-style (Simple)",
         "description": "Classic architecture: 2 Conv+Pool blocks, then Dense layers",
         "layers": [
-            {"type": "Conv2D", "params": {"filters": 32, "kernel_size": 5, "activation": "relu", "padding": "same"}},
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 32,
+                    "kernel_size": 5,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
             {"type": "MaxPooling2D", "params": {"pool_size": 2}},
-            {"type": "Conv2D", "params": {"filters": 64, "kernel_size": 5, "activation": "relu", "padding": "same"}},
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 64,
+                    "kernel_size": 5,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
             {"type": "MaxPooling2D", "params": {"pool_size": 2}},
             {"type": "Flatten", "params": {}},
             {"type": "Dense", "params": {"units": 256, "activation": "relu"}},
             {"type": "Dropout", "params": {"rate": 0.5}},
-        ]
+        ],
     },
     "vgg_mini": {
         "name": "VGG-style (Deep)",
         "description": "Deeper architecture with blocks of Conv-Conv-Pool",
         "layers": [
-            {"type": "Conv2D", "params": {"filters": 64, "kernel_size": 3, "activation": "relu", "padding": "same"}},
-            {"type": "Conv2D", "params": {"filters": 64, "kernel_size": 3, "activation": "relu", "padding": "same"}},
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 64,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 64,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
             {"type": "MaxPooling2D", "params": {"pool_size": 2}},
-            {"type": "Conv2D", "params": {"filters": 128, "kernel_size": 3, "activation": "relu", "padding": "same"}},
-            {"type": "Conv2D", "params": {"filters": 128, "kernel_size": 3, "activation": "relu", "padding": "same"}},
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 128,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 128,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
             {"type": "MaxPooling2D", "params": {"pool_size": 2}},
-            {"type": "Conv2D", "params": {"filters": 256, "kernel_size": 3, "activation": "relu", "padding": "same"}},
-            {"type": "Conv2D", "params": {"filters": 256, "kernel_size": 3, "activation": "relu", "padding": "same"}},
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 256,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
+            {
+                "type": "Conv2D",
+                "params": {
+                    "filters": 256,
+                    "kernel_size": 3,
+                    "activation": "relu",
+                    "padding": "same",
+                },
+            },
             {"type": "MaxPooling2D", "params": {"pool_size": 2}},
             {"type": "Flatten", "params": {}},
             {"type": "Dense", "params": {"units": 512, "activation": "relu"}},
             {"type": "Dropout", "params": {"rate": 0.5}},
             {"type": "Dense", "params": {"units": 256, "activation": "relu"}},
             {"type": "Dropout", "params": {"rate": 0.5}},
-        ]
+        ],
     },
     "empty": {
         "name": "Empty (Start from scratch)",
         "description": "Start with an empty layer stack",
-        "layers": []
+        "layers": [],
     },
 }
 
@@ -202,13 +324,19 @@ def validate_layer_stack(layer_stack: list[dict]) -> tuple[bool, list[str]]:
             errors.append("Add Flatten or GlobalAvgPool before Dense layers.")
             break
         if layer["type"] == "Dense" and i < transition_idx:
-            errors.append(f"Dense layer at position {i+1} appears before Flatten/GlobalAvgPool.")
+            errors.append(
+                f"Dense layer at position {i + 1} appears before Flatten/GlobalAvgPool."
+            )
 
     # Check for Conv after transition
     if transition_idx >= 0:
-        for i, layer in enumerate(layer_stack[transition_idx + 1:], start=transition_idx + 1):
+        for i, layer in enumerate(
+            layer_stack[transition_idx + 1 :], start=transition_idx + 1
+        ):
             if layer["type"] == "Conv2D":
-                errors.append(f"Conv2D at position {i+1} appears after Flatten/GlobalAvgPool.")
+                errors.append(
+                    f"Conv2D at position {i + 1} appears after Flatten/GlobalAvgPool."
+                )
 
     # Check for at least one Dense layer (for classification)
     has_dense = any(l["type"] == "Dense" for l in layer_stack)

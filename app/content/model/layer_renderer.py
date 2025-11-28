@@ -2,28 +2,26 @@
 Layer Renderer - UI components for rendering and editing layers
 """
 
-import streamlit as st
-from typing import Callable
-
+from content.model.layer_builder import (
+    add_layer,
+    duplicate_layer,
+    get_layer_stack,
+    is_editing,
+    load_preset,
+    move_layer_down,
+    move_layer_up,
+    remove_layer,
+    start_editing,
+    stop_editing,
+    update_layer,
+)
 from content.model.layer_configs import (
     LAYER_TYPES,
     PRESETS,
     get_layer_display,
     validate_layer_stack,
 )
-from content.model.layer_builder import (
-    get_layer_stack,
-    add_layer,
-    remove_layer,
-    move_layer_up,
-    move_layer_down,
-    update_layer,
-    duplicate_layer,
-    load_preset,
-    is_editing,
-    start_editing,
-    stop_editing,
-)
+import streamlit as st
 
 
 def render_preset_selector():
@@ -38,9 +36,11 @@ def render_preset_selector():
             "Architecture Preset",
             options=list(preset_options.keys()),
             format_func=lambda x: preset_options[x],
-            index=list(preset_options.keys()).index(current_preset) if current_preset in preset_options else 0,
+            index=list(preset_options.keys()).index(current_preset)
+            if current_preset in preset_options
+            else 0,
             key="preset_selector",
-            help="Select a preset architecture or start from scratch"
+            help="Select a preset architecture or start from scratch",
         )
 
     with col2:
@@ -62,14 +62,16 @@ def render_add_layer_section():
     col1, col2 = st.columns([3, 1])
 
     with col1:
-        layer_options = {k: f"{v['icon']} {v['display_name']}" for k, v in LAYER_TYPES.items()}
+        layer_options = {
+            k: f"{v['icon']} {v['display_name']}" for k, v in LAYER_TYPES.items()
+        }
 
         selected_type = st.selectbox(
             "Layer Type",
             options=list(layer_options.keys()),
             format_func=lambda x: layer_options[x],
             key="new_layer_type",
-            help="Select the type of layer to add"
+            help="Select the type of layer to add",
         )
 
     with col2:
@@ -171,8 +173,10 @@ def render_layer_editor(layer: dict):
                         new_value = st.selectbox(
                             param_name.replace("_", " ").title(),
                             options=config["options"],
-                            index=config["options"].index(current_value) if current_value in config["options"] else 0,
-                            key=f"edit_{layer_id}_{param_name}"
+                            index=config["options"].index(current_value)
+                            if current_value in config["options"]
+                            else 0,
+                            key=f"edit_{layer_id}_{param_name}",
                         )
                     elif config["type"] == "slider":
                         new_value = st.slider(
@@ -181,7 +185,7 @@ def render_layer_editor(layer: dict):
                             max_value=config["max"],
                             value=float(current_value),
                             step=config["step"],
-                            key=f"edit_{layer_id}_{param_name}"
+                            key=f"edit_{layer_id}_{param_name}",
                         )
                     else:
                         new_value = current_value
@@ -227,47 +231,46 @@ def render_layer_stack():
 
 def render_output_layer(num_classes: int):
     """Render the fixed output layer"""
-    st.markdown("---")
     st.markdown(
         f"**Output Layer:** 🎯 Dense | {num_classes} classes, softmax *(auto-configured)*"
     )
 
 
-def render_architecture_preview():
-    """Render a visual preview of the architecture"""
-    layer_stack = get_layer_stack()
+# def render_architecture_preview():
+#     """Render a visual preview of the architecture"""
+#     layer_stack = get_layer_stack()
 
-    if not layer_stack:
-        return
+#     if not layer_stack:
+#         return
 
-    with st.expander("Architecture Preview", expanded=False):
-        # Build preview string
-        preview_parts = ["Input(224,224,3)"]
+#     with st.expander("Architecture Preview", expanded=False):
+#         # Build preview string
+#         preview_parts = ["Input(224,224,3)"]
 
-        for layer in layer_stack:
-            layer_type = layer["type"]
-            params = layer.get("params", {})
+#         for layer in layer_stack:
+#             layer_type = layer["type"]
+#             params = layer.get("params", {})
 
-            if layer_type == "Conv2D":
-                preview_parts.append(f"Conv2D({params.get('filters', '?')})")
-            elif layer_type == "MaxPooling2D":
-                preview_parts.append("MaxPool")
-            elif layer_type == "AveragePooling2D":
-                preview_parts.append("AvgPool")
-            elif layer_type == "BatchNorm":
-                preview_parts.append("BN")
-            elif layer_type == "Dropout":
-                preview_parts.append(f"Drop({params.get('rate', '?')})")
-            elif layer_type == "Flatten":
-                preview_parts.append("Flatten")
-            elif layer_type == "GlobalAvgPool":
-                preview_parts.append("GAP")
-            elif layer_type == "Dense":
-                preview_parts.append(f"Dense({params.get('units', '?')})")
+#             if layer_type == "Conv2D":
+#                 preview_parts.append(f"Conv2D({params.get('filters', '?')})")
+#             elif layer_type == "MaxPooling2D":
+#                 preview_parts.append("MaxPool")
+#             elif layer_type == "AveragePooling2D":
+#                 preview_parts.append("AvgPool")
+#             elif layer_type == "BatchNorm":
+#                 preview_parts.append("BN")
+#             elif layer_type == "Dropout":
+#                 preview_parts.append(f"Drop({params.get('rate', '?')})")
+#             elif layer_type == "Flatten":
+#                 preview_parts.append("Flatten")
+#             elif layer_type == "GlobalAvgPool":
+#                 preview_parts.append("GAP")
+#             elif layer_type == "Dense":
+#                 preview_parts.append(f"Dense({params.get('units', '?')})")
 
-        preview_parts.append("Output(softmax)")
+#         preview_parts.append("Output(softmax)")
 
-        st.code(" → ".join(preview_parts), language=None)
+#         st.code(" → ".join(preview_parts), language=None)
 
 
 def render_validation_status():

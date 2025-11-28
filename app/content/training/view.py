@@ -53,18 +53,18 @@ def render_optimizer_settings():
     with st.expander("Advanced Optimizer Parameters"):
         if optimizer in ["Adam", "AdamW"]:
             st.slider(
-                "Beta 1",
+                "Beta 1 (Momentum)",
                 0.0,
                 1.0,
                 0.9,
-                help="Exponential decay rate for first moment (mean). Controls momentum. Default 0.9 works well.",
+                help="Exponential decay rate for first moment (mean). Default 0.9 works well.",
             )
             st.slider(
-                "Beta 2",
+                "Beta 2 (Variance)",
                 0.0,
                 1.0,
                 0.999,
-                help="Exponential decay rate for second moment (variance). Affects adaptive learning rate. Default 0.999 is stable.",
+                help="Exponential decay rate for second moment. Affects adaptive learning rate. Default 0.999 is stable.",
             )
         elif optimizer == "SGD with Momentum":
             st.slider(
