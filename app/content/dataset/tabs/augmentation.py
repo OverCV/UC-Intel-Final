@@ -108,6 +108,26 @@ def render_augmentation_config():
     return augmentation_config
 
 
+def apply_preprocessing(img):
+    """Apply preprocessing settings from session state"""
+    target_size = st.session_state.get("preprocessing_target_size", "224x224")
+    color_mode = st.session_state.get("preprocessing_color_mode", "RGB")
+
+    result = img.copy()
+
+    # Resize
+    size = int(target_size.split("x")[0])
+    result = result.resize((size, size), Image.Resampling.LANCZOS)
+
+    # Color mode
+    if color_mode == "Grayscale":
+        result = result.convert("L")
+    else:
+        result = result.convert("RGB")
+
+    return result
+
+
 def render_augmentation_preview(dataset_info, augmentation_config):
     """Preview augmentation effects on a sample image"""
     st.divider()
@@ -126,22 +146,23 @@ def render_augmentation_preview(dataset_info, augmentation_config):
 
     sample_path = dataset_info["sample_paths"][selected_family][0]
     original = Image.open(sample_path)
+    preprocessed = apply_preprocessing(original)
 
-    # Show original and augmented versions
+    # Show preprocessed and augmented versions
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.markdown("**Original**")
-        st.image(original, use_container_width=True)
+        st.markdown("**After Preprocessing**")
+        st.image(preprocessed, use_container_width=True)
 
     with col2:
         st.markdown("**Augmented (Example 1)**")
-        aug1 = apply_augmentation(original, augmentation_config)
+        aug1 = apply_augmentation(preprocessed, augmentation_config)
         st.image(aug1, use_container_width=True)
 
     with col3:
         st.markdown("**Augmented (Example 2)**")
-        aug2 = apply_augmentation(original, augmentation_config)
+        aug2 = apply_augmentation(preprocessed, augmentation_config)
         st.image(aug2, use_container_width=True)
 
     # Refresh button to see different random augmentations
