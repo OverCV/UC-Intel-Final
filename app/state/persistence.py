@@ -195,3 +195,188 @@ def get_session_metadata(session_id: str) -> dict[str, Any] | None:
     except Exception as exception:
         st.error(f"Failed to get session metadata: {exception}")
         return None
+
+
+# =============================================================================
+# Thread-safe File I/O (for background training threads)
+# =============================================================================
+
+import threading
+
+_file_lock = threading.Lock()
+
+
+def read_session_data(session_id: str) -> dict[str, Any] | None:
+    """
+    Read session data directly from JSON file.
+    Thread-safe - can be called from background threads.
+
+    Args:
+        session_id: Session identifier
+
+    Returns:
+        Session data dict or None if not found
+    """
+    try:
+        sessions_dir = get_sessions_directory()
+        filepath = sessions_dir / f"{session_id}.json"
+
+        if not filepath.exists():
+            return None
+
+        with _file_lock:
+            with open(filepath, encoding="utf-8") as f:
+                return json.load(f)
+
+    except Exception as e:
+        print(f"[Persistence] Failed to read session data: {e}")
+        return None
+
+
+def write_experiment_update(session_id: str, exp_id: str, updates: dict[str, Any]) -> bool:
+    """
+    Write experiment update directly to JSON file.
+    Thread-safe - can be called from background threads.
+
+    Args:
+        session_id: Session identifier
+        exp_id: Experiment identifier
+        updates: Dict of fields to update
+
+    Returns:
+        True if successful, False otherwise
+    """
+    try:
+        sessions_dir = get_sessions_directory()
+        filepath = sessions_dir / f"{session_id}.json"
+
+        with _file_lock:
+            # Read current data
+            if not filepath.exists():
+                print(f"[Persistence] Session file not found: {session_id}")
+                return False
+
+            with open(filepath, encoding="utf-8") as f:
+                data = json.load(f)
+
+            # Find and update experiment
+            experiments = data.get("experiments", [])
+            found = False
+            for exp in experiments:
+                if exp["id"] == exp_id:
+                    exp.update(updates)
+                    found = True
+                    break
+
+            if not found:
+                print(f"[Persistence] Experiment {exp_id} not found in session {session_id}")
+                return False
+
+            # Write back
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+
+        return True
+
+    except Exception as e:
+        print(f"[Persistence] Failed to write experiment update: {e}")
+        return False
+
+
+def get_experiment_from_file(session_id: str, exp_id: str) -> dict[str, Any] | None:
+    """
+    Get experiment data directly from JSON file.
+    Thread-safe - can be called from background threads.
+
+    Args:
+        session_id: Session identifier
+        exp_id: Experiment identifier
+
+    Returns:
+        Experiment dict or None if not found
+    """
+    data = read_session_data(session_id)
+    if not data:
+        return None
+
+    for exp in data.get("experiments", []):
+        if exp["id"] == exp_id:
+            return exp
+
+    return None
+
+
+def get_model_from_file(session_id: str, model_id: str) -> dict[str, Any] | None:
+    """
+    Get model data directly from JSON file.
+    Thread-safe - can be called from background threads.
+    """
+    data = read_session_data(session_id)
+    if not data:
+        return None
+
+    for model in data.get("model_library", []):
+        if model["id"] == model_id:
+            return model
+
+    return None
+
+
+def get_training_from_file(session_id: str, training_id: str) -> dict[str, Any] | None:
+    """
+    Get training config directly from JSON file.
+    Thread-safe - can be called from background threads.
+    """
+    data = read_session_data(session_id)
+    if not data:
+        return None
+
+    for training in data.get("training_library", []):
+        if training["id"] == training_id:
+            return training
+
+    return None
+
+
+def get_dataset_config_from_file(session_id: str) -> dict[str, Any]:
+    """
+    Get dataset config directly from JSON file.
+    Thread-safe - can be called from background threads.
+    """
+    data = read_session_data(session_id)
+    if not data:
+        return {}
+
+    return data.get("dataset_config", {})
+
+
+# =============================================================================
+# Current Session Persistence (survives page reloads)
+# =============================================================================
+
+CURRENT_SESSION_FILE = SESSIONS_DIR / ".current_session"
+
+
+def get_persisted_session_id() -> str | None:
+    """
+    Get the persisted session ID from file.
+    This survives page reloads and browser refresh.
+    """
+    try:
+        if CURRENT_SESSION_FILE.exists():
+            return CURRENT_SESSION_FILE.read_text().strip() or None
+    except Exception:
+        pass
+    return None
+
+
+def set_persisted_session_id(session_id: str) -> None:
+    """
+    Persist the current session ID to file.
+    This survives page reloads and browser refresh.
+    """
+    try:
+        SESSIONS_DIR.mkdir(parents=True, exist_ok=True)
+        CURRENT_SESSION_FILE.write_text(session_id)
+    except Exception as e:
+        print(f"[Persistence] Failed to persist session ID: {e}")

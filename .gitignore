@@ -3,6 +3,7 @@ repo/
 repos/
 dataset/
 sessions/
+checkpoints/
 
 # History
 .history/

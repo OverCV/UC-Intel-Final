@@ -32,8 +32,22 @@ class WorkflowState(TypedDict, total=False):
 
 
 def init_workflow_state() -> None:
-    """Initialize workflow state with default values"""
+    """Initialize workflow state with default values.
+
+    On startup, checks for a persisted session ID and loads it if available.
+    This ensures the selected session survives page reloads.
+    """
     if "session_id" not in st.session_state:
+        # Check for persisted session first
+        from state.persistence import get_persisted_session_id, load_session
+
+        persisted_id = get_persisted_session_id()
+        if persisted_id:
+            # Try to load the persisted session
+            if load_session(persisted_id):
+                return  # Session loaded, don't initialize defaults
+
+        # No persisted session or load failed - create new session
         st.session_state.session_id = generate_session_id()
 
     if "dataset_config" not in st.session_state:
@@ -188,12 +202,13 @@ def has_results() -> bool:
 
 
 def _auto_save() -> None:
-    """Auto-save session to disk"""
-    from state.persistence import save_session
+    """Auto-save session to disk and persist session ID"""
+    from state.persistence import save_session, set_persisted_session_id
 
     session_id = get_session_id()
     if session_id:
         save_session(session_id)
+        set_persisted_session_id(session_id)
 
 
 def add_model_to_library(name: str, config: dict[str, Any]) -> str:

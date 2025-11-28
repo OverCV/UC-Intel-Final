@@ -5,7 +5,11 @@ Persistent header with app title, session info, config status, and session contr
 
 from components.styling import inject_custom_css
 from components.utils import clear_session
-from state.persistence import list_saved_sessions, load_session
+from state.persistence import (
+    list_saved_sessions,
+    load_session,
+    set_persisted_session_id,
+)
 from state.workflow import (
     get_session_id,
     has_dataset_config,
@@ -72,6 +76,7 @@ def render_header():
             # Load session if different from current
             if selected != "Current" and selected != current_session:
                 if load_session(selected):
+                    set_persisted_session_id(selected)
                     st.success(f"Loaded: {selected}")
                     st.rerun()
         else:

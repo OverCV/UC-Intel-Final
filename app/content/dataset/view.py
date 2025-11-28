@@ -48,50 +48,53 @@ def render():
 
 
 def load_saved_configuration():
-    """Auto-load saved dataset configuration into session state"""
-    if has_dataset_config():
-        config = get_dataset_config()
+    """Auto-load saved dataset configuration into session state.
 
-        # Load selected classes
-        if "selected_families" in config and "selected_classes" not in st.session_state:
-            st.session_state.selected_classes = config["selected_families"]
+    ALWAYS loads from saved config, overriding widget defaults.
+    This must run BEFORE widgets render to set correct initial values.
+    """
+    if not has_dataset_config():
+        return
 
-        # Load split configuration
-        if "split" in config:
-            split_config = config["split"]
-            if "train" in split_config and "train_split" not in st.session_state:
-                # Calculate original slider values from percentages
-                train_pct = split_config["train"]
-                st.session_state.train_split = int(train_pct)
+    config = get_dataset_config()
 
-            if "stratified" in split_config and "stratified_split" not in st.session_state:
-                st.session_state.stratified_split = split_config["stratified"]
+    # Load selected classes
+    if "selected_families" in config:
+        st.session_state.selected_classes = config["selected_families"]
 
-            if "random_seed" in split_config and "random_seed" not in st.session_state:
-                st.session_state.random_seed = split_config["random_seed"]
+    # Load split configuration
+    if "split" in config:
+        split_config = config["split"]
+        if "train" in split_config:
+            st.session_state.train_split = int(split_config["train"])
 
-        # Load augmentation configuration
-        if "augmentation" in config:
-            aug_config = config["augmentation"]
-            if "preset" in aug_config and "augmentation_preset" not in st.session_state:
-                st.session_state.augmentation_preset = aug_config["preset"]
+        if "stratified" in split_config:
+            st.session_state.stratified_split = split_config["stratified"]
 
-            # Load custom augmentation settings
-            if "custom" in aug_config and aug_config["preset"] == "Custom":
-                custom = aug_config["custom"]
-                for key, value in custom.items():
-                    session_key = f"aug_{key}"
-                    if session_key not in st.session_state:
-                        st.session_state[session_key] = value
+        if "random_seed" in split_config:
+            st.session_state.random_seed = split_config["random_seed"]
 
-        # Load imbalance handling
-        if "imbalance_handling" in config:
-            imb_config = config["imbalance_handling"]
-            if "strategy" in imb_config and "imbalance_strategy" not in st.session_state:
-                st.session_state.imbalance_strategy = imb_config["strategy"]
+    # Load augmentation configuration
+    if "augmentation" in config:
+        aug_config = config["augmentation"]
+        if "preset" in aug_config:
+            st.session_state.augmentation_preset = aug_config["preset"]
 
-            if "class_weights" in imb_config and imb_config["class_weights"]:
-                st.session_state.class_weights = imb_config["class_weights"]
+        # Load custom augmentation settings
+        if "custom" in aug_config and aug_config["preset"] == "Custom":
+            custom = aug_config["custom"]
+            for key, value in custom.items():
+                session_key = f"aug_{key}"
+                st.session_state[session_key] = value
 
-            if "smote_ratio" in imb_config and imb_config["smote_ratio"] is not None:
-                st.session_state.smote_ratio = imb_config["smote_ratio"]
+    # Load imbalance handling
+    if "imbalance_handling" in config:
+        imb_config = config["imbalance_handling"]
+        if "strategy" in imb_config:
+            st.session_state.imbalance_strategy = imb_config["strategy"]
+
+        if "class_weights" in imb_config and imb_config["class_weights"]:
+            st.session_state.class_weights = imb_config["class_weights"]
+
+        if "smote_ratio" in imb_config and imb_config["smote_ratio"] is not None:
+            st.session_state.smote_ratio = imb_config["smote_ratio"]

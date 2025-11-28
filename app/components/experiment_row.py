@@ -54,6 +54,18 @@ def render_experiment_row(
         with col_status:
             st.markdown(f"{status_cfg['icon']} {status_cfg['label']}")
 
+        # Row 2: Show config info for non-ready statuses (read-only)
+        if status != "ready":
+            model_name = next(
+                (m["name"] for m in models if m["id"] == experiment.get("model_id")),
+                "Unknown Model",
+            )
+            training_name = next(
+                (t["name"] for t in trainings if t["id"] == experiment.get("training_id")),
+                "Unknown Config",
+            )
+            st.caption(f"**Model:** {model_name} | **Training:** {training_name}")
+
         # Row 2: Model and Training dropdowns (only if ready)
         if status == "ready":
             col_model, col_training = st.columns(2)
