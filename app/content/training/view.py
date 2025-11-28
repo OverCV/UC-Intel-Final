@@ -3,7 +3,12 @@ Training Configuration Page
 Form-based training config with sidebar library
 """
 
-from content.training.tooltips import HYPERPARAMETER_TOOLTIPS, OPTIMIZER_TOOLTIPS, EARLY_STOPPING_TOOLTIPS, SCHEDULER_TOOLTIPS
+from content.training.tooltips import (
+    EARLY_STOPPING_TOOLTIPS,
+    HYPERPARAMETER_TOOLTIPS,
+    OPTIMIZER_TOOLTIPS,
+    SCHEDULER_TOOLTIPS,
+)
 from state.workflow import (
     add_training_to_library,
     delete_training_from_library,
@@ -16,7 +21,9 @@ import streamlit as st
 
 def render():
     """Main render function for Training page"""
-    st.title("Training Configuration", help="Configure hyperparameters for model training.")
+    st.title(
+        "Training Configuration", help="Configure hyperparameters for model training."
+    )
 
     # Initialize state
     if "training_selected_id" not in st.session_state:
@@ -134,7 +141,9 @@ def _render_training_form() -> dict:
     st.divider()
 
     # Optimizer
-    st.subheader("Optimizer", help="Algorithm that updates model weights during training.")
+    st.subheader(
+        "Optimizer", help="Algorithm that updates model weights during training."
+    )
     col1, col2 = st.columns(2)
 
     with col1:
@@ -142,7 +151,12 @@ def _render_training_form() -> dict:
             "Optimizer",
             ["Adam", "AdamW", "SGD with Momentum", "RMSprop"],
             key="train_optimizer",
-            help=OPTIMIZER_TOOLTIPS.get(st.session_state.get("train_optimizer", "Adam").lower().replace(" with momentum", ""), ""),
+            help=OPTIMIZER_TOOLTIPS.get(
+                st.session_state.get("train_optimizer", "Adam")
+                .lower()
+                .replace(" with momentum", ""),
+                "",
+            ),
         )
 
     with col2:
@@ -157,13 +171,21 @@ def _render_training_form() -> dict:
         )
 
     # LR Scheduler
-    st.subheader("Learning Rate Schedule", help="Adjust learning rate during training to improve convergence.")
+    st.subheader(
+        "Learning Rate Schedule",
+        help="Adjust learning rate during training to improve convergence.",
+    )
     lr_strategy = st.radio(
         "Strategy",
         ["Constant", "ReduceLROnPlateau", "Cosine Annealing"],
         key="train_lr_strategy",
         horizontal=True,
-        help=SCHEDULER_TOOLTIPS.get(lr_strategy.lower().replace(" ", "_") if lr_strategy else "none", "How learning rate changes during training."),
+        help=SCHEDULER_TOOLTIPS.get(
+            st.session_state.get("train_lr_strategy", "Constant")
+            .lower()
+            .replace(" ", "_"),
+            "How learning rate changes during training.",
+        ),
     )
 
     # Training parameters
@@ -172,7 +194,9 @@ def _render_training_form() -> dict:
 
     with col1:
         epochs = st.slider(
-            "Max Epochs", 10, 200,
+            "Max Epochs",
+            10,
+            200,
             key="train_epochs",
             help=HYPERPARAMETER_TOOLTIPS["epochs"],
         )
@@ -189,16 +213,28 @@ def _render_training_form() -> dict:
         shuffle = st.checkbox("Shuffle Data", key="train_shuffle")
 
     # Regularization
-    st.subheader("Regularization", help="Techniques to prevent overfitting by constraining model complexity.")
+    st.subheader(
+        "Regularization",
+        help="Techniques to prevent overfitting by constraining model complexity.",
+    )
     col1, col2 = st.columns(2)
 
     with col1:
-        l2 = st.checkbox("L2 Weight Decay", key="train_l2", help=HYPERPARAMETER_TOOLTIPS["weight_decay"])
+        l2 = st.checkbox(
+            "L2 Weight Decay",
+            key="train_l2",
+            help=HYPERPARAMETER_TOOLTIPS["weight_decay"],
+        )
 
     with col2:
         if l2:
             l2_lambda = st.slider(
-                "Lambda", 0.0001, 0.01, step=0.0001, key="train_l2_lambda", format="%.4f"
+                "Lambda",
+                0.0001,
+                0.01,
+                step=0.0001,
+                key="train_l2_lambda",
+                format="%.4f",
             )
         else:
             l2_lambda = 0.0001
@@ -214,14 +250,25 @@ def _render_training_form() -> dict:
     )
 
     # Callbacks
-    st.subheader("Callbacks", help="Automated actions during training: early stopping and checkpointing.")
+    st.subheader(
+        "Callbacks",
+        help="Automated actions during training: early stopping and checkpointing.",
+    )
     col1, col2 = st.columns(2)
 
     with col1:
-        early_stopping = st.checkbox("Early Stopping", key="train_early_stopping", help=EARLY_STOPPING_TOOLTIPS["enabled"])
+        early_stopping = st.checkbox(
+            "Early Stopping",
+            key="train_early_stopping",
+            help=EARLY_STOPPING_TOOLTIPS["enabled"],
+        )
         if early_stopping:
             es_patience = st.slider(
-                "Patience", 5, 30, key="train_es_patience", help=EARLY_STOPPING_TOOLTIPS["patience"]
+                "Patience",
+                5,
+                30,
+                key="train_es_patience",
+                help=EARLY_STOPPING_TOOLTIPS["patience"],
             )
         else:
             es_patience = 10

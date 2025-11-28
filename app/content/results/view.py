@@ -40,9 +40,10 @@ def render():
     """Main render function for Results page."""
     st.title("Results & Evaluation", help="View and analyze completed training experiments.")
 
-    # Get completed experiments
+    # Get completed experiments (most recent first)
     experiments = get_experiments()
     completed = [exp for exp in experiments if exp.get("status") == "completed"]
+    completed = list(reversed(completed))
 
     if not completed:
         st.info("No completed experiments yet. Train a model first.")

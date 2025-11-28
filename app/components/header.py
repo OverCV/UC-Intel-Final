@@ -4,6 +4,7 @@ Persistent header with app title, session info, config status, and session contr
 """
 
 from components.styling import inject_custom_css
+from components.tooltips import HEADER_TOOLTIPS
 from components.utils import clear_session
 from state.persistence import (
     list_saved_sessions,
@@ -80,7 +81,9 @@ def render_header():
 
     with button_col:
         # New session button
-        if st.button("New Session", use_container_width=True):
+        if st.button(
+            "New Session", use_container_width=True, help=HEADER_TOOLTIPS["new_session"]
+        ):
             clear_session()
             st.rerun()
 
