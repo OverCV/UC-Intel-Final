@@ -1,6 +1,7 @@
 """Transfer Learning configuration UI"""
 
 from config import PRETRAINED_MODELS
+from content.model.classifier_head import export_classifier_head, render_classifier_head
 import streamlit as st
 
 
@@ -14,14 +15,6 @@ def _init_state():
         st.session_state.transfer_strategy = "Feature Extraction"
     if "transfer_unfreeze_layers" not in st.session_state:
         st.session_state.transfer_unfreeze_layers = 10
-    if "transfer_global_pooling" not in st.session_state:
-        st.session_state.transfer_global_pooling = True
-    if "transfer_add_dense" not in st.session_state:
-        st.session_state.transfer_add_dense = True
-    if "transfer_dense_units" not in st.session_state:
-        st.session_state.transfer_dense_units = 512
-    if "transfer_dropout" not in st.session_state:
-        st.session_state.transfer_dropout = 0.5
 
 
 def render(num_classes: int) -> dict:
@@ -31,7 +24,7 @@ def render(num_classes: int) -> dict:
     st.header("Transfer Learning Configuration")
 
     # Base Model Selection
-    st.subheader("Pre-trained Model")
+    st.subheader("Pre-trained Model (Feature Extractor)")
 
     col1, col2 = st.columns(2)
 
@@ -40,7 +33,7 @@ def render(num_classes: int) -> dict:
             "Select Base Model",
             options=PRETRAINED_MODELS,
             key="transfer_base_model",
-            help="Pre-trained CNN backbone. ResNet50 is a solid default. EfficientNet offers better accuracy/speed trade-off. VGG is simpler but larger.",
+            help="Pre-trained CNN backbone that extracts features. ResNet50 is a solid default.",
         )
 
     with col2:
@@ -48,7 +41,7 @@ def render(num_classes: int) -> dict:
             "Initial Weights",
             ["ImageNet", "Random"],
             key="transfer_weights",
-            help="ImageNet: Start with weights learned from 1M+ natural images (recommended). Random: Train from scratch (slower, needs more data).",
+            help="ImageNet: Pre-trained on 1M+ images (recommended). Random: Train from scratch.",
         )
 
     # Fine-tuning Strategy
@@ -58,7 +51,8 @@ def render(num_classes: int) -> dict:
         "Training Strategy",
         ["Feature Extraction", "Partial Fine-tuning", "Full Fine-tuning"],
         key="transfer_strategy",
-        help="Feature Extraction: Freeze all base layers, train only classifier (fast, less overfitting). Partial: Unfreeze top layers (balanced). Full: Train everything (best if you have lots of data).",
+        horizontal=True,
+        help="Feature Extraction: Freeze base, train only classifier. Partial: Unfreeze top layers. Full: Train everything.",
     )
 
     unfreeze_layers = 0
@@ -68,56 +62,19 @@ def render(num_classes: int) -> dict:
             min_value=0,
             max_value=50,
             key="transfer_unfreeze_layers",
-            help="How many layers from the top to make trainable. More layers = more flexibility but higher risk of overfitting. Start with 10-20.",
+            help="How many layers from the top to make trainable. Start with 10-20.",
         )
 
-    # Classification Head
-    st.subheader("Classification Head")
+    st.divider()
 
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        global_pooling = st.checkbox(
-            "Global Average Pooling",
-            key="transfer_global_pooling",
-            help="Reduces each feature map to a single value. Required for most pre-trained models to connect to dense layers.",
-        )
-
-    with col2:
-        add_dense = st.checkbox(
-            "Add Dense Layer",
-            key="transfer_add_dense",
-            help="Extra fully-connected layer before output. Adds capacity for learning malware-specific patterns.",
-        )
-
-        dense_units = 512
-        if add_dense:
-            dense_units = st.selectbox(
-                "Dense Units",
-                options=[256, 512, 1024],
-                key="transfer_dense_units",
-                help="Number of neurons in the added dense layer. 512 is a good default for ~50 classes.",
-            )
-
-    with col3:
-        dropout = st.slider(
-            "Dropout Rate",
-            min_value=0.0,
-            max_value=0.7,
-            key="transfer_dropout",
-            help="Randomly drops neurons during training to prevent overfitting. 0.3-0.5 is typical. Higher = more regularization.",
-        )
-
-    st.info(f"Output Layer: {num_classes} units with Softmax activation")
+    # Classification Head (mini layer builder)
+    classifier_layers = render_classifier_head(num_classes)
 
     return {
         "base_model": base_model,
         "weights": weights,
         "strategy": strategy,
         "unfreeze_layers": unfreeze_layers if strategy == "Partial Fine-tuning" else 0,
-        "global_pooling": global_pooling,
-        "add_dense": add_dense,
-        "dense_units": dense_units if add_dense else 0,
-        "dropout": dropout,
+        "classifier_head": export_classifier_head(),
         "num_classes": num_classes,
     }

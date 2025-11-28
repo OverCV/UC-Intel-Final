@@ -1,8 +1,15 @@
 """
-Page 4: Training Configuration
-BFS Level: Interface & Section Structure Only
+Training Configuration Page
+Form-based training config with sidebar library
 """
 
+from state.workflow import (
+    add_training_to_library,
+    delete_training_from_library,
+    get_training_from_library,
+    get_training_library,
+    update_training_in_library,
+)
 import streamlit as st
 
 
@@ -10,239 +17,270 @@ def render():
     """Main render function for Training page"""
     st.title("Training Configuration")
 
-    # Section 1: Optimizer Settings
-    render_optimizer_settings()
+    # Initialize state
+    if "training_selected_id" not in st.session_state:
+        st.session_state.training_selected_id = None
+    if "training_config_name" not in st.session_state:
+        st.session_state.training_config_name = ""
 
-    # Section 2: Learning Rate Scheduler
-    render_lr_scheduler()
+    # Layout: sidebar list + main form
+    # Sidebar renders FIRST to process actions before widgets are instantiated
+    col_sidebar, col_main = st.columns([1, 3])
 
-    # Section 3: Training Parameters
-    render_training_parameters()
+    with col_sidebar:
+        _render_config_sidebar()
 
-    # Section 4: Regularization
-    render_regularization()
-
-    # Section 5: Class Imbalance Handling
-    render_class_imbalance()
-
-    # Section 6: Callbacks & Early Stopping
-    render_callbacks()
-
-    # Section 7: Experiment Metadata & Start Training
-    render_start_training()
+    with col_main:
+        config = _render_training_form()
+        _render_save_section(config)
 
 
-def render_optimizer_settings():
-    """Section 1: Optimizer configuration"""
-    st.header("Optimizer Configuration")
+def _render_config_sidebar():
+    """Render the sidebar with saved configs"""
+    st.subheader("Saved Configs")
 
-    optimizer = st.selectbox(
-        "Optimizer",
-        ["Adam", "AdamW", "SGD with Momentum", "RMSprop"],
-        help="Algorithm that updates model weights. Adam/AdamW are good defaults. SGD can give better generalization but requires tuning.",
-    )
-    lr = st.slider(
-        "Learning Rate",
-        0.0001,
-        0.01,
-        0.001,
-        format="%.4f",
-        help="Controls how much weights change per update. Too high = unstable training. Too low = very slow learning. Start with 0.001.",
-    )
+    configs = get_training_library()
 
-    with st.expander("Advanced Optimizer Parameters"):
-        if optimizer in ["Adam", "AdamW"]:
-            st.slider(
-                "Beta 1 (Momentum)",
-                0.0,
-                1.0,
-                0.9,
-                help="Exponential decay rate for first moment (mean). Default 0.9 works well.",
-            )
-            st.slider(
-                "Beta 2 (Variance)",
-                0.0,
-                1.0,
-                0.999,
-                help="Exponential decay rate for second moment. Affects adaptive learning rate. Default 0.999 is stable.",
-            )
-        elif optimizer == "SGD with Momentum":
-            st.slider(
-                "Momentum",
-                0.0,
-                1.0,
-                0.9,
-                help="Helps accelerate SGD in relevant direction. Reduces oscillations. Typical values: 0.9-0.99.",
-            )
-            st.checkbox(
-                "Nesterov",
-                value=True,
-                help="Nesterov momentum looks ahead before making updates. Usually improves convergence.",
-            )
-
-
-def render_lr_scheduler():
-    """Section 2: LR scheduling"""
-    st.header("Learning Rate Scheduling")
-
-    strategy = st.radio(
-        "Strategy",
-        [
-            "Constant",
-            "ReduceLROnPlateau",
-            "Cosine Annealing",
-            "Step Decay",
-            "Exponential Decay",
-        ],
-        help="How learning rate changes during training. Constant=fixed, ReduceLROnPlateau=decreases when stuck, Cosine=smooth decay, Step/Exponential=scheduled decay.",
-    )
-
-    if strategy == "ReduceLROnPlateau":
-        with st.expander("Scheduler Parameters"):
-            st.slider(
-                "Reduction Factor",
-                0.1,
-                0.9,
-                0.5,
-                help="Multiply learning rate by this when plateau detected. 0.5 means cut LR in half.",
-            )
-            st.slider(
-                "Patience",
-                3,
-                20,
-                5,
-                help="Number of epochs with no improvement before reducing LR. Higher = more patient before changes.",
-            )
-
-
-def render_training_parameters():
-    """Section 3: Epochs and batch size"""
-    st.header("Training Settings")
-
-    epochs = st.slider(
-        "Max Epochs",
-        10,
-        200,
-        100,
-        help="Maximum training iterations through entire dataset. More epochs = longer training. Use early stopping to avoid overfitting.",
-    )
-    batch_size = st.selectbox(
-        "Batch Size",
-        [16, 32, 64, 128],
-        index=1,
-        help="Number of samples processed before weight update. Larger = faster but needs more memory. Smaller = more stable gradients. 32 is a good default.",
-    )
-    st.checkbox(
-        "Shuffle Training Data",
-        value=True,
-        help="Randomize sample order each epoch. Recommended to prevent learning order-dependent patterns.",
-    )
-
-
-def render_regularization():
-    """Section 4: Regularization config"""
-    st.header("Regularization")
-
-    use_l2 = st.checkbox(
-        "L2 Weight Decay",
-        help="Penalizes large weights to prevent overfitting. Adds small penalty proportional to weight magnitude. Recommended for most models.",
-    )
-    if use_l2:
-        st.slider(
-            "Lambda",
-            0.0001,
-            0.01,
-            0.0001,
-            format="%.4f",
-            help="Weight decay strength. Higher = stronger regularization. Start with 0.0001-0.001. Too high can underfit.",
-        )
-
-    st.info("Dropout configured in Model Architecture")
-
-
-def render_class_imbalance():
-    """Section 5: Handle imbalanced classes"""
-    st.header("Class Imbalance Strategy")
-
-    method = st.radio(
-        "Method",
-        ["Auto Class Weights (recommended)", "Focal Loss", "No Adjustment"],
-        help="Handle datasets where some classes have far fewer samples. Auto weights penalize errors on rare classes more. Focal Loss focuses on hard examples.",
-    )
-
-    with st.expander("Class Distribution"):
-        st.info("Bar chart - TO BE IMPLEMENTED")
-        # TODO: Show class distribution from dataset config
-
-
-def render_callbacks():
-    """Section 6: Training callbacks"""
-    st.header("Training Callbacks")
-
-    early_stopping = st.checkbox(
-        "Early Stopping",
-        value=True,
-        help="Stop training if validation performance stops improving. Prevents overfitting and saves time.",
-    )
-    if early_stopping:
-        st.slider(
-            "Patience",
-            5,
-            30,
-            10,
-            help="Number of epochs to wait for improvement before stopping. Higher = more chances to improve, but may waste time.",
-        )
-
-    checkpointing = st.checkbox(
-        "Model Checkpointing",
-        value=True,
-        help="Save model weights at best performance point. Lets you recover best model even if training continues past optimal point.",
-    )
-    if checkpointing:
-        st.radio(
-            "Save Best By",
-            ["Val Loss", "Val Accuracy"],
-            help="Which metric determines 'best' model. Val Loss is safer (optimizes what's being minimized). Val Accuracy is more intuitive.",
-        )
-
-    st.checkbox(
-        "TensorBoard Logging",
-        help="Log training metrics to TensorBoard for visualization. Creates detailed charts of loss, accuracy, learning rate over time.",
-    )
-
-
-def render_start_training():
-    """Section 7: Start training"""
-    st.header("Experiment Details")
-
-    exp_name = st.text_input(
-        "Experiment Name",
-        value="exp_001",
-        help="Unique identifier for this training run. Use descriptive names like 'resnet18_aug_heavy' to track experiments.",
-    )
-    st.text_area(
-        "Description (optional)",
-        help="Notes about this experiment: What are you testing? What hypothesis? Any special configuration?",
-    )
-    st.multiselect(
-        "Tags",
-        ["mish", "relu", "baseline", "experiment"],
-        help="Labels to organize experiments. Useful for grouping related runs or marking special configurations.",
-    )
+    if not configs:
+        st.caption("No saved configs yet")
+    else:
+        for cfg in configs:
+            col1, col2 = st.columns([4, 1])
+            with col1:
+                is_selected = st.session_state.training_selected_id == cfg["id"]
+                if st.button(
+                    f"{'●' if is_selected else '○'} {cfg['name']}",
+                    key=f"sel_{cfg['id']}",
+                    use_container_width=True,
+                ):
+                    _load_config(cfg["id"])
+                    st.rerun()
+            with col2:
+                if st.button("🗑️", key=f"del_{cfg['id']}", help="Delete"):
+                    delete_training_from_library(cfg["id"])
+                    if st.session_state.training_selected_id == cfg["id"]:
+                        st.session_state.training_selected_id = None
+                    st.rerun()
 
     st.divider()
 
-    with st.form("start_training_form"):
-        st.info("""
-        **Training Configuration Summary**
-        - Dataset: MalImg (TBD samples, TBD classes)
-        - Model: TBD
-        - Epochs: TBD | Batch: TBD | LR: TBD
-        """)
+    if st.button("+ New Config", use_container_width=True):
+        st.session_state.training_selected_id = None
+        st.session_state.training_config_name = ""
+        _reset_form_to_defaults()
+        st.rerun()
 
-        st.warning("Training will take approximately X hours")
 
-        submitted = st.form_submit_button("START TRAINING", type="primary")
-        if submitted:
-            st.success("Training started - TO BE IMPLEMENTED")
-            # TODO: Start training, show embedded monitor
+def _load_config(config_id: str):
+    """Load a config into the form"""
+    cfg = get_training_from_library(config_id)
+    if not cfg:
+        return
+
+    st.session_state.training_selected_id = config_id
+    st.session_state.training_config_name = cfg["name"]
+
+    config = cfg.get("config", {})
+
+    # Load all values into session state
+    st.session_state.train_optimizer = config.get("optimizer", "Adam")
+    st.session_state.train_lr = config.get("learning_rate", 0.001)
+    st.session_state.train_lr_strategy = config.get("lr_strategy", "Constant")
+    st.session_state.train_epochs = config.get("epochs", 100)
+    st.session_state.train_batch_size = config.get("batch_size", 32)
+    st.session_state.train_shuffle = config.get("shuffle", True)
+    st.session_state.train_l2 = config.get("l2_decay", False)
+    st.session_state.train_l2_lambda = config.get("l2_lambda", 0.0001)
+    st.session_state.train_class_weights = config.get(
+        "class_weights", "Auto Class Weights"
+    )
+    st.session_state.train_early_stopping = config.get("early_stopping", True)
+    st.session_state.train_es_patience = config.get("es_patience", 10)
+    st.session_state.train_checkpointing = config.get("checkpointing", True)
+    st.session_state.train_checkpoint_metric = config.get(
+        "checkpoint_metric", "Val Loss"
+    )
+
+
+def _reset_form_to_defaults():
+    """Reset form to default values"""
+    st.session_state.train_optimizer = "Adam"
+    st.session_state.train_lr = 0.001
+    st.session_state.train_lr_strategy = "Constant"
+    st.session_state.train_epochs = 100
+    st.session_state.train_batch_size = 32
+    st.session_state.train_shuffle = True
+    st.session_state.train_l2 = False
+    st.session_state.train_l2_lambda = 0.0001
+    st.session_state.train_class_weights = "Auto Class Weights"
+    st.session_state.train_early_stopping = True
+    st.session_state.train_es_patience = 10
+    st.session_state.train_checkpointing = True
+    st.session_state.train_checkpoint_metric = "Val Loss"
+
+
+def _render_training_form() -> dict:
+    """Render the training configuration form"""
+    # Config name
+    name = st.text_input(
+        "Config Name",
+        value=st.session_state.get("training_config_name", ""),
+        placeholder="e.g., Adam_Default",
+        help="Name for this training configuration",
+    )
+    st.session_state.training_config_name = name
+
+    st.divider()
+
+    # Optimizer
+    st.subheader("Optimizer")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        optimizer = st.selectbox(
+            "Optimizer",
+            ["Adam", "AdamW", "SGD with Momentum", "RMSprop"],
+            key="train_optimizer",
+            help="Algorithm that updates model weights.",
+        )
+
+    with col2:
+        lr = st.slider(
+            "Learning Rate",
+            0.0001,
+            0.01,
+            step=0.0001,
+            key="train_lr",
+            format="%.4f",
+            help="Controls how much weights change per update.",
+        )
+
+    # LR Scheduler
+    st.subheader("Learning Rate Schedule")
+    lr_strategy = st.radio(
+        "Strategy",
+        ["Constant", "ReduceLROnPlateau", "Cosine Annealing"],
+        key="train_lr_strategy",
+        horizontal=True,
+        help="How learning rate changes during training.",
+    )
+
+    # Training parameters
+    st.subheader("Training Parameters")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        epochs = st.slider("Max Epochs", 10, 200, key="train_epochs")
+
+    with col2:
+        batch_size = st.selectbox(
+            "Batch Size",
+            [16, 32, 64, 128],
+            key="train_batch_size",
+            help="Samples per weight update.",
+        )
+
+    with col3:
+        shuffle = st.checkbox("Shuffle Data", key="train_shuffle")
+
+    # Regularization
+    st.subheader("Regularization")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        l2 = st.checkbox("L2 Weight Decay", key="train_l2")
+
+    with col2:
+        if l2:
+            l2_lambda = st.slider(
+                "Lambda", 0.0001, 0.01, step=0.0001, key="train_l2_lambda", format="%.4f"
+            )
+        else:
+            l2_lambda = 0.0001
+
+    # Class imbalance
+    st.subheader("Class Imbalance")
+    class_weights = st.radio(
+        "Method",
+        ["Auto Class Weights", "Focal Loss", "None"],
+        key="train_class_weights",
+        horizontal=True,
+        help="Handle imbalanced classes.",
+    )
+
+    # Callbacks
+    st.subheader("Callbacks")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        early_stopping = st.checkbox("Early Stopping", key="train_early_stopping")
+        if early_stopping:
+            es_patience = st.slider(
+                "Patience", 5, 30, key="train_es_patience", help="Epochs to wait."
+            )
+        else:
+            es_patience = 10
+
+    with col2:
+        checkpointing = st.checkbox("Model Checkpointing", key="train_checkpointing")
+        if checkpointing:
+            checkpoint_metric = st.radio(
+                "Save Best By",
+                ["Val Loss", "Val Accuracy"],
+                key="train_checkpoint_metric",
+            )
+        else:
+            checkpoint_metric = "Val Loss"
+
+    # Build config dict
+    return {
+        "optimizer": optimizer,
+        "learning_rate": lr,
+        "lr_strategy": lr_strategy,
+        "epochs": epochs,
+        "batch_size": batch_size,
+        "shuffle": shuffle,
+        "l2_decay": l2,
+        "l2_lambda": l2_lambda if l2 else 0,
+        "class_weights": class_weights,
+        "early_stopping": early_stopping,
+        "es_patience": es_patience if early_stopping else 0,
+        "checkpointing": checkpointing,
+        "checkpoint_metric": checkpoint_metric if checkpointing else None,
+    }
+
+
+def _render_save_section(config: dict):
+    """Render save/update buttons"""
+    st.divider()
+
+    name = st.session_state.get("training_config_name", "").strip()
+    is_editing = st.session_state.training_selected_id is not None
+
+    col1, col2, col3 = st.columns([2, 1, 1])
+
+    with col1:
+        if not name:
+            st.warning("Enter a config name to save")
+
+    with col2:
+        if st.button(
+            "Save as New",
+            use_container_width=True,
+            disabled=not name,
+            type="primary" if not is_editing else "secondary",
+        ):
+            add_training_to_library(name, config)
+            st.success(f"Config '{name}' saved!")
+            st.session_state.training_config_name = ""
+            st.session_state.training_selected_id = None
+            st.rerun()
+
+    with col3:
+        if is_editing:
+            if st.button("Update", use_container_width=True, disabled=not name):
+                update_training_in_library(
+                    st.session_state.training_selected_id, name, config
+                )
+                st.success(f"Config '{name}' updated!")
+                st.rerun()

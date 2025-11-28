@@ -3,6 +3,7 @@ Page 7: Model Interpretability
 BFS Level: Interface & Section Structure Only
 """
 
+from state.workflow import get_experiments
 import streamlit as st
 
 
@@ -39,8 +40,8 @@ def render():
 
 def has_trained_model():
     """Check if trained model exists"""
-    # TODO: Check for model file
-    return False
+    experiments = get_experiments()
+    return any(exp.get("status") == "completed" for exp in experiments)
 
 
 def render_gradcam():

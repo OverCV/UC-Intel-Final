@@ -1,8 +1,17 @@
 """
-Page 5: Training Monitor
-BFS Level: Interface & Section Structure Only
+Monitor Page - Experiment Composition and Training Monitor
+Compose model + training configs, start training, watch progress
 """
 
+from components.experiment_row import render_experiment_row
+from state.workflow import (
+    create_experiment,
+    delete_experiment,
+    get_experiments,
+    get_model_library,
+    get_training_library,
+    update_experiment,
+)
 import streamlit as st
 
 
@@ -10,108 +19,108 @@ def render():
     """Main render function for Monitor page"""
     st.title("Training Monitor")
 
-    # Check if training is active
-    if not is_training_active():
+    # Get libraries
+    models = get_model_library()
+    trainings = get_training_library()
+
+    # Check prerequisites
+    if not models:
+        st.warning("No models saved. Create a model in the Model page first.")
+
+    if not trainings:
+        st.warning("No training configs saved. Create one in the Training page first.")
+
+    # Header with add button
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+        st.header("Experiments")
+
+    with col2:
+        if st.button("+ New Experiment", type="primary", use_container_width=True):
+            _create_new_experiment(models, trainings)
+            st.rerun()
+
+    # Render experiments
+    experiments = get_experiments()
+
+    if not experiments:
         st.info(
-            "No active training session. Start training from Training Configuration page."
+            "No experiments yet. Click '+ New Experiment' to create one, "
+            "then select a model and training config to start training."
         )
-        return
-
-    # Section 1: Training Status
-    render_training_status()
-
-    # Section 2: Progress Bar
-    render_progress()
-
-    # Section 3: Current Metrics
-    render_current_metrics()
-
-    # Section 4: Live Training Curves
-    render_training_curves()
-
-    # Section 5: Learning Rate Schedule
-    render_lr_curve()
-
-    # Section 6: Training Logs
-    render_logs()
-
-    # Section 7: Training Controls
-    render_controls()
+    else:
+        for exp in experiments:
+            render_experiment_row(
+                experiment=exp,
+                models=models,
+                trainings=trainings,
+                on_update=_handle_experiment_update,
+                on_delete=_handle_experiment_delete,
+                on_start=_handle_start_training,
+                on_pause=_handle_pause_training,
+                on_stop=_handle_stop_training,
+                on_view_results=_handle_view_results,
+            )
 
 
-def is_training_active():
-    """Check if training is currently running"""
-    # TODO: Check session state or training process
-    return False
+def _create_new_experiment(models: list, trainings: list):
+    """Create a new experiment with defaults"""
+    exp_count = len(get_experiments()) + 1
+    name = f"Experiment {exp_count}"
+
+    # Default to first model and training if available
+    model_id = models[0]["id"] if models else None
+    training_id = trainings[0]["id"] if trainings else None
+
+    create_experiment(name, model_id, training_id)
 
 
-def render_training_status():
-    """Section 1: High-level status"""
-    st.header("Training in Progress")
-
-    status = st.status("Training...", expanded=True)
-    with status:
-        st.write("Current Epoch: TBD")
-        st.write("Estimated Time Remaining: TBD")
-        st.write("GPU Memory: TBD")
+def _handle_experiment_update(exp_id: str, updates: dict):
+    """Handle experiment config changes"""
+    update_experiment(exp_id, updates)
+    st.rerun()
 
 
-def render_progress():
-    """Section 2: Progress bars"""
-    st.progress(0.15, text="Epoch 15/100")
-    st.text("Batch 187/256")
+def _handle_experiment_delete(exp_id: str):
+    """Handle experiment deletion"""
+    delete_experiment(exp_id)
+    st.rerun()
 
 
-def render_current_metrics():
-    """Section 3: Latest metrics"""
-    col1, col2, col3, col4 = st.columns(4)
+def _handle_start_training(exp_id: str):
+    """Handle start training button"""
+    # Update status to training
+    update_experiment(
+        exp_id,
+        {
+            "status": "training",
+            "started_at": __import__("datetime").datetime.now().isoformat(),
+            "current_epoch": 0,
+            "metrics": {},
+        },
+    )
 
-    with col1:
-        st.metric("Train Loss", "0.3421", delta="-0.05")
-    with col2:
-        st.metric("Train Acc", "89.34%", delta="2.1%")
-    with col3:
-        st.metric("Val Loss", "0.4156", delta="-0.03")
-    with col4:
-        st.metric("Val Acc", "86.72%", delta="1.8%")
-
-
-def render_training_curves():
-    """Section 4: Live charts"""
-    st.header("Training History")
-
-    st.info("Loss/Accuracy curves - TO BE IMPLEMENTED")
-    # TODO: Plotly charts with auto-refresh (@st.fragment)
+    st.toast("Training started!")
+    st.info("Training functionality will be implemented with actual PyTorch training loop.")
+    st.rerun()
 
 
-def render_lr_curve():
-    """Section 5: LR schedule visualization"""
-    st.info("Learning rate curve - TO BE IMPLEMENTED")
-    # TODO: Plotly chart showing LR over time
+def _handle_pause_training(exp_id: str):
+    """Handle pause training button"""
+    update_experiment(exp_id, {"status": "paused"})
+    st.toast("Training paused")
+    st.rerun()
 
 
-def render_logs():
-    """Section 6: Text logs"""
-    with st.expander("Training Logs", expanded=False):
-        st.text_area(
-            "Logs",
-            value="[15:23:45] Epoch 15/100\n[15:23:47] Training...",
-            height=200,
-            disabled=True,
-        )
+def _handle_stop_training(exp_id: str):
+    """Handle stop training button"""
+    update_experiment(exp_id, {"status": "ready", "current_epoch": 0, "metrics": {}})
+    st.toast("Training stopped")
+    st.rerun()
 
 
-def render_controls():
-    """Section 7: Control buttons"""
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        if st.button("Pause Training"):
-            st.info("Pause - TO BE IMPLEMENTED")
-    with col2:
-        if st.button("Stop Training"):
-            st.warning("Stop - TO BE IMPLEMENTED")
-    with col3:
-        st.download_button("Save Checkpoint", data="", file_name="checkpoint.pt")
-
-    st.info("Training continues in background. You can navigate to other pages.")
+def _handle_view_results(exp_id: str):
+    """Handle view results button"""
+    st.session_state.selected_experiment_id = exp_id
+    st.toast("Experiment selected. Navigate to Results page to view details.")

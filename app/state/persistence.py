@@ -39,6 +39,12 @@ def save_session(session_id: str) -> bool:
             "session_id": session_id,
             "created_at": datetime.now().isoformat(),
             "dataset_config": st.session_state.get("dataset_config", {}),
+            # Libraries
+            "model_library": st.session_state.get("model_library", []),
+            "training_library": st.session_state.get("training_library", []),
+            # Experiments
+            "experiments": st.session_state.get("experiments", []),
+            # Legacy (backwards compatibility)
             "model_config": st.session_state.get("model_config", {}),
             "training_config": st.session_state.get("training_config", {}),
             "training_active": st.session_state.get("training_active", False),
@@ -82,6 +88,12 @@ def load_session(session_id: str) -> bool:
         # Restore workflow state
         st.session_state.session_id = session_data.get("session_id", session_id)
         st.session_state.dataset_config = session_data.get("dataset_config", {})
+        # Libraries
+        st.session_state.model_library = session_data.get("model_library", [])
+        st.session_state.training_library = session_data.get("training_library", [])
+        # Experiments
+        st.session_state.experiments = session_data.get("experiments", [])
+        # Legacy (backwards compatibility)
         st.session_state.model_config = session_data.get("model_config", {})
         st.session_state.training_config = session_data.get("training_config", {})
         st.session_state.training_active = session_data.get("training_active", False)
@@ -171,6 +183,10 @@ def get_session_metadata(session_id: str) -> dict[str, Any] | None:
             "session_id": data.get("session_id"),
             "created_at": data.get("created_at"),
             "has_dataset": bool(data.get("dataset_config")),
+            "model_count": len(data.get("model_library", [])),
+            "training_count": len(data.get("training_library", [])),
+            "experiment_count": len(data.get("experiments", [])),
+            # Legacy
             "has_model": bool(data.get("model_config")),
             "has_training": bool(data.get("training_config")),
             "has_results": data.get("results") is not None,

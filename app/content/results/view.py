@@ -3,6 +3,7 @@ Page 6: Results & Evaluation
 BFS Level: Interface & Section Structure Only
 """
 
+from state.workflow import get_experiments
 import streamlit as st
 
 
@@ -39,8 +40,8 @@ def render():
 
 def has_results():
     """Check if completed experiment results exist"""
-    # TODO: Check for results in storage
-    return False
+    experiments = get_experiments()
+    return any(exp.get("status") == "completed" for exp in experiments)
 
 
 def render_experiment_summary():

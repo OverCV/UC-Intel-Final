@@ -5,6 +5,7 @@ Project overview and quick start guide
 
 from components.utils import check_gpu_available
 import streamlit as st
+import streamlit.components.v1 as components
 
 
 def render():
@@ -30,7 +31,29 @@ def render_project_overview():
         - Evaluate and visualize results
         """)
 
-    # TODO: Add Mermaid workflow diagram
+    # Workflow diagram (rendered via Mermaid JS)
+    mermaid_code = """
+    flowchart LR
+        D[Dataset] --> M[Model Library]
+        M --> T[Training Library]
+        T --> Mo[Monitor]
+        Mo --> R[Results]
+
+        D -.- D1[Configure data]
+        M -.- M1[Save models]
+        T -.- T1[Save configs]
+        Mo -.- Mo1[Run training]
+        R -.- R1[Analyze]
+    """
+
+    components.html(
+        f"""
+        <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({{startOnLoad:true, theme:'neutral'}});</script>
+        <div class="mermaid">{mermaid_code}</div>
+        """,
+        height=400,
+    )
 
 
 def render_quick_start():

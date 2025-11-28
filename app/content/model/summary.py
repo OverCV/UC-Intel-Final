@@ -76,17 +76,21 @@ def render_summary(model_config: dict[str, Any]):
             st.write(f"**Layer Composition:** {counts_str}")
 
     elif model_config["model_type"] == "Transfer Learning":
-        col1, col2, col3, col4 = st.columns(4)
         transfer_cfg = model_config["transfer_config"]
+
+        col1, col2, col3 = st.columns(3)
         with col1:
             st.write(f"**Base Model:** {transfer_cfg['base_model']}")
         with col2:
             st.write(f"**Weights:** {transfer_cfg['weights']}")
         with col3:
             st.write(f"**Strategy:** {transfer_cfg['strategy']}")
-        if transfer_cfg["strategy"] == "Partial Fine-tuning":
-            with col4:
-                st.write(f"**Unfrozen Layers:** {transfer_cfg['unfreeze_layers']}")
+
+        # Show classifier head layers
+        classifier_head = transfer_cfg.get("classifier_head", [])
+        if classifier_head:
+            head_str = " → ".join([layer["type"] for layer in classifier_head])
+            st.write(f"**Classifier Head:** {head_str} → Output")
 
     elif model_config["model_type"] == "Transformer":
         col1, col2, col3, col4 = st.columns(4)
