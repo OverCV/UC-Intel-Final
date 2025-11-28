@@ -3,8 +3,10 @@ Dataset Tab 4: Augmentation & Configuration
 Data augmentation settings and final configuration save
 """
 
+import random
 from pathlib import Path
 
+from PIL import Image, ImageEnhance
 from state.cache import get_dataset_info
 from state.workflow import has_dataset_config, save_dataset_config
 import streamlit as st
@@ -14,6 +16,7 @@ from utils.dataset_utils import DATASET_ROOT, calculate_split_percentages
 def render(dataset_info):
     """Render augmentation settings and configuration save"""
     augmentation_config = render_augmentation_config()
+    render_augmentation_preview(dataset_info, augmentation_config)
     st.divider()
     render_configuration_summary(dataset_info, augmentation_config)
 
@@ -82,6 +85,88 @@ def render_augmentation_config():
         }
 
     return augmentation_config
+
+
+def render_augmentation_preview(dataset_info, augmentation_config):
+    """Preview augmentation effects on a sample image"""
+    st.divider()
+    st.subheader("Augmentation Preview")
+
+    if not dataset_info.get("sample_paths"):
+        st.warning("No samples to preview")
+        return
+
+    # Family selector
+    selected_family = st.selectbox(
+        "Select Family to Preview",
+        options=dataset_info["classes"],
+        key="augmentation_preview_family"
+    )
+
+    sample_path = dataset_info["sample_paths"][selected_family][0]
+    original = Image.open(sample_path)
+
+    # Show original and augmented versions
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.markdown("**Original**")
+        st.image(original, use_container_width=True)
+
+    with col2:
+        st.markdown("**Augmented (Example 1)**")
+        aug1 = apply_augmentation(original, augmentation_config)
+        st.image(aug1, use_container_width=True)
+
+    with col3:
+        st.markdown("**Augmented (Example 2)**")
+        aug2 = apply_augmentation(original, augmentation_config)
+        st.image(aug2, use_container_width=True)
+
+    # Refresh button to see different random augmentations
+    if st.button("🔄 Generate New Examples", key="refresh_augmentation"):
+        st.rerun()
+
+
+def apply_augmentation(img, config):
+    """Apply augmentation transforms to an image"""
+    result = img.copy()
+
+    if config.get("preset") == "None":
+        return result
+
+    # Get custom config or use preset defaults
+    if config.get("preset") == "Custom":
+        custom = config.get("custom", {})
+    else:
+        # Preset defaults
+        presets = {
+            "Light": {"horizontal_flip": True, "rotation": True, "rotation_range": 10},
+            "Moderate": {"horizontal_flip": True, "vertical_flip": True, "rotation": True, "rotation_range": 20, "brightness": True, "brightness_range": 10},
+            "Heavy": {"horizontal_flip": True, "vertical_flip": True, "rotation": True, "rotation_range": 30, "brightness": True, "brightness_range": 20, "contrast": True, "contrast_range": 20}
+        }
+        custom = presets.get(config.get("preset"), {})
+
+    # Apply transforms randomly
+    if custom.get("horizontal_flip") and random.random() > 0.5:
+        result = result.transpose(Image.FLIP_LEFT_RIGHT)
+
+    if custom.get("vertical_flip") and random.random() > 0.5:
+        result = result.transpose(Image.FLIP_TOP_BOTTOM)
+
+    if custom.get("rotation"):
+        angle = random.uniform(-custom.get("rotation_range", 15), custom.get("rotation_range", 15))
+        result = result.rotate(angle, fillcolor=0)
+
+    if custom.get("brightness"):
+        factor = 1 + random.uniform(-custom.get("brightness_range", 10), custom.get("brightness_range", 10)) / 100
+        result = ImageEnhance.Brightness(result).enhance(factor)
+
+    if custom.get("contrast"):
+        factor = 1 + random.uniform(-custom.get("contrast_range", 10), custom.get("contrast_range", 10)) / 100
+        result = ImageEnhance.Contrast(result).enhance(factor)
+
+    return result
 
 
 def render_configuration_summary(dataset_info, augmentation_config):
