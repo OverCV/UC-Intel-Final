@@ -40,7 +40,7 @@ def render_preset_selector():
             if current_preset in preset_options
             else 0,
             key="preset_selector",
-            help="Select a preset architecture or start from scratch",
+            help="Load a pre-built layer configuration. 'Conventional' is a good starting point. You can customize after loading.",
         )
 
     with col2:
@@ -71,7 +71,7 @@ def render_add_layer_section():
             options=list(layer_options.keys()),
             format_func=lambda x: layer_options[x],
             key="new_layer_type",
-            help="Select the type of layer to add",
+            help="Conv2D extracts features. Pooling reduces size. BatchNorm stabilizes training. Dropout prevents overfitting. Dense/Flatten for classification.",
         )
 
     with col2:
@@ -108,7 +108,7 @@ def render_layer_card(layer: dict, index: int, total_layers: int):
             # Move up button
             with btn_cols[0]:
                 if index > 0:
-                    if st.button("↑", key=f"up_{layer_id}", help="Move up"):
+                    if st.button("↑", key=f"up_{layer_id}", help="Move layer earlier in the stack"):
                         move_layer_up(layer_id)
                         st.rerun()
                 else:
@@ -117,7 +117,7 @@ def render_layer_card(layer: dict, index: int, total_layers: int):
             # Move down button
             with btn_cols[1]:
                 if index < total_layers - 1:
-                    if st.button("↓", key=f"down_{layer_id}", help="Move down"):
+                    if st.button("↓", key=f"down_{layer_id}", help="Move layer later in the stack"):
                         move_layer_down(layer_id)
                         st.rerun()
                 else:
@@ -126,7 +126,7 @@ def render_layer_card(layer: dict, index: int, total_layers: int):
             # Edit button
             with btn_cols[2]:
                 if LAYER_TYPES.get(layer_type, {}).get("params"):
-                    if st.button("✏️", key=f"edit_{layer_id}", help="Edit"):
+                    if st.button("✏️", key=f"edit_{layer_id}", help="Edit layer parameters (filters, units, rates, etc.)"):
                         if is_editing(layer_id):
                             stop_editing()
                         else:
@@ -137,7 +137,7 @@ def render_layer_card(layer: dict, index: int, total_layers: int):
 
             # Delete button
             with btn_cols[3]:
-                if st.button("🗑️", key=f"del_{layer_id}", help="Delete"):
+                if st.button("🗑️", key=f"del_{layer_id}", help="Remove this layer from the stack"):
                     remove_layer(layer_id)
                     st.rerun()
 
@@ -207,7 +207,7 @@ def render_layer_editor(layer: dict):
                 st.rerun()
 
         with col3:
-            if st.button("Duplicate Layer", key=f"dup_{layer_id}"):
+            if st.button("Duplicate Layer", key=f"dup_{layer_id}", help="Create a copy of this layer with the same parameters"):
                 duplicate_layer(layer_id)
                 stop_editing()
                 st.rerun()
