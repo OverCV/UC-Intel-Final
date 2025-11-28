@@ -37,7 +37,7 @@ def render():
             "Misclassifications",
             "Embeddings",
             "Grad-CAM",
-            "Other (WIP)",
+            "Advanced",
         ]
     )
 

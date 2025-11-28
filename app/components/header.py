@@ -12,9 +12,9 @@ from state.persistence import (
 )
 from state.workflow import (
     get_session_id,
+    has_completed_training,
     has_dataset_config,
-    has_model_config,
-    has_training_config,
+    has_models_in_library,
 )
 import streamlit as st
 
@@ -43,10 +43,10 @@ def render_header():
             icon = "✅" if has_dataset_config() else "⬜"
             st.markdown(f"{icon} Dataset")
         with col2:
-            icon = "✅" if has_model_config() else "⬜"
+            icon = "✅" if has_models_in_library() else "⬜"
             st.markdown(f"{icon} Model")
         with col3:
-            icon = "✅" if has_training_config() else "⬜"
+            icon = "✅" if has_completed_training() else "⬜"
             st.markdown(f"{icon} Training")
 
     with sessions_col:

@@ -184,6 +184,17 @@ def has_training_config() -> bool:
     return bool(st.session_state.get("training_config"))
 
 
+def has_models_in_library() -> bool:
+    """Check if at least one model exists in library"""
+    return len(st.session_state.get("model_library", [])) > 0
+
+
+def has_completed_training() -> bool:
+    """Check if at least one experiment has completed"""
+    experiments = st.session_state.get("experiments", [])
+    return any(exp.get("status") == "completed" for exp in experiments)
+
+
 # Training Status
 def is_training_active() -> bool:
     """Check if training is currently active"""

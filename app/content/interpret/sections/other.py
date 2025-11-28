@@ -9,7 +9,6 @@ from content.interpret.engine.data_loader import get_test_samples
 from content.interpret.engine.gradcam import get_conv_layers
 from content.interpret.engine.model_loader import load_experiment_model
 from content.interpret.sections.lime import render_lime_section
-import numpy as np
 from PIL import Image
 from state.persistence import get_dataset_config_from_file
 from state.workflow import get_session_id
@@ -20,20 +19,18 @@ from training.transforms import create_val_transforms
 
 def render_other_sections(exp_id: str):
     """Render LIME, activation maps, and filter weights sections."""
-    # LIME first as requested
-    tab_lime, tab_act, tab_filter = st.tabs([
-        "LIME Explanations",
-        "Activation Maps",
-        "Learned Filters",
-    ])
+    section = st.segmented_control(
+        "Select Section",
+        options=["LIME", "Activation Maps", "Learned Filters"],
+        default="LIME",
+        key="other_section_select",
+    )
 
-    with tab_lime:
+    if section == "LIME":
         render_lime_section(exp_id)
-
-    with tab_act:
+    elif section == "Activation Maps":
         render_activation_maps_section(exp_id)
-
-    with tab_filter:
+    else:
         render_filter_weights_section(exp_id)
 
 
