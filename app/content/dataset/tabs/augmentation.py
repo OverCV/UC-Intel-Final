@@ -26,7 +26,7 @@ def render_augmentation_config():
 
     preset = st.radio("Augmentation Preset",
                        ["None", "Light", "Moderate", "Heavy", "Custom"],
-                       index=2,  # Default to "Moderate"
+                       index=4,  # Default to "Custom"
                        horizontal=True,
                        key="augmentation_preset")
 
@@ -49,7 +49,7 @@ def render_augmentation_config():
         col1, col2 = st.columns(2)
         with col1:
             h_flip = st.checkbox("Horizontal Flip", value=True, key="aug_h_flip")
-            v_flip = st.checkbox("Vertical Flip", value=False, key="aug_v_flip")
+            v_flip = st.checkbox("Vertical Flip", value=True, key="aug_v_flip")
             rotation = st.checkbox("Random Rotation", value=True, key="aug_rotation")
             rotation_range = 15
             if rotation:
@@ -152,10 +152,6 @@ def render_configuration_summary(dataset_info, augmentation_config):
         }
     }
 
-    # Display config with better formatting
-    with st.expander("View Full Configuration", expanded=True):
-        st.json(config)
-
     # Show key info
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -168,8 +164,8 @@ def render_configuration_summary(dataset_info, augmentation_config):
         else:
             st.metric("Augmentation", augmentation_config["preset"])
 
+    # Save button FIRST (before expander)
     _, col2, _ = st.columns([1, 1, 1])
-
     with col2:
         if st.button("💾 Save Configuration", type="primary", width="stretch"):
             save_dataset_config(config)
@@ -178,3 +174,7 @@ def render_configuration_summary(dataset_info, augmentation_config):
 
     if has_dataset_config():
         st.info("✅ Configuration saved. Navigate to **Model** page to continue.")
+
+    # Display config with better formatting (collapsed by default)
+    with st.expander("View Full Configuration", expanded=False):
+        st.json(config)

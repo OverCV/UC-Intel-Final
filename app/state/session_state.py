@@ -49,7 +49,11 @@ def init_session_state():
         st.session_state.imbalance_strategy = "Auto Class Weights (Recommended)"
 
     if "augmentation_preset" not in st.session_state:
-        st.session_state.augmentation_preset = "Moderate"
+        st.session_state.augmentation_preset = "Custom"
+
+    # Custom augmentation defaults
+    if "aug_v_flip" not in st.session_state:
+        st.session_state.aug_v_flip = True
 
     # Selective augmentation defaults (for H2 hypothesis)
     if "minority_threshold" not in st.session_state:

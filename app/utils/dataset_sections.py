@@ -213,8 +213,6 @@ def render_confirmation():
         },
     }
 
-    st.json(config)
-
     _, col2, _ = st.columns([1, 1, 1])
 
     with col2:
@@ -225,3 +223,5 @@ def render_confirmation():
 
     if st.session_state.get("dataset_config"):
         st.info("Configuration saved. Navigate to **Model** page to continue.")
+
+    st.json(config)

@@ -11,90 +11,110 @@ import streamlit as st
 
 def render(dataset_info):
     """Render sample viewer and preprocessing preview"""
-    render_sample_viewer(dataset_info)
-    st.divider()
     render_preprocessing_preview(dataset_info)
+    st.divider()
+    render_sample_viewer(dataset_info)
 
 
 def render_sample_viewer(dataset_info):
-    """Sample image browser with filtering"""
+    """Sample image browser - stable across reruns"""
     st.subheader("Dataset Samples")
 
     if not dataset_info["sample_paths"]:
         st.warning("No sample images found")
         return
 
-    selected_class = st.selectbox(
-        "Filter by Malware Family",
-        options=["All"] + dataset_info["classes"],
-    )
-
-    if selected_class == "All":
+    # Cache sample selection in session state to prevent re-randomizing on rerun
+    if "gallery_samples" not in st.session_state:
         all_samples = []
         for paths in dataset_info["sample_paths"].values():
-            all_samples.extend(paths[:2])
-        sample_paths = random.sample(all_samples, min(10, len(all_samples)))
-    else:
-        sample_paths = dataset_info["sample_paths"].get(selected_class, [])[:8]
+            all_samples.extend(paths[:6])  # More samples per family
+        st.session_state.gallery_samples = random.sample(
+            all_samples, min(36, len(all_samples))  # 6x6 grid
+        )
 
-    if not sample_paths:
-        st.info("No samples available for this class")
-        return
+    sample_paths = st.session_state.gallery_samples
 
-    cols = st.columns(5)
+    # Display 6x6 grid with fixed width to prevent overflow
+    cols = st.columns(6)
     for idx, img_path in enumerate(sample_paths):
-        with cols[idx % 5]:
+        with cols[idx % 6]:
             try:
                 img = Image.open(img_path)
-                st.image(img, width="stretch")
+                st.image(img, width=150)
                 st.caption(f"{img.size[0]}x{img.size[1]}")
-            except Exception as exception:
-                st.error(f"Error: {img_path.name}. {exception}")
+            except Exception as e:
+                st.error(f"Error: {img_path.name}")
 
 
 def render_preprocessing_preview(dataset_info):
-    """Show before/after preprocessing"""
+    """Preview with family selector"""
     st.subheader("Preprocessing Preview")
+
+    if not dataset_info["sample_paths"]:
+        st.warning("No sample images found")
+        return
+
+    # Family selector (affects the preview below)
+    selected_family = st.selectbox(
+        "Select Family to Preview",
+        options=dataset_info["classes"],
+        key="preprocessing_family_select",
+    )
 
     col1, col2, col3 = st.columns(3)
     with col1:
         target_size = st.selectbox(
-            "Target Size", ["224x224", "256x256", "299x299", "512x512"], index=0
+            "Target Size",
+            ["224x224", "256x256", "299x299", "512x512"],
+            index=0,
+            key="preprocessing_target_size",
         )
     with col2:
         normalization = st.radio(
-            "Normalization", ["[0,1] Scale", "[-1,1] Scale", "ImageNet Mean/Std"]
+            "Normalization",
+            ["[0,1] Scale", "[-1,1] Scale", "ImageNet Mean/Std"],
+            key="preprocessing_normalization",
         )
-        st.info(f"Normalization: {normalization}")
     with col3:
-        color_mode = st.radio("Color Mode", ["RGB", "Grayscale"])
+        color_mode = st.radio(
+            "Color Mode",
+            ["RGB", "Grayscale"],
+            key="preprocessing_color_mode",
+        )
 
-    if dataset_info["sample_paths"]:
-        sample_class = list(dataset_info["sample_paths"].keys())[0]
-        sample_path = dataset_info["sample_paths"][sample_class][0]
+    # Use selected family's image
+    if selected_family not in dataset_info["sample_paths"]:
+        st.warning(f"No samples for {selected_family}")
+        return
 
-        col1, col2 = st.columns(2)
+    sample_path = dataset_info["sample_paths"][selected_family][0]
 
-        with col1:
-            st.markdown("**Original Image**")
-            try:
-                original = Image.open(sample_path)
-                st.image(original, width="stretch")
-                st.caption(f"Size: {original.size[0]}x{original.size[1]}")
-            except Exception as exception:
-                st.error(f"Error loading image: {exception}.\n{sample_path.name}")
+    col1, col2 = st.columns(2)
 
-        with col2:
-            st.markdown("**After Preprocessing**")
-            try:
-                size = int(target_size.split("x")[0])
-                processed = Image.open(sample_path)
-                processed = processed.resize((size, size), Image.Resampling.LANCZOS)
+    with col1:
+        st.markdown("**Original Image**")
+        try:
+            original = Image.open(sample_path)
+            st.image(original, use_container_width=True)
+            st.caption(f"Size: {original.size[0]}x{original.size[1]}")
+        except Exception as e:
+            st.error(f"Error loading image: {e}")
+            return
 
-                if color_mode == "Grayscale":
-                    processed = processed.convert("L")
+    with col2:
+        st.markdown("**After Preprocessing**")
+        try:
+            size = int(target_size.split("x")[0])
+            processed = original.copy()
+            processed = processed.resize((size, size), Image.Resampling.LANCZOS)
 
-                st.image(processed, width="stretch")
-                st.caption(f"Size: {size}x{size}, Mode: {color_mode}")
-            except Exception as exception:
-                st.error(f"Error processing: {exception}.\n{sample_path.name}")
+            if color_mode == "Grayscale":
+                processed = processed.convert("L")
+            elif color_mode == "RGB":
+                processed = processed.convert("RGB")
+
+            st.image(processed, use_container_width=True)
+            st.caption(f"Size: {size}x{size}, Mode: {color_mode}")
+        except Exception as e:
+            st.error(f"Error processing: {e}")
