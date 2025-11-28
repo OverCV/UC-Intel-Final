@@ -3,11 +3,12 @@ Dataset Tab 4: Augmentation & Configuration
 Data augmentation settings and final configuration save
 """
 
-import random
 from pathlib import Path
+import random
 
 from PIL import Image, ImageEnhance
-from state.cache import get_dataset_info
+
+# from state.cache import get_dataset_info
 from state.workflow import has_dataset_config, save_dataset_config
 import streamlit as st
 from utils.dataset_utils import DATASET_ROOT, calculate_split_percentages
@@ -25,19 +26,23 @@ def render_augmentation_config():
     """Data augmentation preset selection and custom config"""
     st.subheader("Data Augmentation")
 
-    st.info("🔄 Augmentation is applied during training, not during dataset preparation")
+    st.info(
+        "🔄 Augmentation is applied during training, not during dataset preparation"
+    )
 
-    preset = st.radio("Augmentation Preset",
-                       ["None", "Light", "Moderate", "Heavy", "Custom"],
-                       index=4,  # Default to "Custom"
-                       horizontal=True,
-                       key="augmentation_preset")
+    preset = st.radio(
+        "Augmentation Preset",
+        ["None", "Light", "Moderate", "Heavy", "Custom"],
+        index=4,  # Default to "Custom"
+        horizontal=True,
+        key="augmentation_preset",
+    )
 
     preset_info = {
         "None": "No augmentation applied",
-        "Light": "Horizontal flip + Small rotation (±10°)",
-        "Moderate": "Horizontal/Vertical flip + Rotation (±20°) + Brightness (±10%)",
-        "Heavy": "All flips + Rotation (±30°) + Brightness/Contrast (±20%) + Noise"
+        "Light": "Horizontal flip + Orthogonal rotation (90°/180°/270°)",
+        "Moderate": "H/V flip + Orthogonal rotation + Brightness (±10%)",
+        "Heavy": "All flips + Orthogonal rotation + Brightness/Contrast (±20%) + Noise",
     }
 
     if preset != "Custom":
@@ -53,21 +58,37 @@ def render_augmentation_config():
         with col1:
             h_flip = st.checkbox("Horizontal Flip", value=True, key="aug_h_flip")
             v_flip = st.checkbox("Vertical Flip", value=True, key="aug_v_flip")
-            rotation = st.checkbox("Random Rotation", value=True, key="aug_rotation")
-            rotation_range = 15
+            rotation = st.checkbox(
+                "Orthogonal Rotation", value=True, key="aug_rotation"
+            )
+            rotation_angles = [90, 180, 270]
             if rotation:
-                rotation_range = st.slider("Rotation Range (degrees)", 0, 180, 15, key="aug_rotation_range")
+                rotation_angles = st.multiselect(
+                    "Allowed Rotations",
+                    options=[90, 180, 270],
+                    default=[90, 180, 270],
+                    key="aug_rotation_angles",
+                    help="Only 90° multiples are lossless (no interpolation)",
+                )
 
         with col2:
-            brightness = st.checkbox("Brightness Adjustment", value=True, key="aug_brightness")
+            brightness = st.checkbox(
+                "Brightness Adjustment", value=True, key="aug_brightness"
+            )
             brightness_range = 10
             if brightness:
-                brightness_range = st.slider("Brightness Range (%)", 0, 50, 10, key="aug_brightness_range")
+                brightness_range = st.slider(
+                    "Brightness Range (%)", 0, 50, 10, key="aug_brightness_range"
+                )
 
-            contrast = st.checkbox("Contrast Adjustment", value=False, key="aug_contrast")
+            contrast = st.checkbox(
+                "Contrast Adjustment", value=False, key="aug_contrast"
+            )
             contrast_range = 10
             if contrast:
-                contrast_range = st.slider("Contrast Range (%)", 0, 50, 10, key="aug_contrast_range")
+                contrast_range = st.slider(
+                    "Contrast Range (%)", 0, 50, 10, key="aug_contrast_range"
+                )
 
             noise = st.checkbox("Gaussian Noise", value=False, key="aug_noise")
 
@@ -76,12 +97,12 @@ def render_augmentation_config():
             "horizontal_flip": h_flip,
             "vertical_flip": v_flip,
             "rotation": rotation,
-            "rotation_range": rotation_range if rotation else 0,
+            "rotation_angles": rotation_angles if rotation else [],
             "brightness": brightness,
             "brightness_range": brightness_range if brightness else 0,
             "contrast": contrast,
             "contrast_range": contrast_range if contrast else 0,
-            "gaussian_noise": noise
+            "gaussian_noise": noise,
         }
 
     return augmentation_config
@@ -100,7 +121,7 @@ def render_augmentation_preview(dataset_info, augmentation_config):
     selected_family = st.selectbox(
         "Select Family to Preview",
         options=dataset_info["classes"],
-        key="augmentation_preview_family"
+        key="augmentation_preview_family",
     )
 
     sample_path = dataset_info["sample_paths"][selected_family][0]
@@ -141,9 +162,29 @@ def apply_augmentation(img, config):
     else:
         # Preset defaults
         presets = {
-            "Light": {"horizontal_flip": True, "rotation": True, "rotation_range": 10},
-            "Moderate": {"horizontal_flip": True, "vertical_flip": True, "rotation": True, "rotation_range": 20, "brightness": True, "brightness_range": 10},
-            "Heavy": {"horizontal_flip": True, "vertical_flip": True, "rotation": True, "rotation_range": 30, "brightness": True, "brightness_range": 20, "contrast": True, "contrast_range": 20}
+            "Light": {
+                "horizontal_flip": True,
+                "rotation": True,
+                "rotation_angles": [90, 180, 270],
+            },
+            "Moderate": {
+                "horizontal_flip": True,
+                "vertical_flip": True,
+                "rotation": True,
+                "rotation_angles": [90, 180, 270],
+                "brightness": True,
+                "brightness_range": 10,
+            },
+            "Heavy": {
+                "horizontal_flip": True,
+                "vertical_flip": True,
+                "rotation": True,
+                "rotation_angles": [90, 180, 270],
+                "brightness": True,
+                "brightness_range": 20,
+                "contrast": True,
+                "contrast_range": 20,
+            },
         }
         custom = presets.get(config.get("preset"), {})
 
@@ -154,16 +195,29 @@ def apply_augmentation(img, config):
     if custom.get("vertical_flip") and random.random() > 0.5:
         result = result.transpose(Image.FLIP_TOP_BOTTOM)
 
-    if custom.get("rotation"):
-        angle = random.uniform(-custom.get("rotation_range", 15), custom.get("rotation_range", 15))
-        result = result.rotate(angle, fillcolor=0)
+    if custom.get("rotation") and custom.get("rotation_angles"):
+        angle = random.choice(custom.get("rotation_angles"))
+        angles = {90: Image.ROTATE_90, 180: Image.ROTATE_180, 270: Image.ROTATE_270}
+        result = result.transpose(angles[angle])
 
     if custom.get("brightness"):
-        factor = 1 + random.uniform(-custom.get("brightness_range", 10), custom.get("brightness_range", 10)) / 100
+        factor = (
+            1
+            + random.uniform(
+                -custom.get("brightness_range", 10), custom.get("brightness_range", 10)
+            )
+            / 100
+        )
         result = ImageEnhance.Brightness(result).enhance(factor)
 
     if custom.get("contrast"):
-        factor = 1 + random.uniform(-custom.get("contrast_range", 10), custom.get("contrast_range", 10)) / 100
+        factor = (
+            1
+            + random.uniform(
+                -custom.get("contrast_range", 10), custom.get("contrast_range", 10)
+            )
+            / 100
+        )
         result = ImageEnhance.Contrast(result).enhance(factor)
 
     return result
@@ -175,19 +229,25 @@ def render_configuration_summary(dataset_info, augmentation_config):
 
     # Get split configuration
     use_cross_validation = st.session_state.get("use_cross_validation", False)
-    
+
     # Use selected classes from session state, or all classes if none selected
     if "selected_classes" in st.session_state and st.session_state.selected_classes:
         selected_families = sorted(st.session_state.selected_classes)
     else:
-        selected_families = sorted(dataset_info['classes'])
+        selected_families = sorted(dataset_info["classes"])
 
     # Calculate totals for selected classes only
-    total_samples = sum(dataset_info['samples'].get(c, 0) for c in selected_families)
-    
+    total_samples = sum(dataset_info["samples"].get(c, 0) for c in selected_families)
+
     # Get imbalance handling strategy
-    imbalance_strategy = st.session_state.get("imbalance_strategy", "Auto Class Weights (Recommended)")
-    class_weights = st.session_state.get("class_weights", None) if imbalance_strategy == "Manual Class Weights" else None
+    imbalance_strategy = st.session_state.get(
+        "imbalance_strategy", "Auto Class Weights (Recommended)"
+    )
+    class_weights = (
+        st.session_state.get("class_weights", None)
+        if imbalance_strategy == "Manual Class Weights"
+        else None
+    )
 
     # Build configuration based on split method
     if use_cross_validation:
@@ -196,20 +256,22 @@ def render_configuration_summary(dataset_info, augmentation_config):
             "method": "cross_validation",
             "n_folds": n_folds,
             "stratified": st.session_state.get("stratified_kfold", True),
-            "random_seed": st.session_state.get("random_seed", 73)
+            "random_seed": st.session_state.get("random_seed", 73),
         }
     else:
         train_pct = st.session_state.get("train_split", 70)
         val_of_remaining = st.session_state.get("val_split", 50)
-        train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
-        
+        train_final, val_final, test_final = calculate_split_percentages(
+            train_pct, val_of_remaining
+        )
+
         split_config = {
             "method": "fixed_split",
             "train": round(train_final, 1),
             "val": round(val_final, 1),
             "test": round(test_final, 1),
             "stratified": st.session_state.get("stratified_split", True),
-            "random_seed": st.session_state.get("random_seed", 73)
+            "random_seed": st.session_state.get("random_seed", 73),
         }
 
     config = {
@@ -222,19 +284,23 @@ def render_configuration_summary(dataset_info, augmentation_config):
         "preprocessing": {
             "target_size": (224, 224),
             "normalization": "[0,1]",
-            "color_mode": "RGB"
+            "color_mode": "RGB",
         },
         "imbalance_handling": {
             "strategy": imbalance_strategy,
             "class_weights": class_weights,
-            "smote_ratio": st.session_state.get("smote_ratio", 0.5) if imbalance_strategy == "Oversampling (SMOTE)" else None,
+            "smote_ratio": st.session_state.get("smote_ratio", 0.5)
+            if imbalance_strategy == "Oversampling (SMOTE)"
+            else None,
             "selective_augmentation": {
                 "enabled": imbalance_strategy == "Selective Augmentation (H2)",
                 "threshold": st.session_state.get("minority_threshold", 200),
                 "multiplier": st.session_state.get("aug_multiplier", 2.0),
-                "minority_classes": st.session_state.get("minority_classes", [])
-            } if imbalance_strategy == "Selective Augmentation (H2)" else None
-        }
+                "minority_classes": st.session_state.get("minority_classes", []),
+            }
+            if imbalance_strategy == "Selective Augmentation (H2)"
+            else None,
+        },
     }
 
     # Show key info
