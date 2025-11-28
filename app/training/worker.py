@@ -130,6 +130,17 @@ def _run_training(session_id: str, experiment_id: str):
                     is_best=is_best,
                 )
 
+        # Batch callback for progress updates during epoch
+        def batch_callback(batch: int, total: int, metrics: dict):
+            write_experiment_update(session_id, experiment_id, {
+                "current_batch": batch,
+                "total_batches": total,
+                "batch_metrics": {
+                    "loss": metrics.get("batch_loss", 0),
+                    "acc": metrics.get("batch_acc", 0),
+                },
+            })
+
         # Create training engine
         engine = TrainingEngine(
             model=model,
@@ -141,6 +152,7 @@ def _run_training(session_id: str, experiment_id: str):
             scheduler=scheduler,
             early_stopping_patience=early_stopping_patience,
             checkpoint_callback=checkpoint_callback,
+            batch_callback=batch_callback,
         )
 
         # Register engine for pause/stop control
@@ -154,6 +166,8 @@ def _run_training(session_id: str, experiment_id: str):
 
             write_experiment_update(session_id, experiment_id, {
                 "current_epoch": epoch,
+                "current_batch": 0,  # Reset batch progress for new epoch
+                "total_batches": 0,
                 "prev_metrics": current_metrics,
                 "metrics": {
                     "train_loss": metrics.get("train_loss", 0),

@@ -22,6 +22,7 @@ class TrainingEngine:
         scheduler: torch.optim.lr_scheduler.LRScheduler | None = None,
         early_stopping_patience: int = 0,
         checkpoint_callback: Callable | None = None,
+        batch_callback: Callable[[int, int, dict], None] | None = None,
     ):
         self.model = model
         self.train_loader = train_loader
@@ -32,6 +33,7 @@ class TrainingEngine:
         self.scheduler = scheduler
         self.early_stopping_patience = early_stopping_patience
         self.checkpoint_callback = checkpoint_callback
+        self.batch_callback = batch_callback
 
         # Training state
         self.current_epoch = 0
@@ -50,6 +52,7 @@ class TrainingEngine:
         running_loss = 0.0
         correct = 0
         total = 0
+        total_batches = len(self.train_loader)
 
         for batch_idx, (inputs, targets) in enumerate(self.train_loader):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
@@ -68,6 +71,13 @@ class TrainingEngine:
             _, predicted = outputs.max(1)
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
+
+            # Report batch progress every 10 batches
+            if self.batch_callback and (batch_idx + 1) % 10 == 0:
+                self.batch_callback(batch_idx + 1, total_batches, {
+                    "batch_loss": running_loss / total,
+                    "batch_acc": correct / total,
+                })
 
             # Check for stop signal
             if self.should_stop:

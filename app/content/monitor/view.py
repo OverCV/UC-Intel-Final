@@ -3,6 +3,8 @@ Monitor Page - Experiment Composition and Training Monitor
 Compose model + training configs, start training, watch progress
 """
 
+from datetime import timedelta
+
 from components.experiment_row import render_experiment_row
 from state.persistence import read_session_data
 from state.workflow import (
@@ -22,19 +24,7 @@ def render():
     """Main render function for Monitor page"""
     st.title("Training Monitor")
 
-    # Get experiments - reload from file if training is active
-    # This is needed because the background thread writes to file, not session_state
-    experiments = _get_experiments_with_live_updates()
-    has_active_training = any(exp.get("status") == "training" for exp in experiments)
-
-    if has_active_training:
-        # Refresh every 2 seconds during training
-        st.markdown(
-            """<meta http-equiv="refresh" content="2">""",
-            unsafe_allow_html=True,
-        )
-
-    # Get libraries
+    # Get libraries (needed for both header and experiments)
     models = get_model_library()
     trainings = get_training_library()
 
@@ -56,7 +46,44 @@ def render():
             _create_new_experiment(models, trainings)
             st.rerun()
 
-    # Render experiments (use the already-fetched list)
+    # Check if any training is active
+    experiments = get_experiments()
+    has_active_training = any(exp.get("status") in ("training", "paused") for exp in experiments)
+
+    if has_active_training:
+        # Use fragment for smooth auto-refresh during training
+        _render_experiments_live(models, trainings)
+    else:
+        # Static render when no training active
+        _render_experiments_static(models, trainings)
+
+
+@st.fragment(run_every=timedelta(seconds=3))
+def _render_experiments_live(models: list, trainings: list):
+    """Auto-refreshing fragment for experiment cards during training.
+
+    Uses st.fragment with run_every for smooth partial updates instead of
+    jarring full-page meta refresh.
+    """
+    experiments = _get_experiments_with_live_updates()
+    has_active = any(exp.get("status") in ("training", "paused") for exp in experiments)
+
+    # If training finished, do a full rerun to exit fragment mode
+    if not has_active:
+        st.rerun()
+        return
+
+    _render_experiment_list(experiments, models, trainings)
+
+
+def _render_experiments_static(models: list, trainings: list):
+    """Static render when no training is active."""
+    experiments = get_experiments()
+    _render_experiment_list(experiments, models, trainings)
+
+
+def _render_experiment_list(experiments: list, models: list, trainings: list):
+    """Render the experiment cards."""
     if not experiments:
         st.info(
             "No experiments yet. Click '+ New Experiment' to create one, "
