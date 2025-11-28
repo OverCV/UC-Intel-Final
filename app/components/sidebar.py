@@ -29,21 +29,25 @@ def render_sidebar():
     st.sidebar.caption(f"**{device['type']}** · {device['name']}")
 
     # Row 2: Memory metrics
+    gpu_mem = get_gpu_memory()
+    sys_mem = get_system_memory()
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        gpu_mem = get_gpu_memory()
-        st.metric("GPU Mem", gpu_mem, help=SIDEBAR_TOOLTIPS["gpu_memory"])
+        st.caption("GPU Mem", help=SIDEBAR_TOOLTIPS["gpu_memory"])
+        st.markdown(f"**{gpu_mem}**")
     with col2:
-        sys_mem = get_system_memory()
-        st.metric("RAM", sys_mem, help=SIDEBAR_TOOLTIPS["system_ram"])
+        st.caption("RAM", help=SIDEBAR_TOOLTIPS["system_ram"])
+        st.markdown(f"**{sys_mem}**")
 
     # Row 3: CPU and platform
+    platform_str = get_platform_info()
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        st.metric("CPU", f"{cpu_info['cores']}C/{cpu_info['threads']}T", help=SIDEBAR_TOOLTIPS["cpu_info"])
+        st.caption("CPU", help=SIDEBAR_TOOLTIPS["cpu_info"])
+        st.markdown(f"**{cpu_info['cores']}C/{cpu_info['threads']}T**")
     with col2:
-        platform_str = get_platform_info()
-        st.metric("Platform", platform_str, help=SIDEBAR_TOOLTIPS["platform"])
+        st.caption("Platform", help=SIDEBAR_TOOLTIPS["platform"])
+        st.markdown(f"**{platform_str}**")
 
     st.sidebar.divider()
 
