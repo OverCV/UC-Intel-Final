@@ -20,7 +20,7 @@ COLORS = {
 }
 
 
-def render_loss_chart(history: dict):
+def render_loss_chart(history: dict, key: str):
     """Render train vs validation loss curves."""
     train_loss = history.get("train_loss", [])
     val_loss = history.get("val_loss", [])
@@ -52,10 +52,10 @@ def render_loss_chart(history: dict):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"loss_{key}")
 
 
-def render_accuracy_chart(history: dict):
+def render_accuracy_chart(history: dict, key: str):
     """Render train vs validation accuracy curves."""
     train_acc = history.get("train_acc", [])
     val_acc = history.get("val_acc", [])
@@ -91,10 +91,10 @@ def render_accuracy_chart(history: dict):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"acc_{key}")
 
 
-def render_prf_chart(history: dict):
+def render_prf_chart(history: dict, key: str):
     """Render Precision/Recall/F1 curves (validation)."""
     val_precision = history.get("val_precision", [])
     val_recall = history.get("val_recall", [])
@@ -140,10 +140,10 @@ def render_prf_chart(history: dict):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"prf_{key}")
 
 
-def render_lr_chart(history: dict):
+def render_lr_chart(history: dict, key: str):
     """Render learning rate schedule."""
     lr_history = history.get("lr", [])
 
@@ -173,10 +173,10 @@ def render_lr_chart(history: dict):
         showlegend=False,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"lr_{key}")
 
 
-def render_overfitting_gap_chart(history: dict):
+def render_overfitting_gap_chart(history: dict, key: str):
     """Render overfitting gap (train_acc - val_acc) over epochs."""
     train_acc = history.get("train_acc", [])
     val_acc = history.get("val_acc", [])
@@ -216,10 +216,10 @@ def render_overfitting_gap_chart(history: dict):
         showlegend=False,
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"gap_{key}")
 
 
-def render_train_val_f1_comparison(history: dict):
+def render_train_val_f1_comparison(history: dict, key: str):
     """Render train vs validation F1 comparison."""
     train_f1 = history.get("train_f1", [])
     val_f1 = history.get("val_f1", [])
@@ -255,4 +255,4 @@ def render_train_val_f1_comparison(history: dict):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"f1cmp_{key}")

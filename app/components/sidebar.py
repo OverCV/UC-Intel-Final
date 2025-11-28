@@ -1,53 +1,19 @@
 """
 Sidebar Component
-Persistent sidebar showing session state, system resources, and theme settings
+Persistent sidebar showing system resources, theme settings, and session actions
 """
+
+import streamlit as st
 
 from components.theme import render_theme_settings
 from components.utils import check_gpu_available, get_memory_info
-from state.workflow import (
-    get_dataset_config,
-    get_model_config,
-    has_dataset_config,
-    has_model_config,
-    has_results,
-    is_training_active,
-)
-import streamlit as st
 
 
 def render_sidebar():
     """
     Persistent sidebar shown on all pages
-    Shows session state details, system resources, and theme settings
+    Shows system resources, theme settings, and delete session button
     """
-    st.sidebar.header("Session State")
-
-    # Show configuration summaries
-    if has_dataset_config():
-        config = get_dataset_config()
-        dataset_name = config.get("dataset_path", "Configured")
-        st.sidebar.caption(f"📊 Dataset: {dataset_name}")
-    else:
-        st.sidebar.caption("📊 Dataset: Not configured")
-
-    if has_model_config():
-        config = get_model_config()
-        model_name = config.get("architecture", "Configured")
-        st.sidebar.caption(f"🧠 Model: {model_name}")
-    else:
-        st.sidebar.caption("🧠 Model: Not configured")
-
-    # Show training status
-    if is_training_active():
-        st.sidebar.caption("🔴 Training in progress")
-    elif has_results():
-        st.sidebar.caption("✅ Training complete")
-    else:
-        st.sidebar.caption("⚙️ Training: Not started")
-
-    st.sidebar.divider()
-
     st.sidebar.header("System Resources")
 
     gpu_available = check_gpu_available()
@@ -66,3 +32,26 @@ def render_sidebar():
     st.sidebar.divider()
 
     render_theme_settings()
+
+    st.sidebar.divider()
+
+    # Delete Session button at bottom
+    if st.sidebar.button(
+        "Delete Session",
+        type="secondary",
+        use_container_width=True,
+        help="Delete current session and start fresh",
+    ):
+        _handle_delete_session()
+
+
+def _handle_delete_session():
+    """Handle delete session button click"""
+    from state.persistence import delete_session
+    from state.workflow import clear_workflow_state, get_session_id
+
+    session_id = get_session_id()
+    if session_id:
+        delete_session(session_id)
+        clear_workflow_state()
+        st.rerun()

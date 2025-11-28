@@ -28,17 +28,10 @@ def render_header():
     inject_custom_css()
 
     # Row 1: Title and session ID
-    col1, col2 = st.columns([3, 1])
+    col1, _ = st.columns([3, 1])
 
     with col1:
         st.markdown("### Malware Classification 👾")
-
-    with col2:
-        session_id = get_session_id()
-        if session_id:
-            st.caption(f"Session: {session_id}")
-        else:
-            st.caption("No active session")
 
     # Row 2: Configuration status + session controls
     status_col, sessions_col, button_col = st.columns([2, 1, 1])
@@ -61,26 +54,29 @@ def render_header():
         saved_sessions = list_saved_sessions()
         current_session = get_session_id()
 
-        if saved_sessions:
-            # Create options with current session first
-            options = ["Current"]
+        if saved_sessions or current_session:
+            # Create options with current session marked
+            options = []
+            if current_session:
+                options.append(f"{current_session} (current)")
             options.extend([s for s in saved_sessions if s != current_session])
 
             selected = st.selectbox(
-                "Load Session",
+                "Session",
                 options=options,
                 label_visibility="visible",
-                help="Load a previous training session",
+                help="Current or load a previous session",
             )
 
             # Load session if different from current
-            if selected != "Current" and selected != current_session:
+            is_current = selected.endswith(" (current)")
+            if not is_current and selected != current_session:
                 if load_session(selected):
                     set_persisted_session_id(selected)
-                    st.success(f"Loaded: {selected}")
+                    st.toast(f"Loaded: {selected}")
                     st.rerun()
         else:
-            st.caption("No past sessions")
+            st.caption("No sessions")
 
     with button_col:
         # New session button

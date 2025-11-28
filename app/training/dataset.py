@@ -207,6 +207,10 @@ def create_dataloaders(
         class_weights = compute_class_weights(splits["train"]["labels"], num_classes)
         print(f"[Dataset] Using Focal Loss with class weights")
 
+    # Disable pin_memory on MPS (not supported)
+    import torch
+    use_pin_memory = torch.cuda.is_available()
+
     # Create dataloaders
     dataloaders = {
         "train": DataLoader(
@@ -215,21 +219,21 @@ def create_dataloaders(
             sampler=sampler,
             shuffle=(sampler is None),
             num_workers=num_workers,
-            pin_memory=True,
+            pin_memory=use_pin_memory,
         ),
         "val": DataLoader(
             val_dataset,
             batch_size=batch_size,
             shuffle=False,
             num_workers=num_workers,
-            pin_memory=True,
+            pin_memory=use_pin_memory,
         ),
         "test": DataLoader(
             test_dataset,
             batch_size=batch_size,
             shuffle=False,
             num_workers=num_workers,
-            pin_memory=True,
+            pin_memory=use_pin_memory,
         ),
     }
 

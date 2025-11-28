@@ -129,6 +129,7 @@ def _render_metrics_row(experiment: dict):
 
 def _render_training_curves(experiment: dict):
     """Render training curves tab content."""
+    exp_id = experiment["id"]
     history = experiment.get("history", {})
 
     if not history:
@@ -142,15 +143,15 @@ def _render_training_curves(experiment: dict):
 
     with col1:
         st.markdown("**Loss**")
-        render_loss_chart(history)
+        render_loss_chart(history, exp_id)
 
     with col2:
         st.markdown("**Accuracy**")
-        render_accuracy_chart(history)
+        render_accuracy_chart(history, exp_id)
 
     with col3:
         st.markdown("**Precision / Recall / F1**")
-        render_prf_chart(history)
+        render_prf_chart(history, exp_id)
 
     st.caption("Loss and accuracy curves show convergence. P/R/F1 tracks classification quality per epoch.")
 
@@ -160,15 +161,15 @@ def _render_training_curves(experiment: dict):
 
     with col1:
         st.markdown("**Learning Rate**")
-        render_lr_chart(history)
+        render_lr_chart(history, exp_id)
 
     with col2:
         st.markdown("**Overfitting Gap**")
-        render_overfitting_gap_chart(history)
+        render_overfitting_gap_chart(history, exp_id)
 
     with col3:
         st.markdown("**Train vs Val F1**")
-        render_train_val_f1_comparison(history)
+        render_train_val_f1_comparison(history, exp_id)
 
     st.caption("Learning rate schedule, generalization gap (+ = overfitting), and F1 comparison across splits.")
 
@@ -223,11 +224,11 @@ def _render_advanced_metrics(experiment: dict):
 
     with col1:
         st.markdown("##### Confusion Matrix")
-        render_confusion_matrix(test_results)
+        render_confusion_matrix(test_results, exp_id)
 
     with col2:
         st.markdown("##### Per-Class Metrics")
-        render_per_class_metrics(test_results)
+        render_per_class_metrics(test_results, exp_id)
 
     st.markdown("---")
     st.markdown("##### Classification Report")

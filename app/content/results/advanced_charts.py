@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 
-def render_confusion_matrix(test_results: dict):
+def render_confusion_matrix(test_results: dict, key: str):
     """Render interactive confusion matrix heatmap."""
     cm = test_results.get("confusion_matrix", [])
     class_names = test_results.get("class_names", [])
@@ -42,10 +42,10 @@ def render_confusion_matrix(test_results: dict):
         margin=dict(l=100, r=20, t=30, b=100),
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"cm_{key}")
 
 
-def render_per_class_metrics(test_results: dict):
+def render_per_class_metrics(test_results: dict, key: str):
     """Render per-class precision/recall/F1 bar chart."""
     per_class = test_results.get("per_class", {})
     class_names = test_results.get("class_names", [])
@@ -92,7 +92,7 @@ def render_per_class_metrics(test_results: dict):
         margin=dict(l=150, r=20, t=40, b=40),
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, key=f"pcm_{key}")
 
 
 def render_classification_table(test_results: dict):

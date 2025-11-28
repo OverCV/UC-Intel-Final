@@ -4,10 +4,30 @@ Core ML workflow configuration and session state
 """
 
 from datetime import datetime
+import random
 from typing import Any, TypedDict
 import uuid
 
 import streamlit as st
+
+# Bird-only word lists for combinatoric session names
+_ADJECTIVES = [
+    "swift", "gentle", "bold", "quiet", "bright", "calm", "wild", "keen",
+    "proud", "noble", "agile", "clever", "silent", "graceful", "fierce",
+]
+_TONES = [
+    "golden", "silver", "azure", "crimson", "emerald", "amber", "ivory",
+    "dusky", "misty", "sunny", "stormy", "frosty", "coastal", "alpine",
+]
+_BIRDS = [
+    "sparrow", "falcon", "eagle", "hawk", "owl", "raven", "crow", "robin",
+    "finch", "wren", "jay", "cardinal", "swan", "dove",
+    "lark", "thrush", "oriole", "tanager", "warbler", "kingfisher",
+    "kestrel", "merlin", "harrier", "condor", "pelican", "stork",
+    "ibis", "flamingo", "toucan", "parrot", "macaw", "cockatoo",
+    "parakeet", "hummingbird", "woodpecker", "magpie", "starling", "swallow",
+    "albatross", "puffin", "penguin", "cormorant", "tern", "seagull", "plover",
+]
 
 
 class WorkflowState(TypedDict, total=False):
@@ -47,7 +67,7 @@ def init_workflow_state() -> None:
             if load_session(persisted_id):
                 return  # Session loaded, don't initialize defaults
 
-        # No persisted session or load failed - create new session
+        # No persisted session or load failed - create new session with bird name
         st.session_state.session_id = generate_session_id()
 
     if "dataset_config" not in st.session_state:
@@ -82,14 +102,16 @@ def init_workflow_state() -> None:
 
 
 def generate_session_id() -> str:
-    """Generate unique session ID"""
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return f"session_{timestamp}"
+    """Generate bird-based session ID like 'swift-golden-falcon'"""
+    adj1 = random.choice(_ADJECTIVES)
+    adj2 = random.choice(_TONES)
+    bird = random.choice(_BIRDS)
+    return f"{adj1}-{adj2}-{bird}"
 
 
 # Session ID
 def get_session_id() -> str:
-    """Get current session ID"""
+    """Get current session ID (bird-based name)"""
     return st.session_state.get("session_id", "")
 
 
