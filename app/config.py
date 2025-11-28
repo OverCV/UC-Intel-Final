@@ -6,9 +6,7 @@ BFS Level: Define constants, no implementation
 from pathlib import Path
 
 # Dataset paths
-DATASET_ROOT = Path("repo/malware")
-DATASET_TRAIN = DATASET_ROOT / "training"
-DATASET_VAL = DATASET_ROOT / "validation"
+DATASET_ROOT = Path("dataset")
 
 # Default training parameters
 DEFAULT_TRAIN_SPLIT = 70

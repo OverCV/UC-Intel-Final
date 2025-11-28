@@ -11,12 +11,12 @@ def render(dataset_info):
     """Render class distribution visualizations with selection interface"""
     st.subheader("Class Distribution & Selection")
 
-    if not dataset_info['train_samples']:
-        st.warning("No training data found")
+    if not dataset_info['samples']:
+        st.warning("No data found")
         return
 
     # Get all classes
-    all_classes = sorted(dataset_info['train_samples'].keys())
+    all_classes = sorted(dataset_info['samples'].keys())
 
     # Initialize session state for selected classes
     if "selected_classes" not in st.session_state:
@@ -28,12 +28,12 @@ def render(dataset_info):
     col1, col2, col3 = st.columns([1, 1, 2])
 
     with col1:
-        if st.button("Select All", use_container_width=True):
+        if st.button("Select All", width="stretch"):
             st.session_state.selected_classes = all_classes.copy()
             st.rerun()
 
     with col2:
-        if st.button("Deselect All", use_container_width=True):
+        if st.button("Deselect All", width="stretch"):
             st.session_state.selected_classes = []
             st.rerun()
 
@@ -50,9 +50,9 @@ def render(dataset_info):
         if threshold > 0:
             filtered_classes = [
                 cls for cls in all_classes
-                if dataset_info['train_samples'].get(cls, 0) >= threshold
+                if dataset_info['samples'].get(cls, 0) >= threshold
             ]
-            if st.button(f"Select classes with ≥{threshold} samples", use_container_width=True):
+            if st.button(f"Select classes with ≥{threshold} samples", width="stretch"):
                 st.session_state.selected_classes = filtered_classes
                 st.rerun()
 
@@ -70,18 +70,44 @@ def render(dataset_info):
 
     # Show selection summary
     if selected:
-        total_train = sum(dataset_info['train_samples'].get(c, 0) for c in selected)
-        total_val = sum(dataset_info['val_samples'].get(c, 0) for c in selected)
-
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.metric("Selected Classes", len(selected))
-        with col2:
-            st.metric("Training Samples", f"{total_train:,}")
-        with col3:
-            st.metric("Validation Samples", f"{total_val:,}")
-        with col4:
-            st.metric("Total Samples", f"{total_train + total_val:,}")
+        total_samples = sum(dataset_info['samples'].get(c, 0) for c in selected)
+        
+        # Get split info
+        use_cross_validation = st.session_state.get("use_cross_validation", False)
+        
+        if use_cross_validation:
+            n_folds = st.session_state.get("n_folds", 5)
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Selected Classes", len(selected))
+            with col2:
+                st.metric("Total Samples", f"{total_samples:,}")
+            with col3:
+                st.metric("K-Folds", n_folds)
+        else:
+            from utils.dataset_utils import calculate_split_percentages
+            
+            train_pct = st.session_state.get("train_split", 70)
+            val_of_remaining = st.session_state.get("val_split", 50)
+            train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
+            
+            train_samples = int(total_samples * train_final / 100)
+            val_samples = int(total_samples * val_final / 100)
+            test_samples = int(total_samples * test_final / 100)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Selected Classes", len(selected))
+            with col2:
+                st.metric("Total Samples", f"{total_samples:,}")
+            
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric(f"Train ({train_final:.1f}%)", f"{train_samples:,}")
+            with col2:
+                st.metric(f"Val ({val_final:.1f}%)", f"{val_samples:,}")
+            with col3:
+                st.metric(f"Test ({test_final:.1f}%)", f"{test_samples:,}")
     else:
         st.warning("⚠️ No classes selected! Please select at least one class.")
 
@@ -92,30 +118,72 @@ def render(dataset_info):
 
     # Use selected classes for visualization
     display_classes = selected if selected else all_classes
-    train_counts = [dataset_info['train_samples'].get(c, 0) for c in display_classes]
-    val_counts = [dataset_info['val_samples'].get(c, 0) for c in display_classes]
-
-    # Grouped bar chart
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        name='Training',
-        x=display_classes,
-        y=train_counts,
-        marker_color='#98c127',
-        text=train_counts,
-        textposition='outside'
-    ))
-    fig.add_trace(go.Bar(
-        name='Validation',
-        x=display_classes,
-        y=val_counts,
-        marker_color='#8fd7d7',
-        text=val_counts,
-        textposition='outside'
-    ))
+    sample_counts = [dataset_info['samples'].get(c, 0) for c in display_classes]
+    
+    # Get split configuration from session state
+    use_cross_validation = st.session_state.get("use_cross_validation", False)
+    
+    if use_cross_validation:
+        # Cross-Validation: Show total samples per class
+        fig = go.Figure()
+        fig.add_trace(go.Bar(
+            name='Total Samples (used in CV)',
+            x=display_classes,
+            y=sample_counts,
+            marker_color='#98c127',
+            text=sample_counts,
+            textposition='outside'
+        ))
+        
+        n_folds = st.session_state.get("n_folds", 5)
+        title_text = f"Samples per Malware Family - {n_folds}-Fold Cross-Validation"
+    else:
+        # Fixed split: Show Train/Val/Test breakdown
+        from utils.dataset_utils import calculate_split_percentages
+        
+        train_pct = st.session_state.get("train_split", 70)
+        val_of_remaining = st.session_state.get("val_split", 50)
+        train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
+        
+        # Calculate samples per class for each split
+        train_counts = [int(dataset_info['samples'].get(c, 0) * train_final / 100) for c in display_classes]
+        val_counts = [int(dataset_info['samples'].get(c, 0) * val_final / 100) for c in display_classes]
+        test_counts = [int(dataset_info['samples'].get(c, 0) * test_final / 100) for c in display_classes]
+        
+        # Grouped bar chart with train/val/test
+        fig = go.Figure()
+        
+        fig.add_trace(go.Bar(
+            name=f'Train ({train_final:.1f}%)',
+            x=display_classes,
+            y=train_counts,
+            marker_color='#98c127',
+            text=train_counts,
+            textposition='outside'
+        ))
+        
+        fig.add_trace(go.Bar(
+            name=f'Validation ({val_final:.1f}%)',
+            x=display_classes,
+            y=val_counts,
+            marker_color='#8fd7d7',
+            text=val_counts,
+            textposition='outside'
+        ))
+        
+        fig.add_trace(go.Bar(
+            name=f'Test ({test_final:.1f}%)',
+            x=display_classes,
+            y=test_counts,
+            marker_color='#ffb255',
+            text=test_counts,
+            textposition='outside'
+        ))
+        
+        title_text = f"Samples per Malware Family - Train/Val/Test Split"
 
     fig.update_layout(
-        title=f"Samples per Malware Family ({len(selected)} classes selected)",
+        title=title_text,
         xaxis_title="Malware Family",
         yaxis_title="Number of Samples",
         barmode='group',
@@ -127,13 +195,13 @@ def render(dataset_info):
         showlegend=True
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
     # Class imbalance detection
     if selected and len(selected) > 1:
-        selected_train_counts = [dataset_info['train_samples'].get(c, 0) for c in selected]
-        max_samples = max(selected_train_counts)
-        min_samples = min(selected_train_counts) if min(selected_train_counts) > 0 else 1
+        selected_counts = [dataset_info['samples'].get(c, 0) for c in selected]
+        max_samples = max(selected_counts)
+        min_samples = min(selected_counts) if min(selected_counts) > 0 else 1
         imbalance_ratio = max_samples / min_samples
 
         if imbalance_ratio > 10:
@@ -152,16 +220,16 @@ def render(dataset_info):
     if selected:
         col1, col2 = st.columns(2)
 
-        selected_train_items = [(c, dataset_info['train_samples'].get(c, 0)) for c in selected]
+        selected_items = [(c, dataset_info['samples'].get(c, 0)) for c in selected]
 
         with col1:
             st.markdown("**Most Common Selected Classes**")
-            top_5 = sorted(selected_train_items, key=lambda x: x[1], reverse=True)[:5]
+            top_5 = sorted(selected_items, key=lambda x: x[1], reverse=True)[:5]
             for cls, count in top_5:
                 st.text(f"{cls}: {count:,} samples")
 
         with col2:
             st.markdown("**Least Common Selected Classes**")
-            bottom_5 = sorted(selected_train_items, key=lambda x: x[1])[:5]
+            bottom_5 = sorted(selected_items, key=lambda x: x[1])[:5]
             for cls, count in bottom_5:
                 st.text(f"{cls}: {count:,} samples")

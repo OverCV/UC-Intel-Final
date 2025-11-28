@@ -79,7 +79,7 @@ def render_preprocessing_preview(dataset_info):
             st.markdown("**Original Image**")
             try:
                 original = Image.open(sample_path)
-                st.image(original, use_container_width=True)
+                st.image(original, width="stretch")
                 st.caption(f"Size: {original.size[0]}x{original.size[1]}")
             except Exception as exception:
                 st.error(f"Error loading image: {exception}.\n{sample_path.name}")
@@ -94,7 +94,7 @@ def render_preprocessing_preview(dataset_info):
                 if color_mode == "Grayscale":
                     processed = processed.convert("L")
 
-                st.image(processed, use_container_width=True)
+                st.image(processed, width="stretch")
                 st.caption(f"Size: {size}x{size}, Mode: {color_mode}")
             except Exception as exception:
                 st.error(f"Error processing: {exception}.\n{sample_path.name}")

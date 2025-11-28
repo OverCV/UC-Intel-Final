@@ -5,7 +5,7 @@ Data augmentation settings and final configuration save
 
 from pathlib import Path
 
-from state.cache import get_dataset_info, get_train_split, get_val_split
+from state.cache import get_dataset_info
 from state.workflow import has_dataset_config, save_dataset_config
 import streamlit as st
 from utils.dataset_utils import DATASET_ROOT, calculate_split_percentages
@@ -87,10 +87,9 @@ def render_configuration_summary(dataset_info, augmentation_config):
     """Final configuration summary and save button"""
     st.subheader("Configuration Summary")
 
-    train_pct = get_train_split()
-    val_of_remaining = get_val_split()
-    train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
-
+    # Get split configuration
+    use_cross_validation = st.session_state.get("use_cross_validation", False)
+    
     # Use selected classes from session state, or all classes if none selected
     if "selected_classes" in st.session_state and st.session_state.selected_classes:
         selected_families = sorted(st.session_state.selected_classes)
@@ -98,26 +97,42 @@ def render_configuration_summary(dataset_info, augmentation_config):
         selected_families = sorted(dataset_info['classes'])
 
     # Calculate totals for selected classes only
-    total_train = sum(dataset_info['train_samples'].get(c, 0) for c in selected_families)
-    total_val = sum(dataset_info['val_samples'].get(c, 0) for c in selected_families)
-
+    total_samples = sum(dataset_info['samples'].get(c, 0) for c in selected_families)
+    
     # Get imbalance handling strategy
     imbalance_strategy = st.session_state.get("imbalance_strategy", "Auto Class Weights (Recommended)")
     class_weights = st.session_state.get("class_weights", None) if imbalance_strategy == "Manual Class Weights" else None
 
-    config = {
-        "dataset_path": str(DATASET_ROOT.relative_to(Path.cwd())),
-        "total_samples": total_train + total_val,
-        "num_classes": len(selected_families),
-        "selected_families": selected_families,  # CRITICAL: This was missing!
-        "split": {
+    # Build configuration based on split method
+    if use_cross_validation:
+        n_folds = st.session_state.get("n_folds", 5)
+        split_config = {
+            "method": "cross_validation",
+            "n_folds": n_folds,
+            "stratified": st.session_state.get("stratified_kfold", True),
+            "random_seed": st.session_state.get("random_seed", 73)
+        }
+    else:
+        train_pct = st.session_state.get("train_split", 70)
+        val_of_remaining = st.session_state.get("val_split", 50)
+        train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
+        
+        split_config = {
+            "method": "fixed_split",
             "train": round(train_final, 1),
             "val": round(val_final, 1),
             "test": round(test_final, 1),
             "stratified": st.session_state.get("stratified_split", True),
             "random_seed": st.session_state.get("random_seed", 73)
-        },
-        "augmentation": augmentation_config,  # Save augmentation settings
+        }
+
+    config = {
+        "dataset_path": str(DATASET_ROOT.relative_to(Path.cwd())),
+        "total_samples": total_samples,
+        "num_classes": len(selected_families),
+        "selected_families": selected_families,
+        "split": split_config,
+        "augmentation": augmentation_config,
         "preprocessing": {
             "target_size": (224, 224),
             "normalization": "[0,1]",
@@ -141,12 +156,15 @@ def render_configuration_summary(dataset_info, augmentation_config):
     with col2:
         st.metric("Total Samples", config["total_samples"])
     with col3:
-        st.metric("Augmentation", augmentation_config["preset"])
+        if use_cross_validation:
+            st.metric("Method", f"{n_folds}-Fold CV")
+        else:
+            st.metric("Augmentation", augmentation_config["preset"])
 
     _, col2, _ = st.columns([1, 1, 1])
 
     with col2:
-        if st.button("💾 Save Configuration", type="primary", use_container_width=True):
+        if st.button("💾 Save Configuration", type="primary", width="stretch"):
             save_dataset_config(config)
             st.success("✅ Dataset configuration saved successfully!")
             st.balloons()

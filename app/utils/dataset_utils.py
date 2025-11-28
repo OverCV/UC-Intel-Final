@@ -7,49 +7,32 @@ from pathlib import Path
 from PIL import Image
 
 # Dataset paths relative to project root
-DATASET_ROOT = Path(__file__).parent.parent.parent / "repo"
-TRAIN_PATH = DATASET_ROOT / "training"
-VAL_PATH = DATASET_ROOT / "validation"
+DATASET_ROOT = Path(__file__).parent.parent.parent / "dataset"
 
 
 def scan_dataset():
-    """Scan repo/training and repo/validation directories"""
+    """Scan dataset directory"""
     dataset_info = {
-        "train_samples": {},
-        "val_samples": {},
+        "samples": {},
         "classes": [],
-        "total_train": 0,
-        "total_val": 0,
+        "total_samples": 0,
         "sample_paths": {},
     }
 
-    # Scan training directory
-    if TRAIN_PATH.exists():
-        for class_dir in sorted(TRAIN_PATH.iterdir()):
-            if class_dir.is_dir():
+    # Scan dataset directory
+    if DATASET_ROOT.exists():
+        for class_dir in sorted(DATASET_ROOT.iterdir()):
+            if class_dir.is_dir() and not class_dir.name.startswith('.'):
                 images = list(class_dir.glob("*.png"))
                 class_name = class_dir.name
-                dataset_info["train_samples"][class_name] = len(images)
-                dataset_info["total_train"] += len(images)
-
-                # Store sample paths for visualization
+                
                 if images:
+                    dataset_info["samples"][class_name] = len(images)
+                    dataset_info["total_samples"] += len(images)
+                    dataset_info["classes"].append(class_name)
+                    
+                    # Store sample paths for visualization
                     dataset_info["sample_paths"][class_name] = images[:10]
-
-    # Scan validation directory
-    if VAL_PATH.exists():
-        for class_dir in sorted(VAL_PATH.iterdir()):
-            if class_dir.is_dir():
-                images = list(class_dir.glob("*.png"))
-                class_name = class_dir.name
-                dataset_info["val_samples"][class_name] = len(images)
-                dataset_info["total_val"] += len(images)
-
-    # Get unique classes
-    dataset_info["classes"] = sorted(
-        set(dataset_info["train_samples"].keys())
-        | set(dataset_info["val_samples"].keys())
-    )
 
     return dataset_info
 
