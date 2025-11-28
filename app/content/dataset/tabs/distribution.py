@@ -197,24 +197,22 @@ def render(dataset_info):
 
     st.plotly_chart(fig, width="stretch")
 
-    # Class imbalance detection
+    # Show imbalance status (depends on selected strategy)
     if selected and len(selected) > 1:
         selected_counts = [dataset_info['samples'].get(c, 0) for c in selected]
-        max_samples = max(selected_counts)
-        min_samples = min(selected_counts) if min(selected_counts) > 0 else 1
-        imbalance_ratio = max_samples / min_samples
+        original_ratio = max(selected_counts) / max(min(selected_counts), 1)
+        imbalance_strategy = st.session_state.get("imbalance_strategy", "Auto Class Weights (Recommended)")
 
-        if imbalance_ratio > 10:
-            st.error(f"⚠️ **Severe Class Imbalance Detected!** Ratio: {imbalance_ratio:.1f}:1")
-            st.markdown("""
-            **Recommended actions:**
-            - Use class weights during training (Auto Class Weights)
-            - Consider SMOTE or other oversampling techniques
-            - Apply stratified sampling for train/val/test splits
-            """)
-        elif imbalance_ratio > 3:
-            st.warning(f"⚠️ **Moderate Class Imbalance** Ratio: {imbalance_ratio:.1f}:1")
-            st.markdown("Consider using class weights during training.")
+        if imbalance_strategy == "No Adjustment":
+            if original_ratio > 10:
+                st.error(f"⚠️ **Severe Imbalance:** {original_ratio:.1f}:1 — No mitigation selected!")
+            elif original_ratio > 3:
+                st.warning(f"⚠️ **Moderate Imbalance:** {original_ratio:.1f}:1 — Consider using class weights")
+        else:
+            st.success(f"✅ **Imbalance Handled:** Original {original_ratio:.1f}:1 → Strategy: _{imbalance_strategy}_")
+
+    # Effective Distribution After Balancing
+    render_effective_distribution(display_classes, sample_counts)
 
     # Top and bottom classes (from selected)
     if selected:
@@ -233,3 +231,146 @@ def render(dataset_info):
             bottom_5 = sorted(selected_items, key=lambda x: x[1])[:5]
             for cls, count in bottom_5:
                 st.text(f"{cls}: {count:,} samples")
+
+
+def render_effective_distribution(display_classes, sample_counts):
+    """Render effective distribution with Train/Val/Test split (matching first chart format)"""
+    st.divider()
+    st.markdown("### Effective Distribution (After Balancing)")
+
+    imbalance_strategy = st.session_state.get("imbalance_strategy", "Auto Class Weights (Recommended)")
+
+    if imbalance_strategy == "No Adjustment":
+        st.info("ℹ️ No balancing applied — see original distribution above")
+        return
+
+    if not sample_counts or not display_classes:
+        return
+
+    max_samples = max(sample_counts) if sample_counts else 1
+
+    # Calculate effective counts based on strategy
+    if "Auto Class Weights" in imbalance_strategy:
+        effective_counts = [max_samples] * len(display_classes)
+        explanation = "All classes contribute **equally** to training loss"
+
+    elif imbalance_strategy == "Selective Augmentation (H2)":
+        threshold = st.session_state.get("minority_threshold", 200)
+        multiplier = st.session_state.get("aug_multiplier", 2.0)
+        effective_counts = [
+            int(count * multiplier) if count < threshold else count
+            for count in sample_counts
+        ]
+        explanation = f"Minority classes (<{threshold} samples) get **{multiplier}x** augmentation"
+
+    elif imbalance_strategy == "Manual Class Weights":
+        weights = st.session_state.get("class_weights", {})
+        effective_counts = [
+            int(sample_counts[i] * weights.get(c, 1.0))
+            for i, c in enumerate(display_classes)
+        ]
+        explanation = "Effective contribution = samples × weight"
+
+    elif imbalance_strategy == "Oversampling (SMOTE)":
+        smote_ratio = st.session_state.get("smote_ratio", 0.5)
+        target = int(max_samples * smote_ratio)
+        effective_counts = [max(count, target) for count in sample_counts]
+        explanation = f"SMOTE targets {smote_ratio*100:.0f}% of majority class"
+
+    elif imbalance_strategy == "Undersampling":
+        min_samples = min(sample_counts) if sample_counts else 1
+        effective_counts = [min_samples] * len(display_classes)
+        explanation = "All classes reduced to smallest class size"
+
+    else:
+        effective_counts = sample_counts
+        explanation = ""
+
+    st.info(explanation)
+
+    # Build chart with Train/Val/Test split (same format as first chart)
+    use_cross_validation = st.session_state.get("use_cross_validation", False)
+
+    fig = go.Figure()
+
+    if use_cross_validation:
+        # Cross-validation: single bar per class
+        n_folds = st.session_state.get("n_folds", 5)
+        fig.add_trace(go.Bar(
+            name='Effective Samples (CV)',
+            x=display_classes,
+            y=effective_counts,
+            marker_color='#98c127',
+            text=effective_counts,
+            textposition='outside'
+        ))
+        title_text = f"Effective Distribution - {n_folds}-Fold CV"
+    else:
+        # Fixed split: Train/Val/Test breakdown
+        from utils.dataset_utils import calculate_split_percentages
+
+        train_pct = st.session_state.get("train_split", 70)
+        val_of_remaining = st.session_state.get("val_split", 50)
+        train_final, val_final, test_final = calculate_split_percentages(train_pct, val_of_remaining)
+
+        train_eff = [int(c * train_final / 100) for c in effective_counts]
+        val_eff = [int(c * val_final / 100) for c in effective_counts]
+        test_eff = [int(c * test_final / 100) for c in effective_counts]
+
+        fig.add_trace(go.Bar(
+            name=f'Train ({train_final:.1f}%)',
+            x=display_classes,
+            y=train_eff,
+            marker_color='#98c127',
+            text=train_eff,
+            textposition='outside'
+        ))
+
+        fig.add_trace(go.Bar(
+            name=f'Validation ({val_final:.1f}%)',
+            x=display_classes,
+            y=val_eff,
+            marker_color='#8fd7d7',
+            text=val_eff,
+            textposition='outside'
+        ))
+
+        fig.add_trace(go.Bar(
+            name=f'Test ({test_final:.1f}%)',
+            x=display_classes,
+            y=test_eff,
+            marker_color='#ffb255',
+            text=test_eff,
+            textposition='outside'
+        ))
+
+        title_text = "Effective Distribution - Train/Val/Test Split"
+
+    fig.update_layout(
+        title=title_text,
+        xaxis_title="Malware Family",
+        yaxis_title="Effective Samples",
+        barmode='group',
+        height=500,
+        xaxis={'tickangle': -45},
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#fafafa'),
+        showlegend=True
+    )
+
+    st.plotly_chart(fig, width="stretch")
+
+    # Show improvement metrics
+    if effective_counts and sample_counts:
+        original_ratio = max(sample_counts) / max(min(sample_counts), 1)
+        effective_ratio = max(effective_counts) / max(min(effective_counts), 1)
+
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Original Ratio", f"{original_ratio:.1f}:1")
+        with col2:
+            st.metric("Effective Ratio", f"{effective_ratio:.1f}:1")
+        with col3:
+            improvement = ((original_ratio - effective_ratio) / original_ratio) * 100
+            st.metric("Imbalance Reduction", f"{improvement:.0f}%")

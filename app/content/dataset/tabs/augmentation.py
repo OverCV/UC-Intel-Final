@@ -26,6 +26,7 @@ def render_augmentation_config():
 
     preset = st.radio("Augmentation Preset",
                        ["None", "Light", "Moderate", "Heavy", "Custom"],
+                       index=2,  # Default to "Moderate"
                        horizontal=True,
                        key="augmentation_preset")
 
@@ -141,7 +142,13 @@ def render_configuration_summary(dataset_info, augmentation_config):
         "imbalance_handling": {
             "strategy": imbalance_strategy,
             "class_weights": class_weights,
-            "smote_ratio": st.session_state.get("smote_ratio", 0.5) if imbalance_strategy == "Oversampling (SMOTE)" else None
+            "smote_ratio": st.session_state.get("smote_ratio", 0.5) if imbalance_strategy == "Oversampling (SMOTE)" else None,
+            "selective_augmentation": {
+                "enabled": imbalance_strategy == "Selective Augmentation (H2)",
+                "threshold": st.session_state.get("minority_threshold", 200),
+                "multiplier": st.session_state.get("aug_multiplier", 2.0),
+                "minority_classes": st.session_state.get("minority_classes", [])
+            } if imbalance_strategy == "Selective Augmentation (H2)" else None
         }
     }
 

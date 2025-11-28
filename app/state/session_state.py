@@ -32,6 +32,32 @@ def init_session_state():
     if "results" not in st.session_state:
         st.session_state.results = None
 
+    # Sensible defaults for dataset configuration
+    if "train_split" not in st.session_state:
+        st.session_state.train_split = 70
+
+    if "val_split" not in st.session_state:
+        st.session_state.val_split = 50  # 50% of remaining = 15% total
+
+    if "stratified_split" not in st.session_state:
+        st.session_state.stratified_split = True
+
+    if "random_seed" not in st.session_state:
+        st.session_state.random_seed = 73
+
+    if "imbalance_strategy" not in st.session_state:
+        st.session_state.imbalance_strategy = "Auto Class Weights (Recommended)"
+
+    if "augmentation_preset" not in st.session_state:
+        st.session_state.augmentation_preset = "Moderate"
+
+    # Selective augmentation defaults (for H2 hypothesis)
+    if "minority_threshold" not in st.session_state:
+        st.session_state.minority_threshold = 200
+
+    if "aug_multiplier" not in st.session_state:
+        st.session_state.aug_multiplier = 2.0
+
 
 def generate_session_id() -> str:
     """Generate unique session ID"""

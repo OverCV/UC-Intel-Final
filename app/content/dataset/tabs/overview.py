@@ -242,6 +242,7 @@ def render_class_imbalance_handling(dataset_info):
         "Select imbalance handling method",
         [
             "Auto Class Weights (Recommended)",
+            "Selective Augmentation (H2)",
             "Manual Class Weights",
             "Oversampling (SMOTE)",
             "Undersampling",
@@ -259,6 +260,61 @@ def render_class_imbalance_handling(dataset_info):
         - Balanced loss function during training
         - No data duplication or removal
         """)
+
+    elif strategy == "Selective Augmentation (H2)":
+        st.info("""
+        **Selective Augmentation** (supports H2 hypothesis):
+        - Applies MORE augmentation to minority classes only
+        - Majority classes receive standard augmentation
+        - Tests if augmentation improves minority class recall
+        """)
+
+        col1, col2 = st.columns(2)
+        with col1:
+            minority_threshold = st.number_input(
+                "Minority threshold (samples)",
+                min_value=50,
+                max_value=500,
+                value=200,
+                step=50,
+                key="minority_threshold",
+                help="Classes with fewer samples than this are considered 'minority'"
+            )
+        with col2:
+            aug_multiplier = st.slider(
+                "Augmentation multiplier",
+                min_value=1.5,
+                max_value=5.0,
+                value=2.0,
+                step=0.5,
+                key="aug_multiplier",
+                help="How much MORE augmentation minority classes receive"
+            )
+
+        # Show which classes qualify as minority
+        if "selected_classes" in st.session_state and st.session_state.selected_classes:
+            minority_classes = [
+                c for c in st.session_state.selected_classes
+                if dataset_info["samples"].get(c, 0) < minority_threshold
+            ]
+            majority_classes = [
+                c for c in st.session_state.selected_classes
+                if dataset_info["samples"].get(c, 0) >= minority_threshold
+            ]
+
+            col1, col2 = st.columns(2)
+            with col1:
+                st.metric("Minority Classes", len(minority_classes))
+                if minority_classes:
+                    with st.expander("View minority classes"):
+                        for c in sorted(minority_classes):
+                            st.text(f"• {c}: {dataset_info['samples'].get(c, 0)} samples")
+            with col2:
+                st.metric("Majority Classes", len(majority_classes))
+
+            # Store in session state
+            st.session_state.minority_classes = minority_classes
+            st.session_state.majority_classes = majority_classes
 
     elif strategy == "Manual Class Weights":
         st.markdown("**Set custom weights for each class:**")
@@ -291,11 +347,13 @@ def render_class_imbalance_handling(dataset_info):
         st.session_state.class_weights = weights
 
     elif strategy == "Oversampling (SMOTE)":
-        st.info("""
-        **SMOTE (Synthetic Minority Over-sampling)**:
-        - Generates synthetic samples for minority classes
-        - Creates new samples by interpolating between existing ones
-        - Increases training set size
+        st.warning("""
+        ⚠️ **Warning: SMOTE is NOT recommended for image data!**
+
+        SMOTE interpolates between feature vectors, which creates unrealistic
+        synthetic images (blended pixels). Consider using:
+        - **Auto Class Weights** (recommended) - adjusts loss function
+        - **Selective Augmentation** - more augmentation for minority classes
         """)
 
         sampling_ratio = st.slider(
