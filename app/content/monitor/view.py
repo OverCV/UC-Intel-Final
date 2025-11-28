@@ -83,14 +83,14 @@ def _render_experiments_static(models: list, trainings: list):
 
 
 def _render_experiment_list(experiments: list, models: list, trainings: list):
-    """Render the experiment cards."""
+    """Render the experiment cards (newest first)."""
     if not experiments:
         st.info(
             "No experiments yet. Click '+ New Experiment' to create one, "
             "then select a model and training config to start training."
         )
     else:
-        for exp in experiments:
+        for exp in reversed(experiments):
             render_experiment_row(
                 experiment=exp,
                 models=models,

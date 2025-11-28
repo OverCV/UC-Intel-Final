@@ -3,8 +3,10 @@
 import time
 from typing import Callable
 
+import numpy as np
 import torch
 import torch.nn as nn
+from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
 
 
@@ -43,8 +45,14 @@ class TrainingEngine:
         self.should_stop = False
         self.is_paused = False
 
-        # History
-        self.history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": [], "lr": []}
+        # History - tracks all metrics per epoch
+        self.history = {
+            "train_loss": [], "train_acc": [],
+            "train_precision": [], "train_recall": [], "train_f1": [],
+            "val_loss": [], "val_acc": [],
+            "val_precision": [], "val_recall": [], "val_f1": [],
+            "lr": [],
+        }
 
     def train_epoch(self) -> dict:
         """Train for one epoch."""
@@ -53,6 +61,10 @@ class TrainingEngine:
         correct = 0
         total = 0
         total_batches = len(self.train_loader)
+
+        # Collect predictions for precision/recall/F1
+        all_preds = []
+        all_targets = []
 
         for batch_idx, (inputs, targets) in enumerate(self.train_loader):
             inputs, targets = inputs.to(self.device), targets.to(self.device)
@@ -72,6 +84,10 @@ class TrainingEngine:
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
+            # Collect for metrics calculation
+            all_preds.extend(predicted.cpu().numpy())
+            all_targets.extend(targets.cpu().numpy())
+
             # Report batch progress every 10 batches
             if self.batch_callback and (batch_idx + 1) % 10 == 0:
                 self.batch_callback(batch_idx + 1, total_batches, {
@@ -86,7 +102,20 @@ class TrainingEngine:
         avg_loss = running_loss / total
         accuracy = correct / total
 
-        return {"train_loss": avg_loss, "train_acc": accuracy}
+        # Compute precision, recall, F1 (macro average)
+        all_preds = np.array(all_preds)
+        all_targets = np.array(all_targets)
+        precision = precision_score(all_targets, all_preds, average="macro", zero_division=0)
+        recall = recall_score(all_targets, all_preds, average="macro", zero_division=0)
+        f1 = f1_score(all_targets, all_preds, average="macro", zero_division=0)
+
+        return {
+            "train_loss": avg_loss,
+            "train_acc": accuracy,
+            "train_precision": precision,
+            "train_recall": recall,
+            "train_f1": f1,
+        }
 
     @torch.no_grad()
     def validate(self) -> dict:
@@ -95,6 +124,10 @@ class TrainingEngine:
         running_loss = 0.0
         correct = 0
         total = 0
+
+        # Collect predictions for precision/recall/F1
+        all_preds = []
+        all_targets = []
 
         for inputs, targets in self.val_loader:
             inputs, targets = inputs.to(self.device), targets.to(self.device)
@@ -107,10 +140,27 @@ class TrainingEngine:
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
+            # Collect for metrics calculation
+            all_preds.extend(predicted.cpu().numpy())
+            all_targets.extend(targets.cpu().numpy())
+
         avg_loss = running_loss / total
         accuracy = correct / total
 
-        return {"val_loss": avg_loss, "val_acc": accuracy}
+        # Compute precision, recall, F1 (macro average)
+        all_preds = np.array(all_preds)
+        all_targets = np.array(all_targets)
+        precision = precision_score(all_targets, all_preds, average="macro", zero_division=0)
+        recall = recall_score(all_targets, all_preds, average="macro", zero_division=0)
+        f1 = f1_score(all_targets, all_preds, average="macro", zero_division=0)
+
+        return {
+            "val_loss": avg_loss,
+            "val_acc": accuracy,
+            "val_precision": precision,
+            "val_recall": recall,
+            "val_f1": f1,
+        }
 
     def fit(
         self,
