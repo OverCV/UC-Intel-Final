@@ -1,10 +1,8 @@
 """Training Worker - Background training execution"""
 
-import threading
 from datetime import datetime
+import threading
 from typing import Any
-
-import torch
 
 from models.pytorch.cnn_builder import CustomCNNBuilder
 from models.pytorch.transfer import TransferLearningBuilder
@@ -17,6 +15,7 @@ from state.persistence import (
     write_experiment_update,
 )
 from state.workflow import get_session_id, update_experiment
+import torch
 from training.dataset import create_dataloaders
 from training.engine import TrainingEngine
 from training.optimizers import create_criterion, create_optimizer, create_scheduler
@@ -53,14 +52,20 @@ def _run_training(session_id: str, experiment_id: str):
         # Get experiment from file (thread-safe)
         experiment = get_experiment_from_file(session_id, experiment_id)
         if not experiment:
-            print(f"[Training] Experiment {experiment_id} not found in session {session_id}")
+            print(
+                f"[Training] Experiment {experiment_id} not found in session {session_id}"
+            )
             return
 
-        print(f"\n[Training] Starting experiment: {experiment.get('name', experiment_id)}")
+        print(
+            f"\n[Training] Starting experiment: {experiment.get('name', experiment_id)}"
+        )
 
         # Get configs from file (thread-safe)
         model_entry = get_model_from_file(session_id, experiment.get("model_id"))
-        training_entry = get_training_from_file(session_id, experiment.get("training_id"))
+        training_entry = get_training_from_file(
+            session_id, experiment.get("training_id")
+        )
         dataset_config = get_dataset_config_from_file(session_id)
 
         if not model_entry:
@@ -71,11 +76,19 @@ def _run_training(session_id: str, experiment_id: str):
         model_config = model_entry.get("config", model_entry)
         training_config = training_entry.get("config", training_entry)
 
-        print(f"[Training] Model: {model_entry.get('name')} ({model_config.get('model_type')})")
+        print(
+            f"[Training] Model: {model_entry.get('name')} ({model_config.get('model_type')})"
+        )
         print(f"[Training] Training config: {training_entry.get('name')}")
 
         # Determine device
-        device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
+        device = torch.device(
+            "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu"
+        )
         print(f"[Training] Using device: {device}")
 
         # Build model
@@ -85,7 +98,9 @@ def _run_training(session_id: str, experiment_id: str):
 
         total_params = sum(p.numel() for p in model.parameters())
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        print(f"[Training] Parameters: {total_params:,} total, {trainable_params:,} trainable")
+        print(
+            f"[Training] Parameters: {total_params:,} total, {trainable_params:,} trainable"
+        )
 
         # Create dataloaders
         print("[Training] Creating dataloaders...")
@@ -132,14 +147,18 @@ def _run_training(session_id: str, experiment_id: str):
 
         # Batch callback for progress updates during epoch
         def batch_callback(batch: int, total: int, metrics: dict):
-            write_experiment_update(session_id, experiment_id, {
-                "current_batch": batch,
-                "total_batches": total,
-                "batch_metrics": {
-                    "loss": metrics.get("batch_loss", 0),
-                    "acc": metrics.get("batch_acc", 0),
+            write_experiment_update(
+                session_id,
+                experiment_id,
+                {
+                    "current_batch": batch,
+                    "total_batches": total,
+                    "batch_metrics": {
+                        "loss": metrics.get("batch_loss", 0),
+                        "acc": metrics.get("batch_acc", 0),
+                    },
                 },
-            })
+            )
 
         # Create training engine
         engine = TrainingEngine(
@@ -164,51 +183,70 @@ def _run_training(session_id: str, experiment_id: str):
             current_exp = get_experiment_from_file(session_id, experiment_id)
             current_metrics = current_exp.get("metrics", {}) if current_exp else {}
 
-            write_experiment_update(session_id, experiment_id, {
-                "current_epoch": epoch,
-                "current_batch": 0,  # Reset batch progress for new epoch
-                "total_batches": 0,
-                "prev_metrics": current_metrics,
-                "metrics": {
-                    "train_loss": metrics.get("train_loss", 0),
-                    "train_acc": metrics.get("train_acc", 0),
-                    "val_loss": metrics.get("val_loss", 0),
-                    "val_acc": metrics.get("val_acc", 0),
-                    "lr": metrics.get("lr", 0),
+            write_experiment_update(
+                session_id,
+                experiment_id,
+                {
+                    "current_epoch": epoch,
+                    "current_batch": 0,  # Reset batch progress for new epoch
+                    "total_batches": 0,
+                    "prev_metrics": current_metrics,
+                    "metrics": {
+                        "train_loss": metrics.get("train_loss", 0),
+                        "train_acc": metrics.get("train_acc", 0),
+                        "val_loss": metrics.get("val_loss", 0),
+                        "val_acc": metrics.get("val_acc", 0),
+                        "lr": metrics.get("lr", 0),
+                    },
                 },
-            })
+            )
 
         # Run training
         results = engine.fit(epochs=epochs, update_callback=update_callback)
 
         # Training complete
         final_metrics = {
-            "train_loss": results["history"]["train_loss"][-1] if results["history"]["train_loss"] else 0,
-            "train_acc": results["history"]["train_acc"][-1] if results["history"]["train_acc"] else 0,
+            "train_loss": results["history"]["train_loss"][-1]
+            if results["history"]["train_loss"]
+            else 0,
+            "train_acc": results["history"]["train_acc"][-1]
+            if results["history"]["train_acc"]
+            else 0,
             "val_loss": results["best_val_loss"],
-            "val_acc": results["history"]["val_acc"][results["best_epoch"]-1] if results["history"]["val_acc"] else 0,
+            "val_acc": results["history"]["val_acc"][results["best_epoch"] - 1]
+            if results["history"]["val_acc"]
+            else 0,
         }
 
-        write_experiment_update(session_id, experiment_id, {
-            "status": "completed",
-            "completed_at": datetime.now().isoformat(),
-            "current_epoch": results["final_epoch"],
-            "best_epoch": results["best_epoch"],
-            "duration": results["duration"],
-            "metrics": final_metrics,
-            "history": results["history"],  # Save full training history for charts
-        })
+        write_experiment_update(
+            session_id,
+            experiment_id,
+            {
+                "status": "completed",
+                "completed_at": datetime.now().isoformat(),
+                "current_epoch": results["final_epoch"],
+                "best_epoch": results["best_epoch"],
+                "duration": results["duration"],
+                "metrics": final_metrics,
+                "history": results["history"],  # Save full training history for charts
+            },
+        )
 
         print(f"[Training] Experiment {experiment_id} completed successfully")
 
     except Exception as e:
         print(f"[Training] ERROR: {e}")
         import traceback
+
         traceback.print_exc()
-        write_experiment_update(session_id, experiment_id, {
-            "status": "failed",
-            "error": str(e),
-        })
+        write_experiment_update(
+            session_id,
+            experiment_id,
+            {
+                "status": "failed",
+                "error": str(e),
+            },
+        )
 
     finally:
         # Cleanup
@@ -234,12 +272,15 @@ def start_training(experiment_id: str, session_id: str | None = None):
         return
 
     # Update status (use st.session_state for immediate UI feedback)
-    update_experiment(experiment_id, {
-        "status": "training",
-        "started_at": datetime.now().isoformat(),
-        "current_epoch": 0,
-        "metrics": {},
-    })
+    update_experiment(
+        experiment_id,
+        {
+            "status": "training",
+            "started_at": datetime.now().isoformat(),
+            "current_epoch": 0,
+            "metrics": {},
+        },
+    )
 
     # Start training thread with session_id
     thread = threading.Thread(
@@ -250,7 +291,9 @@ def start_training(experiment_id: str, session_id: str | None = None):
     _training_threads[experiment_id] = thread
     thread.start()
 
-    print(f"[Training] Started background training for {experiment_id} in session {session_id}")
+    print(
+        f"[Training] Started background training for {experiment_id} in session {session_id}"
+    )
 
 
 def stop_training(experiment_id: str):
@@ -259,11 +302,14 @@ def stop_training(experiment_id: str):
         _active_engines[experiment_id].stop()
         print(f"[Training] Stopping {experiment_id}")
 
-    update_experiment(experiment_id, {
-        "status": "ready",
-        "current_epoch": 0,
-        "metrics": {},
-    })
+    update_experiment(
+        experiment_id,
+        {
+            "status": "ready",
+            "current_epoch": 0,
+            "metrics": {},
+        },
+    )
 
 
 def pause_training(experiment_id: str):

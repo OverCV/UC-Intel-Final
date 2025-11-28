@@ -1,13 +1,12 @@
 """Test Set Evaluator - Run inference on test set and compute metrics"""
 
 import numpy as np
-import torch
 from sklearn.metrics import (
     classification_report,
     confusion_matrix,
     precision_recall_fscore_support,
 )
-
+import torch
 from training.dataset import create_dataloaders
 from training.worker import build_model
 from utils.checkpoint_manager import CheckpointManager

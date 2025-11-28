@@ -3,13 +3,13 @@ Vision Transformer (ViT) Implementation
 Custom Vision Transformer for image classification
 """
 
-from typing import Any, Dict, Tuple
 import math
+from typing import Any, Dict, Tuple
+
+from models.base import BaseModel
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-from models.base import BaseModel
 
 
 class TransformerBuilder(BaseModel):
@@ -40,7 +40,7 @@ class TransformerBuilder(BaseModel):
             num_heads=self.transformer_config.get("num_heads", 12),
             mlp_ratio=self.transformer_config.get("mlp_ratio", 4.0),
             dropout=self.transformer_config.get("dropout", 0.1),
-            in_channels=3  # RGB images
+            in_channels=3,  # RGB images
         )
 
         self.model = model
@@ -52,7 +52,9 @@ class TransformerBuilder(BaseModel):
             self.model = self.build()
 
         total_params = sum(p.numel() for p in self.model.parameters())
-        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        trainable_params = sum(
+            p.numel() for p in self.model.parameters() if p.requires_grad
+        )
 
         return total_params, trainable_params
 
@@ -75,7 +77,7 @@ class PatchEmbedding(nn.Module):
         image_size: int = 224,
         patch_size: int = 16,
         in_channels: int = 3,
-        embed_dim: int = 768
+        embed_dim: int = 768,
     ):
         super().__init__()
         self.image_size = image_size
@@ -84,9 +86,7 @@ class PatchEmbedding(nn.Module):
 
         # Use convolution to extract and embed patches
         self.proj = nn.Conv2d(
-            in_channels, embed_dim,
-            kernel_size=patch_size,
-            stride=patch_size
+            in_channels, embed_dim, kernel_size=patch_size, stride=patch_size
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -98,8 +98,9 @@ class PatchEmbedding(nn.Module):
             Patch embeddings (B, num_patches, embed_dim)
         """
         B, C, H, W = x.shape
-        assert H == self.image_size and W == self.image_size, \
+        assert H == self.image_size and W == self.image_size, (
             f"Input image size ({H}x{W}) doesn't match expected size ({self.image_size}x{self.image_size})"
+        )
 
         # (B, C, H, W) -> (B, embed_dim, H/P, W/P)
         x = self.proj(x)
@@ -116,19 +117,14 @@ class PatchEmbedding(nn.Module):
 class MultiHeadAttention(nn.Module):
     """Multi-Head Self-Attention module"""
 
-    def __init__(
-        self,
-        embed_dim: int,
-        num_heads: int,
-        dropout: float = 0.0
-    ):
+    def __init__(self, embed_dim: int, num_heads: int, dropout: float = 0.0):
         super().__init__()
         assert embed_dim % num_heads == 0
 
         self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.head_dim = embed_dim // num_heads
-        self.scale = self.head_dim ** -0.5
+        self.scale = self.head_dim**-0.5
 
         self.qkv = nn.Linear(embed_dim, embed_dim * 3)
         self.attn_drop = nn.Dropout(dropout)
@@ -146,7 +142,11 @@ class MultiHeadAttention(nn.Module):
         B, N, C = x.shape
 
         # Generate Q, K, V
-        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        qkv = (
+            self.qkv(x)
+            .reshape(B, N, 3, self.num_heads, self.head_dim)
+            .permute(2, 0, 3, 1, 4)
+        )
         q, k, v = qkv[0], qkv[1], qkv[2]  # Each is (B, num_heads, N, head_dim)
 
         # Attention scores
@@ -172,7 +172,7 @@ class MLP(nn.Module):
         in_features: int,
         hidden_features: int = None,
         out_features: int = None,
-        dropout: float = 0.0
+        dropout: float = 0.0,
     ):
         super().__init__()
         out_features = out_features or in_features
@@ -200,7 +200,7 @@ class TransformerBlock(nn.Module):
         embed_dim: int,
         num_heads: int,
         mlp_ratio: float = 4.0,
-        dropout: float = 0.0
+        dropout: float = 0.0,
     ):
         super().__init__()
         self.norm1 = nn.LayerNorm(embed_dim)
@@ -209,7 +209,7 @@ class TransformerBlock(nn.Module):
         self.mlp = MLP(
             in_features=embed_dim,
             hidden_features=int(embed_dim * mlp_ratio),
-            dropout=dropout
+            dropout=dropout,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -233,7 +233,7 @@ class VisionTransformer(nn.Module):
         num_heads: int = 12,
         mlp_ratio: float = 4.0,
         dropout: float = 0.1,
-        in_channels: int = 3
+        in_channels: int = 3,
     ):
         """
         Initialize Vision Transformer
@@ -256,7 +256,7 @@ class VisionTransformer(nn.Module):
             image_size=image_size,
             patch_size=patch_size,
             in_channels=in_channels,
-            embed_dim=embed_dim
+            embed_dim=embed_dim,
         )
         num_patches = self.patch_embed.num_patches
 
@@ -266,15 +266,17 @@ class VisionTransformer(nn.Module):
         self.pos_drop = nn.Dropout(dropout)
 
         # Transformer blocks
-        self.blocks = nn.ModuleList([
-            TransformerBlock(
-                embed_dim=embed_dim,
-                num_heads=num_heads,
-                mlp_ratio=mlp_ratio,
-                dropout=dropout
-            )
-            for _ in range(depth)
-        ])
+        self.blocks = nn.ModuleList(
+            [
+                TransformerBlock(
+                    embed_dim=embed_dim,
+                    num_heads=num_heads,
+                    mlp_ratio=mlp_ratio,
+                    dropout=dropout,
+                )
+                for _ in range(depth)
+            ]
+        )
 
         # Classification head
         self.norm = nn.LayerNorm(embed_dim)

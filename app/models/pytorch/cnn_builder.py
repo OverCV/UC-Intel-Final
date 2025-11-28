@@ -5,10 +5,9 @@ Builds CNN models from layer_stack configuration using PyTorch
 
 from typing import Any
 
+from models.base import BaseModel
 import torch
 import torch.nn as nn
-
-from models.base import BaseModel
 
 
 class CustomCNNBuilder(BaseModel):
@@ -31,8 +30,7 @@ class CustomCNNBuilder(BaseModel):
             raise ValueError("Invalid model configuration")
 
         model = CustomCNN(
-            layers=self.cnn_config.get("layers", []),
-            num_classes=self.num_classes
+            layers=self.cnn_config.get("layers", []), num_classes=self.num_classes
         )
 
         self.model = model
@@ -44,7 +42,9 @@ class CustomCNNBuilder(BaseModel):
             self.model = self.build()
 
         total_params = sum(p.numel() for p in self.model.parameters())
-        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        trainable_params = sum(
+            p.numel() for p in self.model.parameters() if p.requires_grad
+        )
 
         return total_params, trainable_params
 
@@ -61,7 +61,9 @@ class CustomCNNBuilder(BaseModel):
             return False
 
         has_conv = any(layer["type"] == "Conv2D" for layer in layers)
-        has_transition = any(layer["type"] in ["Flatten", "GlobalAvgPool"] for layer in layers)
+        has_transition = any(
+            layer["type"] in ["Flatten", "GlobalAvgPool"] for layer in layers
+        )
         has_dense = any(layer["type"] == "Dense" for layer in layers)
 
         return has_conv and has_transition and has_dense
@@ -83,7 +85,7 @@ class CustomCNN(nn.Module):
         layers: list[dict[str, Any]],
         num_classes: int,
         input_channels: int = 3,
-        input_size: int = 224
+        input_size: int = 224,
     ):
         """
         Initialize custom CNN from layer stack
@@ -113,9 +115,7 @@ class CustomCNN(nn.Module):
             params = layer_config.get("params", {})
 
             if layer_type == "Conv2D":
-                layer, current_channels = self._build_conv2d(
-                    current_channels, params
-                )
+                layer, current_channels = self._build_conv2d(current_channels, params)
                 self.feature_layers.append(layer)
 
             elif layer_type == "MaxPooling2D":
@@ -153,7 +153,9 @@ class CustomCNN(nn.Module):
 
             elif layer_type == "Dense":
                 if flatten_features == 0:
-                    raise ValueError("Dense layer requires Flatten or GlobalAvgPool before it")
+                    raise ValueError(
+                        "Dense layer requires Flatten or GlobalAvgPool before it"
+                    )
 
                 units = params.get("units", 256)
                 activation = params.get("activation", "relu")
@@ -171,14 +173,10 @@ class CustomCNN(nn.Module):
         self.output_layer = nn.Linear(flatten_features, num_classes)
 
         # Track if we use GlobalAvgPool or Flatten
-        self.use_global_pool = any(
-            layer["type"] == "GlobalAvgPool" for layer in layers
-        )
+        self.use_global_pool = any(layer["type"] == "GlobalAvgPool" for layer in layers)
 
     def _build_conv2d(
-        self,
-        in_channels: int,
-        params: dict[str, Any]
+        self, in_channels: int, params: dict[str, Any]
     ) -> tuple[nn.Sequential, int]:
         """Build a Conv2D layer with activation"""
         filters = params.get("filters", 32)
@@ -189,13 +187,8 @@ class CustomCNN(nn.Module):
         padding = kernel_size // 2 if padding_mode == "same" else 0
 
         layers = [
-            nn.Conv2d(
-                in_channels,
-                filters,
-                kernel_size=kernel_size,
-                padding=padding
-            ),
-            self._get_activation(activation)
+            nn.Conv2d(in_channels, filters, kernel_size=kernel_size, padding=padding),
+            self._get_activation(activation),
         ]
 
         return nn.Sequential(*layers), filters

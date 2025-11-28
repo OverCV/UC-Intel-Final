@@ -1,6 +1,5 @@
 """PyTorch transforms for data augmentation"""
 
-import torch
 from torchvision import transforms
 
 

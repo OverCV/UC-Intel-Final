@@ -4,9 +4,9 @@ import time
 from typing import Callable
 
 import numpy as np
+from sklearn.metrics import f1_score, precision_score, recall_score
 import torch
 import torch.nn as nn
-from sklearn.metrics import f1_score, precision_score, recall_score
 from torch.utils.data import DataLoader
 
 
@@ -47,10 +47,16 @@ class TrainingEngine:
 
         # History - tracks all metrics per epoch
         self.history = {
-            "train_loss": [], "train_acc": [],
-            "train_precision": [], "train_recall": [], "train_f1": [],
-            "val_loss": [], "val_acc": [],
-            "val_precision": [], "val_recall": [], "val_f1": [],
+            "train_loss": [],
+            "train_acc": [],
+            "train_precision": [],
+            "train_recall": [],
+            "train_f1": [],
+            "val_loss": [],
+            "val_acc": [],
+            "val_precision": [],
+            "val_recall": [],
+            "val_f1": [],
             "lr": [],
         }
 
@@ -90,10 +96,14 @@ class TrainingEngine:
 
             # Report batch progress every 10 batches
             if self.batch_callback and (batch_idx + 1) % 10 == 0:
-                self.batch_callback(batch_idx + 1, total_batches, {
-                    "batch_loss": running_loss / total,
-                    "batch_acc": correct / total,
-                })
+                self.batch_callback(
+                    batch_idx + 1,
+                    total_batches,
+                    {
+                        "batch_loss": running_loss / total,
+                        "batch_acc": correct / total,
+                    },
+                )
 
             # Check for stop signal
             if self.should_stop:
@@ -105,7 +115,9 @@ class TrainingEngine:
         # Compute precision, recall, F1 (macro average)
         all_preds = np.array(all_preds)
         all_targets = np.array(all_targets)
-        precision = precision_score(all_targets, all_preds, average="macro", zero_division=0)
+        precision = precision_score(
+            all_targets, all_preds, average="macro", zero_division=0
+        )
         recall = recall_score(all_targets, all_preds, average="macro", zero_division=0)
         f1 = f1_score(all_targets, all_preds, average="macro", zero_division=0)
 
@@ -150,7 +162,9 @@ class TrainingEngine:
         # Compute precision, recall, F1 (macro average)
         all_preds = np.array(all_preds)
         all_targets = np.array(all_targets)
-        precision = precision_score(all_targets, all_preds, average="macro", zero_division=0)
+        precision = precision_score(
+            all_targets, all_preds, average="macro", zero_division=0
+        )
         recall = recall_score(all_targets, all_preds, average="macro", zero_division=0)
         f1 = f1_score(all_targets, all_preds, average="macro", zero_division=0)
 
@@ -178,15 +192,17 @@ class TrainingEngine:
             Final metrics dict
         """
         start_time = time.time()
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Starting training for {epochs} epochs")
         print(f"Device: {self.device}")
-        print(f"Train batches: {len(self.train_loader)}, Val batches: {len(self.val_loader)}")
-        print(f"{'='*60}\n")
+        print(
+            f"Train batches: {len(self.train_loader)}, Val batches: {len(self.val_loader)}"
+        )
+        print(f"{'=' * 60}\n")
 
         for epoch in range(epochs):
             if self.should_stop:
-                print(f"\n[Epoch {epoch+1}] Training stopped by user")
+                print(f"\n[Epoch {epoch + 1}] Training stopped by user")
                 break
 
             # Wait if paused
@@ -214,7 +230,9 @@ class TrainingEngine:
 
             # Scheduler step
             if self.scheduler:
-                if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                if isinstance(
+                    self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau
+                ):
                     self.scheduler.step(val_metrics["val_loss"])
                 else:
                     self.scheduler.step()
@@ -235,14 +253,13 @@ class TrainingEngine:
             # Print progress
             epoch_time = time.time() - epoch_start
             print(
-                f"Epoch {epoch+1:3d}/{epochs} | "
+                f"Epoch {epoch + 1:3d}/{epochs} | "
                 f"Train Loss: {train_metrics['train_loss']:.4f} | "
-                f"Train Acc: {train_metrics['train_acc']*100:.1f}% | "
+                f"Train Acc: {train_metrics['train_acc'] * 100:.1f}% | "
                 f"Val Loss: {val_metrics['val_loss']:.4f} | "
-                f"Val Acc: {val_metrics['val_acc']*100:.1f}% | "
+                f"Val Acc: {val_metrics['val_acc'] * 100:.1f}% | "
                 f"LR: {current_lr:.6f} | "
-                f"Time: {epoch_time:.1f}s"
-                + (" *" if is_best else "")
+                f"Time: {epoch_time:.1f}s" + (" *" if is_best else "")
             )
 
             # Update callback
@@ -252,7 +269,9 @@ class TrainingEngine:
             # Early stopping check
             if self.early_stopping_patience > 0:
                 if self.epochs_without_improvement >= self.early_stopping_patience:
-                    print(f"\nEarly stopping triggered after {epoch+1} epochs (patience: {self.early_stopping_patience})")
+                    print(
+                        f"\nEarly stopping triggered after {epoch + 1} epochs (patience: {self.early_stopping_patience})"
+                    )
                     break
 
         # Training complete
@@ -260,10 +279,10 @@ class TrainingEngine:
         minutes = int(total_time // 60)
         seconds = int(total_time % 60)
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Training completed in {minutes}m {seconds}s")
         print(f"Best epoch: {self.best_epoch} with val_loss: {self.best_val_loss:.4f}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
         return {
             "final_epoch": self.current_epoch,

@@ -4,11 +4,11 @@ Pre-trained model fine-tuning with PyTorch
 """
 
 from typing import Any, Dict, Tuple
+
+from models.base import BaseModel
 import torch
 import torch.nn as nn
 import torchvision.models as models
-
-from models.base import BaseModel
 
 
 class TransferLearningBuilder(BaseModel):
@@ -44,7 +44,7 @@ class TransferLearningBuilder(BaseModel):
             global_pooling=self.transfer_config.get("global_pooling", True),
             add_dense=self.transfer_config.get("add_dense", False),
             dense_units=self.transfer_config.get("dense_units", 512),
-            dropout=self.transfer_config.get("dropout", 0.5)
+            dropout=self.transfer_config.get("dropout", 0.5),
         )
 
         self.model = model
@@ -56,7 +56,9 @@ class TransferLearningBuilder(BaseModel):
             self.model = self.build()
 
         total_params = sum(p.numel() for p in self.model.parameters())
-        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        trainable_params = sum(
+            p.numel() for p in self.model.parameters() if p.requires_grad
+        )
 
         return total_params, trainable_params
 
@@ -89,7 +91,7 @@ class TransferModel(nn.Module):
         global_pooling: bool = True,
         add_dense: bool = False,
         dense_units: int = 512,
-        dropout: float = 0.5
+        dropout: float = 0.5,
     ):
         """
         Initialize transfer learning model
@@ -128,30 +130,33 @@ class TransferModel(nn.Module):
             self.global_pool = None
 
         if add_dense:
-            classifier_layers.extend([
-                nn.Linear(in_features, dense_units),
-                nn.ReLU(inplace=True),
-                nn.Dropout(dropout),
-                nn.Linear(dense_units, num_classes)
-            ])
+            classifier_layers.extend(
+                [
+                    nn.Linear(in_features, dense_units),
+                    nn.ReLU(inplace=True),
+                    nn.Dropout(dropout),
+                    nn.Linear(dense_units, num_classes),
+                ]
+            )
         else:
-            classifier_layers.extend([
-                nn.Dropout(dropout),
-                nn.Linear(in_features, num_classes)
-            ])
+            classifier_layers.extend(
+                [nn.Dropout(dropout), nn.Linear(in_features, num_classes)]
+            )
 
         self.classifier = nn.Sequential(*classifier_layers)
 
     def _load_base_model(self, model_name: str, weights: str) -> nn.Module:
         """Load pre-trained base model"""
-        use_pretrained = (weights == "ImageNet")
+        use_pretrained = weights == "ImageNet"
 
         model_map = {
             "VGG16": lambda: models.vgg16(pretrained=use_pretrained),
             "VGG19": lambda: models.vgg19(pretrained=use_pretrained),
             "ResNet50": lambda: models.resnet50(pretrained=use_pretrained),
             "ResNet101": lambda: models.resnet101(pretrained=use_pretrained),
-            "InceptionV3": lambda: models.inception_v3(pretrained=use_pretrained, aux_logits=False),
+            "InceptionV3": lambda: models.inception_v3(
+                pretrained=use_pretrained, aux_logits=False
+            ),
             "EfficientNetB0": lambda: models.efficientnet_b0(pretrained=use_pretrained),
         }
 
@@ -199,7 +204,9 @@ class TransferModel(nn.Module):
 
             # Unfreeze last N layers
             all_layers = list(self.base_model.children())
-            layers_to_unfreeze = all_layers[-unfreeze_layers:] if unfreeze_layers > 0 else []
+            layers_to_unfreeze = (
+                all_layers[-unfreeze_layers:] if unfreeze_layers > 0 else []
+            )
 
             for layer in layers_to_unfreeze:
                 for param in layer.parameters():

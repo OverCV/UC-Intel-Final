@@ -7,7 +7,6 @@ from PIL import Image
 from sklearn.model_selection import train_test_split
 import torch
 from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
-
 from training.transforms import create_train_transforms, create_val_transforms
 
 
@@ -35,7 +34,9 @@ class MalwareDataset(Dataset):
         return image, label
 
 
-def scan_dataset(dataset_path: Path, selected_families: list[str] | None = None) -> tuple[list[Path], list[int], list[str]]:
+def scan_dataset(
+    dataset_path: Path, selected_families: list[str] | None = None
+) -> tuple[list[Path], list[int], list[str]]:
     """Scan dataset directory and return image paths, labels, and class names."""
     image_paths = []
     labels = []
@@ -109,7 +110,9 @@ def compute_class_weights(labels: list[int], num_classes: int) -> torch.Tensor:
     return torch.tensor(weights, dtype=torch.float32)
 
 
-def create_weighted_sampler(labels: list[int], num_classes: int) -> WeightedRandomSampler:
+def create_weighted_sampler(
+    labels: list[int], num_classes: int
+) -> WeightedRandomSampler:
     """Create weighted random sampler for imbalanced data."""
     class_weights = compute_class_weights(labels, num_classes)
 
@@ -159,7 +162,8 @@ def create_dataloaders(
 
     # Create splits
     splits = create_splits(
-        image_paths, labels,
+        image_paths,
+        labels,
         train_ratio=train_ratio,
         val_ratio=val_ratio,
         test_ratio=test_ratio,
@@ -167,7 +171,9 @@ def create_dataloaders(
         random_seed=random_seed,
     )
 
-    print(f"[Dataset] Splits: train={len(splits['train']['paths'])}, val={len(splits['val']['paths'])}, test={len(splits['test']['paths'])}")
+    print(
+        f"[Dataset] Splits: train={len(splits['train']['paths'])}, val={len(splits['val']['paths'])}, test={len(splits['test']['paths'])}"
+    )
 
     # Create transforms
     train_transform = create_train_transforms(dataset_config)
@@ -200,7 +206,9 @@ def create_dataloaders(
 
     if class_weight_method == "Auto Class Weights":
         class_weights = compute_class_weights(splits["train"]["labels"], num_classes)
-        print(f"[Dataset] Using class weights (range: {class_weights.min():.2f} - {class_weights.max():.2f})")
+        print(
+            f"[Dataset] Using class weights (range: {class_weights.min():.2f} - {class_weights.max():.2f})"
+        )
         # Use weighted sampler for balanced batches
         sampler = create_weighted_sampler(splits["train"]["labels"], num_classes)
     elif class_weight_method == "Focal Loss":
@@ -209,6 +217,7 @@ def create_dataloaders(
 
     # Disable pin_memory on MPS (not supported)
     import torch
+
     use_pin_memory = torch.cuda.is_available()
 
     # Create dataloaders
