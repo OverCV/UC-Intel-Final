@@ -59,7 +59,7 @@ def _render_config_sidebar():
                 if st.button(
                     f"{'●' if is_selected else '○'} {cfg['name']}",
                     key=f"sel_{cfg['id']}",
-                    use_container_width=True,
+                    width="stretch",
                 ):
                     _load_config(cfg["id"])
                     st.rerun()
@@ -72,7 +72,7 @@ def _render_config_sidebar():
 
     st.divider()
 
-    if st.button("+ New Config", use_container_width=True):
+    if st.button("+ New Config", width="stretch"):
         st.session_state.training_selected_id = None
         st.session_state.training_config_name = ""
         _reset_form_to_defaults()
@@ -318,7 +318,7 @@ def _render_save_section(config: dict):
     with col2:
         if st.button(
             "Save as New",
-            use_container_width=True,
+            width="stretch",
             disabled=not name,
             type="primary" if not is_editing else "secondary",
         ):
@@ -330,7 +330,7 @@ def _render_save_section(config: dict):
 
     with col3:
         if is_editing:
-            if st.button("Update", use_container_width=True, disabled=not name):
+            if st.button("Update", width="stretch", disabled=not name):
                 update_training_in_library(
                     st.session_state.training_selected_id, name, config
                 )

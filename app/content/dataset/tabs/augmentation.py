@@ -16,10 +16,33 @@ from utils.dataset_utils import DATASET_ROOT, calculate_split_percentages
 
 def render(dataset_info):
     """Render augmentation settings and configuration save"""
+    _init_augmentation_defaults()
     augmentation_config = render_augmentation_config()
     render_augmentation_preview(dataset_info, augmentation_config)
     st.divider()
     render_configuration_summary(dataset_info, augmentation_config)
+
+
+def _init_augmentation_defaults():
+    """Initialize augmentation defaults if not in session state.
+
+    This must run BEFORE widgets render so widgets read from session_state.
+    """
+    defaults = {
+        "augmentation_preset": "Custom",
+        "aug_h_flip": True,
+        "aug_v_flip": True,
+        "aug_rotation": True,
+        "aug_rotation_angles": [90, 180, 270],
+        "aug_brightness": True,
+        "aug_brightness_range": 10,
+        "aug_contrast": False,
+        "aug_contrast_range": 10,
+        "aug_noise": False,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
 
 def render_augmentation_config():
@@ -33,7 +56,6 @@ def render_augmentation_config():
     preset = st.radio(
         "Augmentation Preset",
         ["None", "Light", "Moderate", "Heavy", "Custom"],
-        index=4,  # Default to "Custom"
         horizontal=True,
         key="augmentation_preset",
     )
@@ -56,42 +78,52 @@ def render_augmentation_config():
 
         col1, col2 = st.columns(2)
         with col1:
-            h_flip = st.checkbox("Horizontal Flip", value=True, key="aug_h_flip", help="Flip image left-right. Safe for malware images.")
-            v_flip = st.checkbox("Vertical Flip", value=True, key="aug_v_flip", help="Flip image top-bottom.")
+            h_flip = st.checkbox(
+                "Horizontal Flip",
+                key="aug_h_flip",
+                help="Flip image left-right. Safe for malware images.",
+            )
+            v_flip = st.checkbox(
+                "Vertical Flip",
+                key="aug_v_flip",
+                help="Flip image top-bottom.",
+            )
             rotation = st.checkbox(
-                "Orthogonal Rotation", value=True, key="aug_rotation",
+                "Orthogonal Rotation",
+                key="aug_rotation",
                 help=CONTROL_TOOLTIPS["orthogonal_rotation"],
             )
-            rotation_angles = [90, 180, 270]
+            rotation_angles = st.session_state.get("aug_rotation_angles", [90, 180, 270])
             if rotation:
                 rotation_angles = st.multiselect(
                     "Allowed Rotations",
                     options=[90, 180, 270],
-                    default=[90, 180, 270],
                     key="aug_rotation_angles",
                     help="Only 90° multiples are lossless (no interpolation)",
                 )
 
         with col2:
             brightness = st.checkbox(
-                "Brightness Adjustment", value=True, key="aug_brightness"
+                "Brightness Adjustment",
+                key="aug_brightness",
             )
-            brightness_range = 10
+            brightness_range = st.session_state.get("aug_brightness_range", 10)
             if brightness:
                 brightness_range = st.slider(
-                    "Brightness Range (%)", 0, 50, 10, key="aug_brightness_range"
+                    "Brightness Range (%)", 0, 50, key="aug_brightness_range"
                 )
 
             contrast = st.checkbox(
-                "Contrast Adjustment", value=False, key="aug_contrast"
+                "Contrast Adjustment",
+                key="aug_contrast",
             )
-            contrast_range = 10
+            contrast_range = st.session_state.get("aug_contrast_range", 10)
             if contrast:
                 contrast_range = st.slider(
-                    "Contrast Range (%)", 0, 50, 10, key="aug_contrast_range"
+                    "Contrast Range (%)", 0, 50, key="aug_contrast_range"
                 )
 
-            noise = st.checkbox("Gaussian Noise", value=False, key="aug_noise")
+            noise = st.checkbox("Gaussian Noise", key="aug_noise")
 
         # Build custom config
         augmentation_config["custom"] = {
@@ -154,17 +186,17 @@ def render_augmentation_preview(dataset_info, augmentation_config):
 
     with col1:
         st.markdown("**After Preprocessing**")
-        st.image(preprocessed, use_container_width=True)
+        st.image(preprocessed, width="stretch")
 
     with col2:
         st.markdown("**Augmented (Example 1)**")
         aug1 = apply_augmentation(preprocessed, augmentation_config)
-        st.image(aug1, use_container_width=True)
+        st.image(aug1, width="stretch")
 
     with col3:
         st.markdown("**Augmented (Example 2)**")
         aug2 = apply_augmentation(preprocessed, augmentation_config)
-        st.image(aug2, use_container_width=True)
+        st.image(aug2, width="stretch")
 
     # Refresh button to see different random augmentations
     if st.button("🔄 Generate New Examples", key="refresh_augmentation"):

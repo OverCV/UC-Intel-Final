@@ -42,7 +42,7 @@ def render():
         st.header("Experiments")
 
     with col2:
-        if st.button("+ New Experiment", type="primary", use_container_width=True):
+        if st.button("+ New Experiment", type="primary", width="stretch"):
             _create_new_experiment(models, trainings)
             st.rerun()
 

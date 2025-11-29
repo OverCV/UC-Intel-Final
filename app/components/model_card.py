@@ -72,7 +72,7 @@ def render_model_card(
         col1, col2, col3 = st.columns([2, 1, 1])
 
         with col1:
-            if st.button("Select", key=f"select_{model_id}", use_container_width=True):
+            if st.button("Select", key=f"select_{model_id}", width="stretch"):
                 clicked = True
 
         with col2:

@@ -126,7 +126,7 @@ def render_preprocessing(dataset_info):
             st.markdown("**Original Image**")
             try:
                 original = Image.open(sample_path)
-                st.image(original, use_container_width=True)
+                st.image(original, width="stretch")
                 st.caption(f"Size: {original.size[0]}x{original.size[1]}")
             except Exception as e:
                 st.error(f"Error loading image: {e}")
@@ -141,7 +141,7 @@ def render_preprocessing(dataset_info):
                 if color_mode == "Grayscale":
                     processed = processed.convert("L")
 
-                st.image(processed, use_container_width=True)
+                st.image(processed, width="stretch")
                 st.caption(f"Size: {size}x{size}, Mode: {color_mode}")
             except Exception as e:
                 st.error(f"Error processing: {e}")
@@ -216,7 +216,7 @@ def render_confirmation():
     _, col2, _ = st.columns([1, 1, 1])
 
     with col2:
-        if st.button("Save Configuration", type="primary", use_container_width=True):
+        if st.button("Save Configuration", type="primary", width="stretch"):
             st.session_state.dataset_config = config
             st.success("Configuration saved!")
             st.balloons()

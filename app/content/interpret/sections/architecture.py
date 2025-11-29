@@ -48,7 +48,7 @@ def render_architecture_review(exp_id: str):
 
             st.dataframe(
                 layers_df,
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 height=min(400, len(layers_df) * 35 + 40),
             )

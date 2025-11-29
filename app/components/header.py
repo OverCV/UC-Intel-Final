@@ -82,7 +82,7 @@ def render_header():
     with button_col:
         # New session button
         if st.button(
-            "New Session", use_container_width=True, help=HEADER_TOOLTIPS["new_session"]
+            "New Session", width="stretch", help=HEADER_TOOLTIPS["new_session"]
         ):
             clear_session()
             st.rerun()

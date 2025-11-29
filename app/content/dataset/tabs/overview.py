@@ -5,19 +5,43 @@ Shows dataset statistics and train/val/test split configuration
 
 from pathlib import Path
 
+from content.dataset.tooltips import CONTROL_TOOLTIPS, SECTION_TOOLTIPS
 import plotly.graph_objects as go
 import streamlit as st
-from content.dataset.tooltips import SECTION_TOOLTIPS, CONTROL_TOOLTIPS
 from utils.dataset_utils import DATASET_ROOT, calculate_split_percentages
 
 
 def render(dataset_info):
     """Render overview and split configuration tab"""
+    _init_overview_defaults()
     render_dataset_overview(dataset_info)
     st.divider()
     render_data_split(dataset_info)
     st.divider()
     render_class_imbalance_handling(dataset_info)
+
+
+def _init_overview_defaults():
+    """Initialize overview/split defaults if not in session state.
+
+    This must run BEFORE widgets render so widgets read from session_state.
+    """
+    defaults = {
+        "use_cross_validation": False,
+        "n_folds": 5,
+        "stratified_kfold": True,
+        "train_split": 70,
+        "val_split": 50,
+        "stratified_split": True,
+        "random_seed": 73,
+        "imbalance_strategy": "Auto Class Weights (Recommended)",
+        "minority_threshold": 200,
+        "aug_multiplier": 2.0,
+        "smote_ratio": 0.5,
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
 
 def render_dataset_overview(dataset_info):
@@ -57,94 +81,91 @@ def render_data_split(dataset_info):
 
     # Current split info
     total = dataset_info["total_samples"]
-    
+
     if total > 0:
         st.info(f"Total samples available for split: {total}")
 
     st.markdown("**Configure Split Method:**")
-    
+
     # Split method selection
     use_cross_validation = st.checkbox(
         "Use Cross-Validation",
-        value=False,
         key="use_cross_validation",
-        help="Use K-Fold Cross-Validation instead of fixed train/val/test split"
+        help="Use K-Fold Cross-Validation instead of fixed train/val/test split",
     )
-    
+
     if use_cross_validation:
         # Cross-Validation configuration
         st.markdown("**K-Fold Cross-Validation Configuration:**")
-        
+
         col1, col2 = st.columns(2)
         with col1:
             n_folds = st.number_input(
                 "Number of Folds (K)",
                 min_value=2,
                 max_value=20,
-                value=5,
                 key="n_folds",
-                help="Number of folds for cross-validation (typically 5 or 10)"
+                help="Number of folds for cross-validation (typically 5 or 10)",
             )
         with col2:
             st.checkbox(
                 "Stratified K-Fold",
-                value=True,
                 key="stratified_kfold",
-                help="Maintain class proportions in each fold"
+                help="Maintain class proportions in each fold",
             )
-        
+
         # Show fold distribution
         fold_pct = 100 / n_folds
         train_fold_pct = ((n_folds - 1) / n_folds) * 100
         val_fold_pct = (1 / n_folds) * 100
-        
+
         st.info(f"""
         **Cross-Validation Setup:**
         - Each fold: {fold_pct:.1f}% of data
-        - Training per iteration: {train_fold_pct:.1f}% ({n_folds-1} folds)
+        - Training per iteration: {train_fold_pct:.1f}% ({n_folds - 1} folds)
         - Validation per iteration: {val_fold_pct:.1f}% (1 fold)
         - Total iterations: {n_folds}
         """)
-        
+
         # Visualization for CV
         fig = go.Figure()
         for i in range(n_folds):
-            fig.add_trace(go.Bar(
-                name=f'Fold {i+1}',
-                x=['Training', 'Validation'],
-                y=[train_fold_pct if i != 0 else 0, val_fold_pct if i == 0 else 0],
-                marker_color='#98c127' if i == 0 else '#8fd7d7'
-            ))
-        
+            fig.add_trace(
+                go.Bar(
+                    name=f"Fold {i + 1}",
+                    x=["Training", "Validation"],
+                    y=[train_fold_pct if i != 0 else 0, val_fold_pct if i == 0 else 0],
+                    marker_color="#98c127" if i == 0 else "#8fd7d7",
+                )
+            )
+
         fig.update_layout(
             title=f"{n_folds}-Fold Cross-Validation Distribution",
             xaxis_title="Split Type",
             yaxis_title="Percentage (%)",
-            barmode='stack',
+            barmode="stack",
             height=300,
-            paper_bgcolor='rgba(0,0,0,0)',
-            plot_bgcolor='rgba(0,0,0,0)',
-            showlegend=False
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)",
+            showlegend=False,
         )
         st.plotly_chart(fig, width="stretch")
-        
+
         st.number_input(
-            "Random Seed", 
-            value=73, 
+            "Random Seed",
             min_value=0,
             key="random_seed",
-            help="For reproducible fold splits"
+            help="For reproducible fold splits",
         )
     else:
         # Fixed train/val/test split
         st.markdown("**Fixed Train/Validation/Test Split:**")
-        
+
         # Slider 1: Training percentage
         train_pct = st.slider(
             "Training %",
             min_value=0,
             max_value=100,
-            value=70,
             step=5,
             key="train_split",
             help="Percentage of data for training",
@@ -156,7 +177,6 @@ def render_data_split(dataset_info):
             f"Validation % (of remaining {remaining}%)",
             min_value=0,
             max_value=100,
-            value=50,
             step=5,
             key="val_split",
             help="Percentage of remaining data for validation (rest goes to test)",
@@ -200,15 +220,15 @@ def render_data_split(dataset_info):
         with col1:
             st.checkbox(
                 "Stratified Split",
-                value=True,
                 key="stratified_split",
                 help="Maintain class proportions in each split",
             )
         with col2:
             st.number_input(
-                "Random Seed", value=73, min_value=0,
+                "Random Seed",
+                min_value=0,
                 key="random_seed",
-                help="For reproducible splits"
+                help="For reproducible splits",
             )
 
 
@@ -219,7 +239,9 @@ def render_class_imbalance_handling(dataset_info):
     # Calculate imbalance for selected classes
     if "selected_classes" in st.session_state and st.session_state.selected_classes:
         selected_classes = st.session_state.selected_classes
-        samples_per_class = [dataset_info["samples"].get(c, 0) for c in selected_classes]
+        samples_per_class = [
+            dataset_info["samples"].get(c, 0) for c in selected_classes
+        ]
     else:
         samples_per_class = list(dataset_info["samples"].values())
 
@@ -230,7 +252,9 @@ def render_class_imbalance_handling(dataset_info):
 
         # Show imbalance severity
         if imbalance_ratio > 10:
-            st.error(f"⚠️ **Severe Imbalance**: {imbalance_ratio:.1f}:1 ratio between largest and smallest class")
+            st.error(
+                f"⚠️ **Severe Imbalance**: {imbalance_ratio:.1f}:1 ratio between largest and smallest class"
+            )
         elif imbalance_ratio > 3:
             st.warning(f"⚠️ **Moderate Imbalance**: {imbalance_ratio:.1f}:1 ratio")
         else:
@@ -247,10 +271,10 @@ def render_class_imbalance_handling(dataset_info):
             "Manual Class Weights",
             "Oversampling (SMOTE)",
             "Undersampling",
-            "No Adjustment"
+            "No Adjustment",
         ],
         key="imbalance_strategy",
-        help="Choose how to handle class imbalance during training"
+        help="Choose how to handle class imbalance during training",
     )
 
     # Strategy-specific options
@@ -276,30 +300,30 @@ def render_class_imbalance_handling(dataset_info):
                 "Minority threshold (samples)",
                 min_value=50,
                 max_value=500,
-                value=200,
                 step=50,
                 key="minority_threshold",
-                help="Classes with fewer samples than this are considered 'minority'"
+                help="Classes with fewer samples than this are considered 'minority'",
             )
         with col2:
             aug_multiplier = st.slider(
                 "Augmentation multiplier",
                 min_value=1.5,
                 max_value=5.0,
-                value=2.0,
                 step=0.5,
                 key="aug_multiplier",
-                help="How much MORE augmentation minority classes receive"
+                help="How much MORE augmentation minority classes receive",
             )
 
         # Show which classes qualify as minority
         if "selected_classes" in st.session_state and st.session_state.selected_classes:
             minority_classes = [
-                c for c in st.session_state.selected_classes
+                c
+                for c in st.session_state.selected_classes
                 if dataset_info["samples"].get(c, 0) < minority_threshold
             ]
             majority_classes = [
-                c for c in st.session_state.selected_classes
+                c
+                for c in st.session_state.selected_classes
                 if dataset_info["samples"].get(c, 0) >= minority_threshold
             ]
 
@@ -309,7 +333,9 @@ def render_class_imbalance_handling(dataset_info):
                 if minority_classes:
                     with st.expander("View minority classes"):
                         for c in sorted(minority_classes):
-                            st.text(f"• {c}: {dataset_info['samples'].get(c, 0)} samples")
+                            st.text(
+                                f"• {c}: {dataset_info['samples'].get(c, 0)} samples"
+                            )
             with col2:
                 st.metric("Majority Classes", len(majority_classes))
 
@@ -334,14 +360,18 @@ def render_class_imbalance_handling(dataset_info):
             with cols[col_idx]:
                 count = dataset_info["samples"].get(cls, 0)
                 default_weight = 1.0 if count == 0 else (max_samples / count)
+                # Initialize weight in session state if not present
+                weight_key = f"weight_{cls}"
+                if weight_key not in st.session_state:
+                    st.session_state[weight_key] = min(default_weight, 10.0)
+
                 weights[cls] = st.number_input(
                     f"{cls} ({count} samples)",
                     min_value=0.1,
                     max_value=10.0,
-                    value=min(default_weight, 10.0),
                     step=0.1,
-                    key=f"weight_{cls}",
-                    help=f"Weight for {cls} class"
+                    key=weight_key,
+                    help=f"Weight for {cls} class",
                 )
 
         # Store weights in session state
@@ -361,10 +391,9 @@ def render_class_imbalance_handling(dataset_info):
             "Sampling Ratio",
             min_value=0.1,
             max_value=1.0,
-            value=0.5,
             step=0.1,
             key="smote_ratio",
-            help="Target ratio of minority to majority class after resampling"
+            help="Target ratio of minority to majority class after resampling",
         )
 
     elif strategy == "Undersampling":

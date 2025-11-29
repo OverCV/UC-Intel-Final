@@ -213,7 +213,7 @@ def _render_action_buttons(
                 "▶️ START TRAINING",
                 key=f"start_{exp_id}",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
                 disabled=not can_start or not models or not trainings,
             ):
                 if on_start:
@@ -228,30 +228,30 @@ def _render_action_buttons(
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            if st.button("⏸️ Pause", key=f"pause_{exp_id}", use_container_width=True):
+            if st.button("⏸️ Pause", key=f"pause_{exp_id}", width="stretch"):
                 if on_pause:
                     on_pause(exp_id)
 
         with col2:
-            if st.button("⏹️ Stop", key=f"stop_{exp_id}", use_container_width=True):
+            if st.button("⏹️ Stop", key=f"stop_{exp_id}", width="stretch"):
                 if on_stop:
                     on_stop(exp_id)
 
         with col3:
-            st.button("💾 Save", key=f"save_{exp_id}", use_container_width=True, disabled=True)
+            st.button("💾 Save", key=f"save_{exp_id}", width="stretch", disabled=True)
 
     elif status == "paused":
         col1, col2 = st.columns(2)
 
         with col1:
             if st.button(
-                "▶️ Resume", key=f"resume_{exp_id}", type="primary", use_container_width=True
+                "▶️ Resume", key=f"resume_{exp_id}", type="primary", width="stretch"
             ):
                 if on_start:
                     on_start(exp_id)
 
         with col2:
-            if st.button("⏹️ Stop", key=f"stop_{exp_id}", use_container_width=True):
+            if st.button("⏹️ Stop", key=f"stop_{exp_id}", width="stretch"):
                 if on_stop:
                     on_stop(exp_id)
 
@@ -263,7 +263,7 @@ def _render_action_buttons(
                 "📊 View Results",
                 key=f"results_{exp_id}",
                 type="primary",
-                use_container_width=True,
+                width="stretch",
             ):
                 if on_view_results:
                     on_view_results(exp_id)
@@ -278,7 +278,7 @@ def _render_action_buttons(
 
         with col1:
             if st.button(
-                "🔄 Retry", key=f"retry_{exp_id}", use_container_width=True
+                "🔄 Retry", key=f"retry_{exp_id}", width="stretch"
             ):
                 if on_start:
                     on_start(exp_id)

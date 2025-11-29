@@ -52,7 +52,7 @@ def render_loss_chart(history: dict, key: str):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"loss_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"loss_{key}")
 
 
 def render_accuracy_chart(history: dict, key: str):
@@ -91,7 +91,7 @@ def render_accuracy_chart(history: dict, key: str):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"acc_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"acc_{key}")
 
 
 def render_prf_chart(history: dict, key: str):
@@ -140,7 +140,7 @@ def render_prf_chart(history: dict, key: str):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"prf_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"prf_{key}")
 
 
 def render_lr_chart(history: dict, key: str):
@@ -173,7 +173,7 @@ def render_lr_chart(history: dict, key: str):
         showlegend=False,
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"lr_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"lr_{key}")
 
 
 def render_overfitting_gap_chart(history: dict, key: str):
@@ -216,7 +216,7 @@ def render_overfitting_gap_chart(history: dict, key: str):
         showlegend=False,
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"gap_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"gap_{key}")
 
 
 def render_train_val_f1_comparison(history: dict, key: str):
@@ -255,4 +255,4 @@ def render_train_val_f1_comparison(history: dict, key: str):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"f1cmp_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"f1cmp_{key}")

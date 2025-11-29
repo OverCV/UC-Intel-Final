@@ -54,7 +54,7 @@ def _render_model_library():
         st.header("Model Library")
 
     with col2:
-        if st.button("+ New Model", type="primary", use_container_width=True):
+        if st.button("+ New Model", type="primary", width="stretch"):
             st.session_state.model_editor_mode = "new"
             st.session_state.model_editor_name = ""
             st.rerun()
@@ -142,7 +142,7 @@ def _render_model_editor(num_classes: int):
     with col1:
         st.header("New Model" if is_new else "Edit Model")
     with col2:
-        if st.button("✕ Close", use_container_width=True):
+        if st.button("✕ Close", width="stretch"):
             st.session_state.model_editor_mode = None
             st.rerun()
 
@@ -230,7 +230,7 @@ def _render_save_to_library(model_name: str, model_config: dict, is_new: bool):
         if st.button(
             button_text,
             type="primary",
-            use_container_width=True,
+            width="stretch",
             disabled=not can_save,
         ):
             if is_new:

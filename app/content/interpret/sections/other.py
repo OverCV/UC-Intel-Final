@@ -132,7 +132,7 @@ def _display_activation_maps(max_filters: int):
             with col:
                 act_map = activations[filter_idx]
                 act_map = (act_map - act_map.min()) / (act_map.max() - act_map.min() + 1e-8)
-                st.image(act_map, caption=f"F{filter_idx}", use_container_width=True)
+                st.image(act_map, caption=f"F{filter_idx}", width="stretch")
 
 
 def render_filter_weights_section(exp_id: str):
@@ -225,5 +225,5 @@ def _display_filter_weights(max_filters: int):
                 st.image(
                     filter_img,
                     caption=f"F{filter_idx}",
-                    use_container_width=True,
+                    width="stretch",
                 )

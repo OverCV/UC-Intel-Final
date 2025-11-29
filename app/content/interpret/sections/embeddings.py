@@ -135,7 +135,7 @@ def render_embeddings(exp_id: str):
             xaxis_title="",
             yaxis_title="",
         )
-        st.plotly_chart(fig_true, use_container_width=True, key="embed_true")
+        st.plotly_chart(fig_true, width="stretch", key="embed_true")
 
     with col_correct:
         st.subheader("Correct vs Incorrect")
@@ -160,7 +160,7 @@ def render_embeddings(exp_id: str):
             xaxis_title="",
             yaxis_title="",
         )
-        st.plotly_chart(fig_correct, use_container_width=True, key="embed_correct")
+        st.plotly_chart(fig_correct, width="stretch", key="embed_correct")
 
     with col_pred:
         st.subheader("By Predicted")
@@ -177,7 +177,7 @@ def render_embeddings(exp_id: str):
             xaxis_title="",
             yaxis_title="",
         )
-        st.plotly_chart(fig_pred, use_container_width=True, key="embed_pred")
+        st.plotly_chart(fig_pred, width="stretch", key="embed_pred")
 
     n_correct = sum(1 for c in correct_colors if c == "Correct")
     st.caption(

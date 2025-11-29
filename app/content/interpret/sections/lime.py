@@ -110,7 +110,7 @@ def _display_lime_results():
 
     with col1:
         st.subheader("Original")
-        st.image(orig_img.resize((224, 224)), use_container_width=True)
+        st.image(orig_img.resize((224, 224)), width="stretch")
 
     with col2:
         st.subheader("Superpixels", help=LIME_TOOLTIPS["superpixels"])
@@ -120,7 +120,7 @@ def _display_lime_results():
             Image.fromarray(segments.astype(np.uint8)).resize((224, 224), Image.NEAREST)
         )
         boundaries = mark_boundaries(img_array / 255.0, seg_resized)
-        st.image(boundaries, use_container_width=True)
+        st.image(boundaries, width="stretch")
 
     with col3:
         st.subheader("Explanation", help="Green = supports prediction, Red = contradicts.")
@@ -138,7 +138,7 @@ def _display_lime_results():
         overlay[:, :, 1] = np.clip(overlay[:, :, 1] + pos_resized * 0.5, 0, 1)
         overlay[:, :, 0] = np.clip(overlay[:, :, 0] + neg_resized * 0.5, 0, 1)
 
-        st.image(overlay, use_container_width=True)
+        st.image(overlay, width="stretch")
 
     with st.expander("Segment Importance Scores"):
         top_segments = explanation["top_segments"]
@@ -148,4 +148,4 @@ def _display_lime_results():
             {"Segment": seg, "Importance": f"{importances[seg]:.4f}"}
             for seg in top_segments
         ]
-        st.dataframe(pd.DataFrame(data), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(data), width="stretch", hide_index=True)

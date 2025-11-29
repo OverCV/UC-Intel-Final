@@ -109,16 +109,16 @@ def render_gradcam(exp_id: str):
 
         with col1:
             st.subheader("Original")
-            st.image(img_resized, use_container_width=True)
+            st.image(img_resized, width="stretch")
 
         with col2:
             st.subheader("Heatmap", help=GRADCAM_TOOLTIPS["heatmap"])
             heatmap_colored = plt.cm.jet(heatmap)[:, :, :3]
-            st.image(heatmap_colored, use_container_width=True)
+            st.image(heatmap_colored, width="stretch")
 
         with col3:
             st.subheader("Overlay")
-            st.image(overlay, use_container_width=True)
+            st.image(overlay, width="stretch")
 
         st.divider()
         st.subheader("Predictions")
@@ -128,7 +128,7 @@ def render_gradcam(exp_id: str):
             {"Class": p["class_name"], "Confidence": f"{p['confidence'] * 100:.1f}%"}
             for p in predictions
         ])
-        st.dataframe(pred_df, use_container_width=True, hide_index=True)
+        st.dataframe(pred_df, width="stretch", hide_index=True)
 
     except Exception as e:
         st.error(f"Failed to load model: {e}")

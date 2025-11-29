@@ -144,7 +144,7 @@ def render_save(model_config: dict[str, Any]):
         if st.button(
             "Save Model Config",
             type="primary",
-            use_container_width=True,
+            width="stretch",
             disabled=not is_valid,
         ):
             save_model_config(model_config)

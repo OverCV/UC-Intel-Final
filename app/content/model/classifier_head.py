@@ -192,7 +192,7 @@ def _render_add_layer():
 
     with col2:
         st.write("")  # Spacing
-        if st.button("+ Add", use_container_width=True):
+        if st.button("+ Add", width="stretch"):
             _add_layer(selected_type)
             st.rerun()
 

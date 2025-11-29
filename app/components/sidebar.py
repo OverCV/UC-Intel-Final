@@ -59,7 +59,7 @@ def render_sidebar():
     if st.sidebar.button(
         "Delete Session",
         type="secondary",
-        use_container_width=True,
+        width="stretch",
         help="Delete current session and start fresh",
     ):
         _handle_delete_session()

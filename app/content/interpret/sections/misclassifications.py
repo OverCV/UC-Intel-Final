@@ -88,7 +88,7 @@ def _render_misclass_gallery(samples: list[dict], cols_per_row: int):
         for col, sample in zip(cols, row, strict=False):
             with col:
                 img = tensor_to_image(sample["image_tensor"])
-                st.image(img, use_container_width=True)
+                st.image(img, width="stretch")
 
                 col1, col2 = st.columns(2)
                 with col1:
@@ -115,4 +115,4 @@ def _render_error_distribution(samples: list[dict]):
             margin={"l": 200, "r": 20, "t": 20, "b": 20},
             yaxis={"autorange": "reversed"},
         )
-        st.plotly_chart(fig, use_container_width=True, key="misclass_dist_chart")
+        st.plotly_chart(fig, width="stretch", key="misclass_dist_chart")

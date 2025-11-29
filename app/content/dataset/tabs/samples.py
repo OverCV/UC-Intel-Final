@@ -11,9 +11,25 @@ import streamlit as st
 
 def render(dataset_info):
     """Render sample viewer and preprocessing preview"""
+    _init_samples_defaults()
     render_preprocessing_preview(dataset_info)
     st.divider()
     render_sample_viewer(dataset_info)
+
+
+def _init_samples_defaults():
+    """Initialize samples/preprocessing defaults if not in session state.
+
+    This must run BEFORE widgets render so widgets read from session_state.
+    """
+    defaults = {
+        "preprocessing_target_size": "224x224",
+        "preprocessing_normalization": "[0,1] Scale",
+        "preprocessing_color_mode": "RGB",
+    }
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
 
 
 def render_sample_viewer(dataset_info):
@@ -67,7 +83,6 @@ def render_preprocessing_preview(dataset_info):
         target_size = st.selectbox(
             "Target Size",
             ["224x224", "256x256", "299x299", "512x512"],
-            index=0,
             key="preprocessing_target_size",
         )
     with col2:
@@ -96,7 +111,7 @@ def render_preprocessing_preview(dataset_info):
         st.markdown("**Original Image**")
         try:
             original = Image.open(sample_path)
-            st.image(original, use_container_width=True)
+            st.image(original, width="stretch")
             st.caption(f"Size: {original.size[0]}x{original.size[1]}")
         except Exception as e:
             st.error(f"Error loading image: {e}")
@@ -114,7 +129,7 @@ def render_preprocessing_preview(dataset_info):
             elif color_mode == "RGB":
                 processed = processed.convert("RGB")
 
-            st.image(processed, use_container_width=True)
+            st.image(processed, width="stretch")
             st.caption(f"Size: {size}x{size}, Mode: {color_mode}")
         except Exception as e:
             st.error(f"Error processing: {e}")

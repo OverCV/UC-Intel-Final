@@ -49,13 +49,19 @@ def render():
 
 
 def load_saved_configuration():
-    """Auto-load saved dataset configuration into session state.
+    """Load saved dataset configuration into session state ONCE.
 
-    ALWAYS loads from saved config, overriding widget defaults.
-    This must run BEFORE widgets render to set correct initial values.
+    Only runs on first render to avoid overwriting user changes.
     """
+    # Skip if already loaded this session
+    if st.session_state.get("_dataset_config_loaded"):
+        return
+
     if not has_dataset_config():
         return
+
+    # Mark as loaded BEFORE loading to prevent re-entry
+    st.session_state._dataset_config_loaded = True
 
     config = get_dataset_config()
 
@@ -66,11 +72,28 @@ def load_saved_configuration():
     # Load split configuration
     if "split" in config:
         split_config = config["split"]
-        if "train" in split_config:
-            st.session_state.train_split = int(split_config["train"])
 
-        if "stratified" in split_config:
-            st.session_state.stratified_split = split_config["stratified"]
+        # Check split method
+        if split_config.get("method") == "cross_validation":
+            st.session_state.use_cross_validation = True
+            if "n_folds" in split_config:
+                st.session_state.n_folds = split_config["n_folds"]
+            if "stratified" in split_config:
+                st.session_state.stratified_kfold = split_config["stratified"]
+        else:
+            st.session_state.use_cross_validation = False
+            if "train" in split_config:
+                st.session_state.train_split = int(split_config["train"])
+            if "val" in split_config and "test" in split_config:
+                # Reverse calculate val_of_remaining from stored val percentage
+                train_pct = int(split_config.get("train", 70))
+                val_pct = split_config.get("val", 15)
+                remaining = 100 - train_pct
+                if remaining > 0:
+                    val_of_remaining = int((val_pct / remaining) * 100)
+                    st.session_state.val_split = val_of_remaining
+            if "stratified" in split_config:
+                st.session_state.stratified_split = split_config["stratified"]
 
         if "random_seed" in split_config:
             st.session_state.random_seed = split_config["random_seed"]
@@ -84,8 +107,20 @@ def load_saved_configuration():
         # Load custom augmentation settings
         if "custom" in aug_config and aug_config["preset"] == "Custom":
             custom = aug_config["custom"]
-            for key, value in custom.items():
-                session_key = f"aug_{key}"
+            # Map saved config keys to session state widget keys
+            key_mapping = {
+                "horizontal_flip": "aug_h_flip",
+                "vertical_flip": "aug_v_flip",
+                "rotation": "aug_rotation",
+                "rotation_angles": "aug_rotation_angles",
+                "brightness": "aug_brightness",
+                "brightness_range": "aug_brightness_range",
+                "contrast": "aug_contrast",
+                "contrast_range": "aug_contrast_range",
+                "gaussian_noise": "aug_noise",
+            }
+            for saved_key, value in custom.items():
+                session_key = key_mapping.get(saved_key, f"aug_{saved_key}")
                 st.session_state[session_key] = value
 
     # Load imbalance handling

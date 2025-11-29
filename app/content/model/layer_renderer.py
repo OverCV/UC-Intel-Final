@@ -46,7 +46,7 @@ def render_preset_selector():
     with col2:
         st.write("")  # Spacing
         st.write("")  # Spacing
-        if st.button("Load Preset", type="secondary", use_container_width=True):
+        if st.button("Load Preset", type="secondary", width="stretch"):
             load_preset(selected)
             st.rerun()
 
@@ -77,7 +77,7 @@ def render_add_layer_section():
     with col2:
         st.write("")  # Spacing
         st.write("")  # Spacing
-        if st.button("+ Add", type="primary", use_container_width=True):
+        if st.button("+ Add", type="primary", width="stretch"):
             add_layer(selected_type)
             st.rerun()
 

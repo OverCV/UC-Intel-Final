@@ -42,7 +42,7 @@ def render_confusion_matrix(test_results: dict, key: str):
         margin=dict(l=100, r=20, t=30, b=100),
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"cm_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"cm_{key}")
 
 
 def render_per_class_metrics(test_results: dict, key: str):
@@ -92,7 +92,7 @@ def render_per_class_metrics(test_results: dict, key: str):
         margin=dict(l=150, r=20, t=40, b=40),
     )
 
-    st.plotly_chart(fig, use_container_width=True, key=f"pcm_{key}")
+    st.plotly_chart(fig, width="stretch", key=f"pcm_{key}")
 
 
 def render_classification_table(test_results: dict):
@@ -134,7 +134,7 @@ def render_classification_table(test_results: dict):
     # Display with styling
     st.dataframe(
         df,
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         height=min(400, (len(rows) + 1) * 35 + 40),
     )
