@@ -1,0 +1,39 @@
+% =============================================================================
+% H3: Figuras
+% =============================================================================
+% INSTRUCCIONES: Coloca tus imágenes en Report/Figures/H3/ con estos nombres:
+%   - depth_comparison.png    (comparación curvas CNN-3 vs CNN-5)
+%   - cnn3_curves.png         (curvas de entrenamiento CNN-3)
+%   - cnn5_curves.png         (curvas de entrenamiento CNN-5)
+%   - confusion_matrix_cnn3.png (opcional)
+%   - confusion_matrix_cnn5.png (opcional)
+
+\subsection{Curvas de Entrenamiento}
+
+% Comparación lado a lado
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{Figures/H3/depth_comparison.png}
+    \caption{Comparación de curvas de entrenamiento entre CNN-3 y CNN-5. (a) Validation accuracy por época. (b) Validation loss por época. Se observa [TODO: describir diferencias].}
+    \label{fig:h3-depth-comparison}
+\end{figure}
+
+% Alternativa: figuras separadas
+% \begin{figure}[htbp]
+%     \centering
+%     \begin{subfigure}[b]{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{Figures/H3/cnn3_curves.png}
+%         \caption{CNN-3 (3 bloques)}
+%         \label{fig:h3-cnn3-curves}
+%     \end{subfigure}
+%     \hfill
+%     \begin{subfigure}[b]{0.48\textwidth}
+%         \centering
+%         \includegraphics[width=\textwidth]{Figures/H3/cnn5_curves.png}
+%         \caption{CNN-5 (5 bloques)}
+%         \label{fig:h3-cnn5-curves}
+%     \end{subfigure}
+%     \caption{Curvas de entrenamiento para arquitecturas de diferente profundidad.}
+%     \label{fig:h3-curves-comparison}
+% \end{figure}

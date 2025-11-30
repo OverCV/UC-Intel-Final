@@ -1,0 +1,58 @@
+% =============================================================================
+% H1: Tables - Comparación de Arquitecturas
+% =============================================================================
+
+% Tabla principal de resultados
+\begin{table}[h]
+\centering
+\caption{Comparación de rendimiento entre arquitecturas (Experimento H1)}
+\label{tab:h1-results}
+\begin{tabular}{lccccc}
+\hline
+\textbf{Modelo} & \textbf{Test Acc} & \textbf{Macro F1} & \textbf{Best Epoch} & \textbf{Tiempo} & \textbf{Esperado} \\
+\hline
+Conventional CNN (Baseline) & 72.39\%  & 74.01\%  & 9   & 39 min   & --       \\
+VGG-Mini-H1 (5 bloques)     & 61.30\%  & N/A      & 10  & 397 min  & $\geq$93\% \\
+ViT-Small                   & 74.92\%  & 76.48\%  & 10  & 76 min   & $\geq$91\% \\
+\textbf{ResNet50 (Fine-tuned)} & \textbf{96.30\%} & \textbf{95.35\%} & \textbf{6} & \textbf{57 min} & $\geq$96\% \\
+\hline
+\end{tabular}
+\end{table}
+
+% Tabla de hiperparámetros
+\begin{table}[h]
+\centering
+\caption{Hiperparámetros de entrenamiento para Experimento H1}
+\label{tab:h1-hyperparams}
+\begin{tabular}{lccc}
+\hline
+\textbf{Parámetro} & \textbf{CNN/Baseline} & \textbf{ResNet50} & \textbf{ViT-Small} \\
+\hline
+Optimizador        & Adam      & Adam          & AdamW      \\
+Learning rate      & 0.001     & 0.0001        & 0.0001     \\
+LR Scheduler       & ReduceLROnPlateau & Cosine Annealing & Cosine Annealing \\
+Batch size         & 32        & 32            & 32         \\
+Épocas máximas     & 100       & 100           & 100        \\
+Early stopping     & 15 épocas & 15 épocas     & 20 épocas  \\
+Weight Decay       & 0.0001    & 0.0001        & 0.01       \\
+\hline
+\end{tabular}
+\end{table}
+
+% Tabla de métricas detalladas ResNet50
+\begin{table}[h]
+\centering
+\caption{Métricas detalladas de ResNet50 Fine-tuned (mejor modelo)}
+\label{tab:h1-resnet-metrics}
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{Train} & \textbf{Validation} \\
+\hline
+Loss (final)       & 0.0378  & 0.1972  \\
+Accuracy           & 98.91\% & 97.85\% \\
+Precision (macro)  & --      & 95.23\% \\
+Recall (macro)     & --      & 95.55\% \\
+F1-Score (macro)   & 98.93\% & 95.35\% \\
+\hline
+\end{tabular}
+\end{table}

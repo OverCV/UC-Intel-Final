@@ -1,0 +1,33 @@
+% =============================================================================
+% H2: Figuras
+% =============================================================================
+% INSTRUCCIONES: Coloca tus imágenes en Report/Figures/H2/ con estos nombres:
+%   - augmentation_comparison.png  (comparación accuracy/loss con y sin aug)
+%   - minority_recall.png          (gráfico de barras recall por clase)
+%   - confusion_matrix_aug.png     (opcional: matriz de confusión con aug)
+
+\subsection{Visualización de Resultados}
+
+% Comparación de curvas de entrenamiento
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Figures/H2/augmentation_comparison.png}
+    \caption{Comparación de curvas de entrenamiento con y sin data augmentation. Se observa [TODO: describir diferencias en convergencia y overfitting].}
+    \label{fig:h2-augmentation-comparison}
+\end{figure}
+
+% Gráfico de recall por clase minoritaria
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figures/H2/minority_recall.png}
+    \caption{Comparación de recall por clase minoritaria. Las barras azules representan el modelo sin augmentation; las verdes, con augmentation moderada.}
+    \label{fig:h2-minority-recall}
+\end{figure}
+
+% Matriz de confusión (opcional)
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.85\textwidth]{Figures/H2/confusion_matrix_aug.png}
+%     \caption{Matriz de confusión del modelo entrenado con data augmentation.}
+%     \label{fig:h2-confusion-matrix}
+% \end{figure}

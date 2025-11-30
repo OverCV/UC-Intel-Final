@@ -1,0 +1,53 @@
+% =============================================================================
+% H1: Figuras
+% =============================================================================
+% INSTRUCCIONES: Coloca tus imágenes en Report/Figures/H1/ con estos nombres:
+%   - resnet50_loss.png
+%   - resnet50_accuracy.png
+%   - resnet50_f1.png
+%   - resnet50_confusion_matrix.png
+%   - baseline_curves.png (opcional)
+
+\subsection{Curvas de Entrenamiento}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Figures/H1/resnet50_loss.png}
+        \caption{Loss: Train vs Validation}
+        \label{fig:h1-resnet-loss}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{Figures/H1/resnet50_accuracy.png}
+        \caption{Accuracy: Train vs Validation}
+        \label{fig:h1-resnet-acc}
+    \end{subfigure}
+    \caption{Curvas de entrenamiento de ResNet50 Fine-tuned. Se observa convergencia rápida (mejor época: 6) y gap train-val controlado ($\sim$1\%), indicando buena generalización.}
+    \label{fig:h1-resnet-curves}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figures/H1/resnet50_f1.png}
+    \caption{Evolución de Precision, Recall y F1-Score durante el entrenamiento de ResNet50. Las tres métricas convergen a valores superiores al 95\%.}
+    \label{fig:h1-resnet-prf1}
+\end{figure}
+
+% Matriz de confusión
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{Figures/H1/resnet50_confusion_matrix.png}
+    \caption{Matriz de confusión de ResNet50 sobre el conjunto de prueba. Los valores en la diagonal representan clasificaciones correctas por familia de malware.}
+    \label{fig:h1-confusion-matrix}
+\end{figure}
+
+% Comparación visual (opcional)
+% \begin{figure}[htbp]
+%     \centering
+%     \includegraphics[width=0.8\textwidth]{Figures/H1/baseline_curves.png}
+%     \caption{Curvas de entrenamiento del modelo baseline (Conventional CNN) para comparación.}
+%     \label{fig:h1-baseline-curves}
+% \end{figure}

@@ -1,0 +1,57 @@
+% =============================================================================
+% H2: Tables - Impacto de Data Augmentation
+% =============================================================================
+
+% Tabla principal de resultados
+\begin{table}[h]
+\centering
+\caption{Impacto de data augmentation en métricas globales}
+\label{tab:h2-results}
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{Sin Augmentation} & \textbf{Con Augmentation} \\
+\hline
+Accuracy global              & TODO\%  & TODO\%  \\
+F1-macro global              & TODO\%  & TODO\%  \\
+Tiempo de entrenamiento      & TODO min & TODO min \\
+\hline
+\end{tabular}
+\end{table}
+
+% Tabla de recall por clase minoritaria
+\begin{table}[h]
+\centering
+\caption{Recall por clase minoritaria antes y después de augmentation}
+\label{tab:h2-per-class}
+\begin{tabular}{lccc}
+\hline
+\textbf{Familia} & \textbf{Sin Aug} & \textbf{Con Aug} & \textbf{$\Delta$} \\
+\hline
+% TODO: Completar con las 5 familias minoritarias
+Familia 1 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
+Familia 2 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
+Familia 3 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
+Familia 4 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
+Familia 5 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
+\hline
+\textbf{Promedio} & \textbf{TODO\%} & \textbf{TODO\%} & \textbf{+TODO pp} \\
+\hline
+\end{tabular}
+\end{table}
+
+% Tabla de configuración de augmentation
+\begin{table}[h]
+\centering
+\caption{Configuración de data augmentation aplicada}
+\label{tab:h2-augmentation-config}
+\begin{tabular}{lc}
+\hline
+\textbf{Transformación} & \textbf{Parámetros} \\
+\hline
+Rotación aleatoria     & $\pm$TODO° \\
+Flip horizontal        & probabilidad TODO \\
+Variación de brillo    & $\pm$TODO\% \\
+Variación de contraste & $\pm$TODO\% \\
+\hline
+\end{tabular}
+\end{table}

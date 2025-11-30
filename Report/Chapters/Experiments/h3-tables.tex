@@ -1,0 +1,47 @@
+% =============================================================================
+% H3: Tables - Efecto de la Profundidad en CNN
+% =============================================================================
+
+% Tabla principal de comparación
+\begin{table}[h]
+\centering
+\caption{Comparación CNN-3 vs CNN-5 bloques}
+\label{tab:h3-results}
+\begin{tabular}{lcc}
+\hline
+\textbf{Métrica} & \textbf{CNN-3} & \textbf{CNN-5} \\
+\hline
+Accuracy             & TODO\%  & TODO\%  \\
+Precision (macro)    & TODO\%  & TODO\%  \\
+Recall (macro)       & TODO\%  & TODO\%  \\
+F1-score (macro)     & TODO\%  & TODO\%  \\
+\hline
+Épocas convergencia  & TODO    & TODO    \\
+Tiempo/época         & TODO s  & TODO s  \\
+Tiempo total         & TODO min & TODO min \\
+\hline
+Parámetros           & TODO M  & TODO M  \\
+\hline
+\end{tabular}
+\end{table}
+
+% Tabla de arquitecturas
+\begin{table}[h]
+\centering
+\caption{Configuración de arquitecturas CNN-3 y CNN-5}
+\label{tab:h3-architectures}
+\begin{tabular}{lcc}
+\hline
+\textbf{Componente} & \textbf{CNN-3} & \textbf{CNN-5} \\
+\hline
+Bloque 1 (filtros)  & 32   & 32   \\
+Bloque 2 (filtros)  & 64   & 64   \\
+Bloque 3 (filtros)  & 128  & 128  \\
+Bloque 4 (filtros)  & --   & 256  \\
+Bloque 5 (filtros)  & --   & 512  \\
+\hline
+Estructura bloque   & \multicolumn{2}{c}{Conv + BN + ReLU + MaxPool + Dropout} \\
+Clasificador        & \multicolumn{2}{c}{GlobalAvgPool + Dense + Softmax} \\
+\hline
+\end{tabular}
+\end{table}

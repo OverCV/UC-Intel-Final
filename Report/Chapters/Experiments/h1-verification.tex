@@ -1,0 +1,41 @@
+% =============================================================================
+% H1: Verificación de Hipótesis
+% =============================================================================
+
+\subsection{Verificación de Hipótesis H1}
+
+\begin{tcolorbox}[colback=green!5!white, colframe=green!75!black, title=Verificación H1]
+\textbf{Hipótesis:} ResNet50 pre-entrenado superará a CNN custom y ViT-Small en accuracy y F1-score macro.
+
+\textbf{Resultados obtenidos:}
+\begin{itemize}
+    \item ResNet50 Fine-tuned: 96.30\% accuracy, 95.35\% F1-macro
+    \item ViT-Small: 74.92\% accuracy, 76.48\% F1-macro
+    \item CNN custom (5 bloques): 61.30\% accuracy
+    \item Baseline convencional: 72.39\% accuracy, 74.01\% F1-macro
+\end{itemize}
+
+\textbf{Conclusión:} \textcolor{green!60!black}{\textbf{HIPÓTESIS CONFIRMADA}}
+
+ResNet50 superó significativamente a todas las arquitecturas evaluadas, demostrando la efectividad del transfer learning para clasificación de malware visual con datasets de tamaño moderado.
+\end{tcolorbox}
+
+\subsubsection{Análisis de Resultados por Arquitectura}
+
+\begin{enumerate}
+    \item \textbf{ResNet50 (96.30\%):} El transfer learning desde ImageNet demostró ser altamente efectivo. Las características de bajo nivel (bordes, texturas) aprendidas en imágenes naturales son transferibles al dominio de malware visual.
+
+    \item \textbf{ViT-Small (74.92\%):} El rendimiento limitado es consistente con la literatura: los transformers requieren datasets significativamente más grandes. MalImg ($\sim$9,300 muestras) es insuficiente para aprender representaciones efectivas desde cero.
+
+    \item \textbf{CNN de 5 bloques (61.30\%):} Resultado inesperado. La arquitectura profunda sin conexiones residuales presentó dificultades de optimización, resultando en peor rendimiento que el baseline simple (72.39\%).
+\end{enumerate}
+
+\subsubsection{Implicaciones Prácticas}
+
+\begin{itemize}
+    \item Para clasificación de malware visual con datasets limitados, \textbf{transfer learning con ResNet50 es la opción recomendada}.
+
+    \item Arquitecturas muy profundas sin skip connections deben evitarse en favor de modelos pre-entrenados.
+
+    \item Vision Transformers requieren datasets significativamente más grandes o pre-entrenamiento específico del dominio.
+\end{itemize}

@@ -1,0 +1,55 @@
+% =============================================================================
+% H1: Análisis de Resultados
+% =============================================================================
+
+\subsection{Análisis de Resultados}
+
+\subsubsection{ResNet50: Superioridad del Transfer Learning}
+
+ResNet50 con fine-tuning alcanzó el mejor rendimiento con 96.30\% de accuracy y 95.35\% de F1-macro, confirmando la efectividad del transfer learning para datasets de tamaño moderado. Observaciones clave:
+
+\begin{itemize}
+    \item \textbf{Convergencia rápida:} Alcanzó su mejor rendimiento en solo 6 épocas, significativamente más rápido que las otras arquitecturas.
+
+    \item \textbf{Overfitting controlado:} El gap entre train (98.91\%) y validation (97.85\%) accuracy fue de apenas 1.06\%, indicando buena generalización.
+
+    \item \textbf{Transferencia efectiva:} Las características de bajo nivel aprendidas en ImageNet (bordes, texturas, patrones) resultaron transferibles al dominio de imágenes de malware.
+
+    \item \textbf{Eficiencia:} Con 57 minutos de entrenamiento, fue más eficiente que ViT (76 min) y dramáticamente más eficiente que la CNN de 5 bloques (397 min).
+\end{itemize}
+
+\subsubsection{ViT-Small: Limitaciones con Datasets Pequeños}
+
+Vision Transformer alcanzó 74.92\% de accuracy, por debajo del umbral esperado de 91\%. Este resultado es consistente con la literatura que indica que los transformers requieren datasets significativamente más grandes:
+
+\begin{itemize}
+    \item \textbf{Tamaño insuficiente:} MalImg contiene aproximadamente 9,300 muestras, muy por debajo de los millones típicamente requeridos para entrenar transformers desde cero.
+
+    \item \textbf{Falta de pre-entrenamiento:} A diferencia de ResNet50, ViT-Small fue entrenado desde cero, sin aprovechar conocimiento previo.
+
+    \item \textbf{Complejidad del mecanismo de atención:} Los transformers tienen más parámetros a optimizar, lo que dificulta el aprendizaje con datos limitados.
+\end{itemize}
+
+\subsubsection{CNN de 5 Bloques: Hallazgo Inesperado}
+
+El resultado más sorprendente fue el bajo rendimiento de la CNN de 5 bloques (61.30\%), significativamente inferior al baseline convencional (72.39\%):
+
+\begin{itemize}
+    \item \textbf{Arquitectura sobredimensionada:} 5 bloques convolucionales con progresión 32$\rightarrow$64$\rightarrow$128$\rightarrow$256$\rightarrow$512 filtros resultó excesiva para el dataset.
+
+    \item \textbf{Dificultad de optimización:} El tiempo de entrenamiento extremo (397 minutos) sugiere problemas de convergencia.
+
+    \item \textbf{Posible vanishing gradients:} La profundidad sin conexiones residuales puede haber dificultado el flujo de gradientes.
+
+    \item \textbf{Lección aprendida:} Más profundidad no garantiza mejor rendimiento; la arquitectura debe ser proporcional al tamaño y complejidad del dataset.
+\end{itemize}
+
+\subsubsection{Baseline Convencional como Referencia}
+
+El modelo convencional (JorgeNet) con 72.39\% de accuracy proporciona un punto de referencia importante:
+
+\begin{itemize}
+    \item Demuestra que arquitecturas simples y bien diseñadas pueden ser competitivas.
+    \item Superó a la CNN de 5 bloques, evidenciando que la simplicidad puede ser ventajosa.
+    \item El gap de 24 puntos porcentuales con ResNet50 cuantifica el valor del transfer learning.
+\end{itemize}

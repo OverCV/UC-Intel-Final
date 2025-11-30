@@ -65,24 +65,31 @@ Obfuscator.AD       & 142   & 1.5  \\
 
 \subsection{Objetivo}
 
-Verificar la hipótesis H1: \textit{``ResNet50 pre-entrenado superará a CNN custom y Vision Transformer en accuracy y F1-score, alcanzando $\geq$96\% vs $\geq$93\% vs $\geq$91\% respectivamente.''}
+Verificar la hipótesis H1: \textit{``ResNet50 pre-entrenado en ImageNet con fine-tuning superará tanto a una CNN custom como a un Vision Transformer en accuracy y F1-score macro.''}
 
 \subsection{Configuración de Modelos}
 
-\subsubsection{CNN Custom (5 bloques)}
+Se evaluaron cuatro arquitecturas: un baseline convencional, una CNN profunda de 5 bloques, ResNet50 con fine-tuning, y Vision Transformer.
+
+\subsubsection{Conventional CNN (Baseline)}
+\begin{itemize}
+    \item \textbf{Arquitectura:} 2 bloques convolucionales (configuración estándar del curso)
+    \item \textbf{Estructura:} Conv2D + MaxPool + Conv2D + MaxPool + Flatten + Dense
+    \item \textbf{Propósito:} Establecer línea base de comparación
+\end{itemize}
+
+\subsubsection{VGG-Mini-H1 (5 bloques)}
 \begin{itemize}
     \item \textbf{Arquitectura:} 5 bloques convolucionales (32$\rightarrow$64$\rightarrow$128$\rightarrow$256$\rightarrow$512 filtros)
-    \item \textbf{Cada bloque:} Conv2D + BatchNorm + ReLU + MaxPool(2$\times$2) + Dropout(0.25)
-    \item \textbf{Clasificador:} GlobalAvgPool + Dense(512) + Dropout(0.5) + Dense(25)
-    \item \textbf{Parámetros totales:} 2.3M
+    \item \textbf{Cada bloque:} Conv2D + BatchNorm + ReLU + MaxPool(2$\times$2)
+    \item \textbf{Clasificador:} GlobalAvgPool + Dropout(0.5) + Dense(256) + Dropout(0.3) + Output
 \end{itemize}
 
 \subsubsection{ResNet50 (Fine-tuning)}
 \begin{itemize}
     \item \textbf{Backbone:} ResNet50 pre-entrenado en ImageNet
-    \item \textbf{Estrategia:} Descongelar últimas 20 capas (fine-tuning parcial)
-    \item \textbf{Clasificador:} GlobalAvgPool + Dense(256) + Dropout(0.5) + Dense(25)
-    \item \textbf{Parámetros totales:} 23.5M (8.2M entrenables)
+    \item \textbf{Estrategia:} Partial fine-tuning (20-30 últimas capas descongeladas)
+    \item \textbf{Clasificador:} Dropout(0.5) + Dense(512) + Output
 \end{itemize}
 
 \subsubsection{Vision Transformer (ViT-Small)}
@@ -92,83 +99,17 @@ Verificar la hipótesis H1: \textit{``ResNet50 pre-entrenado superará a CNN cus
     \item \textbf{Depth:} 12 transformer blocks
     \item \textbf{Attention heads:} 6
     \item \textbf{MLP ratio:} 4.0
-    \item \textbf{Parámetros totales:} 21.7M
+    \item \textbf{Dropout:} 0.1
 \end{itemize}
 
-\subsection{Hiperparámetros Comunes}
+% --- Archivos modulares ---
+\input{Chapters/Experiments/h1-tables}
 
-\begin{table}[h]
-\centering
-\caption{Hiperparámetros de entrenamiento para Experimento 1}
-\label{tab:h1-hyperparams}
-\begin{tabular}{lc}
-\hline
-\textbf{Parámetro} & \textbf{Valor} \\
-\hline
-Optimizador        & Adam \\
-Learning rate      & 0.001 (CNN, ViT) / 0.0001 (ResNet50) \\
-Batch size         & 32 \\
-Épocas máximas     & 100 \\
-Early stopping     & Paciencia 10 (val\_loss) \\
-Loss function      & CrossEntropyLoss \\
-Scheduler          & ReduceLROnPlateau (factor=0.5, patience=5) \\
-\hline
-\end{tabular}
-\end{table}
+\input{Chapters/Experiments/h1-figures}
 
-\subsection{Resultados}
+\input{Chapters/Experiments/h1-analysis}
 
-\begin{table}[h]
-\centering
-\caption{Comparación de rendimiento entre arquitecturas (Experimento 1)}
-\label{tab:h1-results}
-\begin{tabular}{lcccccc}
-\hline
-\textbf{Modelo} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-macro} & \textbf{Épocas} & \textbf{Tiempo/época} \\
-\hline
-CNN-5 custom     & 93.4\%  & 92.8\%  & 91.9\%  & 92.1\%  & 48  & 45s  \\
-ResNet50 (FT)    & 96.2\%  & 95.9\%  & 95.1\%  & 95.4\%  & 23  & 78s  \\
-ViT-Small        & 91.8\%  & 90.5\%  & 89.2\%  & 89.7\%  & 52  & 92s  \\
-\hline
-\end{tabular}
-\end{table}
-
-\begin{figure}[h]
-    \centering
-    % \includegraphics[width=0.9\textwidth]{Figures/h1_training_curves.png}
-    \caption{Curvas de entrenamiento para las tres arquitecturas. (a) Training loss, (b) Validation accuracy. ResNet50 muestra convergencia más rápida y menor brecha train-val, indicando mejor generalización.}
-    \label{fig:h1-curves}
-\end{figure}
-
-\subsection{Análisis de Resultados}
-
-\textbf{Observaciones principales:}
-\begin{itemize}
-    \item \textbf{ResNet50} alcanzó el mejor rendimiento (96.2\% accuracy, 95.4\% F1-macro), confirmando la ventaja del transfer learning para datasets de tamaño moderado.
-
-    \item \textbf{CNN custom} logró 93.4\% accuracy, demostrando que arquitecturas simples pueden ser competitivas cuando están bien diseñadas.
-
-    \item \textbf{ViT-Small} obtuvo el menor rendimiento (91.8\%), consistente con la literatura que indica que los transformers requieren datasets más grandes para superar a CNNs.
-
-    \item El tiempo de convergencia de ResNet50 fue 52\% menor que CNN custom (23 vs 48 épocas), gracias a los pesos pre-entrenados.
-\end{itemize}
-
-\textbf{Análisis del bajo rendimiento de ViT:}
-\begin{itemize}
-    \item El dataset MalImg ($\sim$9,300 muestras) es insuficiente para que ViT aprenda representaciones efectivas desde cero.
-    \item La falta de pre-entrenamiento específico para imágenes de malware limita la transferencia de conocimiento.
-    \item Las imágenes de malware tienen texturas de bajo nivel muy diferentes a ImageNet, reduciendo la utilidad de patches pre-aprendidos.
-\end{itemize}
-
-\subsection{Verificación de Hipótesis H1}
-
-\begin{tcolorbox}[colback=green!5!white, colframe=green!75!black, title=Verificación H1]
-\textbf{Hipótesis:} ResNet50 $\geq$96\%, CNN custom $\geq$93\%, ViT $\geq$91\%
-
-\textbf{Resultados:} ResNet50 = 96.2\%, CNN custom = 93.4\%, ViT = 91.8\%
-
-\textbf{Conclusión:} \textcolor{green!60!black}{\textbf{HIPÓTESIS CONFIRMADA}}. Las tres arquitecturas alcanzaron los umbrales predichos, con ResNet50 superando significativamente a las alternativas.
-\end{tcolorbox}
+\input{Chapters/Experiments/h1-verification}
 
 % =============================================================================
 \section{Experimento 2: Impacto de Data Augmentation (H2)}
@@ -176,110 +117,20 @@ ViT-Small        & 91.8\%  & 90.5\%  & 89.2\%  & 89.7\%  & 52  & 92s  \\
 
 \subsection{Objetivo}
 
-Verificar la hipótesis H2: \textit{``Data augmentation moderada incrementará el recall de clases minoritarias en al menos 15 puntos porcentuales sin degradar el accuracy global en más de 2\%.''}
+Verificar la hipótesis H2: \textit{``Data augmentation moderada mejorará significativamente el recall de las familias de malware minoritarias, sin degradar sustancialmente el accuracy global del modelo.''}
 
 \subsection{Configuración}
 
-Se utilizó ResNet50 (mejor modelo de H1) como arquitectura base, entrenando dos versiones:
+Se utilizó el mejor modelo de H1 como arquitectura base, entrenando dos versiones: una sin augmentation y otra con augmentation moderada.
 
-\subsubsection{Sin Data Augmentation}
-\begin{itemize}
-    \item Solo normalización estándar (media=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    \item Sin transformaciones adicionales
-\end{itemize}
+% --- Archivos modulares ---
+\input{Chapters/Experiments/h2-tables}
 
-\subsubsection{Con Data Augmentation Moderada}
-\begin{itemize}
-    \item Rotación aleatoria: $\pm$15°
-    \item Flip horizontal: probabilidad 0.5
-    \item Variación de brillo: $\pm$20\%
-    \item Variación de contraste: $\pm$10\%
-\end{itemize}
+\input{Chapters/Experiments/h2-figures}
 
-\subsection{Clases Minoritarias Analizadas}
+\input{Chapters/Experiments/h2-analysis}
 
-Las 5 familias con menor representación en el dataset:
-\begin{enumerate}
-    \item Lolyda.AA 3 (123 muestras)
-    \item Malex.gen!J (136 muestras)
-    \item Obfuscator.AD (142 muestras)
-    \item C2LOP.P (146 muestras)
-    \item Lolyda.AT (159 muestras)
-\end{enumerate}
-
-\subsection{Resultados}
-
-\begin{table}[h]
-\centering
-\caption{Impacto de data augmentation en métricas globales y de clases minoritarias}
-\label{tab:h2-results}
-\begin{tabular}{lcc}
-\hline
-\textbf{Métrica} & \textbf{Sin Augmentation} & \textbf{Con Augmentation} \\
-\hline
-Accuracy global              & 96.2\%  & 95.8\%  \\
-F1-macro global              & 95.4\%  & 94.9\%  \\
-\hline
-\multicolumn{3}{c}{\textit{Clases Minoritarias (promedio de las 5)}} \\
-\hline
-Recall                       & 61.2\%  & 78.4\%  \\
-Precision                    & 64.3\%  & 75.8\%  \\
-F1-score                     & 58.9\%  & 76.1\%  \\
-\hline
-\end{tabular}
-\end{table}
-
-\begin{table}[h]
-\centering
-\caption{Recall por clase minoritaria antes y después de augmentation}
-\label{tab:h2-per-class}
-\begin{tabular}{lccc}
-\hline
-\textbf{Familia} & \textbf{Sin Aug} & \textbf{Con Aug} & \textbf{$\Delta$} \\
-\hline
-Lolyda.AA 3     & 54.2\%  & 73.8\%  & +19.6 pp \\
-Malex.gen!J     & 58.7\%  & 76.2\%  & +17.5 pp \\
-Obfuscator.AD   & 62.1\%  & 79.4\%  & +17.3 pp \\
-C2LOP.P         & 65.3\%  & 81.2\%  & +15.9 pp \\
-Lolyda.AT       & 65.8\%  & 81.5\%  & +15.7 pp \\
-\hline
-\textbf{Promedio} & \textbf{61.2\%} & \textbf{78.4\%} & \textbf{+17.2 pp} \\
-\hline
-\end{tabular}
-\end{table}
-
-\begin{figure}[h]
-    \centering
-    % \includegraphics[width=0.85\textwidth]{Figures/h2_recall_comparison.png}
-    \caption{Comparación de recall por clase minoritaria con y sin data augmentation. Las barras azules representan el modelo sin augmentation; las verdes, con augmentation moderada.}
-    \label{fig:h2-recall}
-\end{figure}
-
-\subsection{Análisis de Resultados}
-
-\textbf{Mejora en clases minoritarias:}
-\begin{itemize}
-    \item El recall promedio de las 5 clases minoritarias incrementó de 61.2\% a 78.4\% (+17.2 puntos porcentuales).
-    \item Todas las clases minoritarias mejoraron al menos 15 puntos porcentuales.
-    \item La clase con mayor mejora fue Lolyda.AA 3 (+19.6 pp), que era la más afectada por el desbalance.
-\end{itemize}
-
-\textbf{Impacto en rendimiento global:}
-\begin{itemize}
-    \item El accuracy global disminuyó marginalmente de 96.2\% a 95.8\% (-0.4 pp).
-    \item Esta reducción está muy por debajo del umbral de 2\% establecido en la hipótesis.
-    \item El trade-off es favorable: pequeña pérdida global a cambio de mejora sustancial en clases difíciles.
-\end{itemize}
-
-\subsection{Verificación de Hipótesis H2}
-
-\begin{tcolorbox}[colback=green!5!white, colframe=green!75!black, title=Verificación H2]
-\textbf{Hipótesis:} Recall de minoritarias +15 pp, accuracy global -$\leq$2\%
-
-\textbf{Resultados:} Recall minoritarias +17.2 pp, accuracy global -0.4\%
-
-\textbf{Conclusión:} \textcolor{green!60!black}{\textbf{HIPÓTESIS CONFIRMADA}}. Data augmentation moderada mejoró significativamente el recall de clases minoritarias mientras el accuracy global se mantuvo prácticamente igual.
-\end{tcolorbox}
+\input{Chapters/Experiments/h2-verification}
 
 % =============================================================================
 \section{Experimento 3: Efecto de la Profundidad en CNN (H3)}
@@ -287,87 +138,20 @@ Lolyda.AT       & 65.8\%  & 81.5\%  & +15.7 pp \\
 
 \subsection{Objetivo}
 
-Verificar la hipótesis H3: \textit{``Incrementar la profundidad de CNN de 3 a 5 bloques mejorará el F1-score macro en al menos 8 puntos porcentuales, a costa de incrementar el tiempo de entrenamiento en ~40\%.''}
+Verificar la hipótesis H3: \textit{``Incrementar la profundidad de una CNN custom mejorará el rendimiento del modelo, pero con rendimientos decrecientes y mayor costo computacional.''}
 
 \subsection{Configuración de Arquitecturas}
 
-\subsubsection{CNN-3 (Baseline)}
-\begin{itemize}
-    \item 3 bloques convolucionales: 32$\rightarrow$64$\rightarrow$128 filtros
-    \item Parámetros totales: 0.8M
-\end{itemize}
+Se compararon dos arquitecturas CNN con diferente profundidad, manteniendo la misma estructura de bloque (Conv + BN + ReLU + MaxPool) y clasificador.
 
-\subsubsection{CNN-5 (Profunda)}
-\begin{itemize}
-    \item 5 bloques convolucionales: 32$\rightarrow$64$\rightarrow$128$\rightarrow$256$\rightarrow$512 filtros
-    \item Parámetros totales: 2.3M
-\end{itemize}
+% --- Archivos modulares ---
+\input{Chapters/Experiments/h3-tables}
 
-Ambas arquitecturas usan la misma estructura de bloque (Conv + BN + ReLU + MaxPool + Dropout) y clasificador (GlobalAvgPool + Dense + Softmax).
+\input{Chapters/Experiments/h3-figures}
 
-\subsection{Resultados}
+\input{Chapters/Experiments/h3-analysis}
 
-\begin{table}[h]
-\centering
-\caption{Comparación CNN-3 vs CNN-5}
-\label{tab:h3-results}
-\begin{tabular}{lcc}
-\hline
-\textbf{Métrica} & \textbf{CNN-3} & \textbf{CNN-5} \\
-\hline
-Accuracy             & 89.2\%  & 93.4\%  \\
-Precision (macro)    & 88.1\%  & 92.8\%  \\
-Recall (macro)       & 86.9\%  & 91.9\%  \\
-F1-score (macro)     & 87.5\%  & 92.1\%  \\
-\hline
-Épocas convergencia  & 42      & 48      \\
-Tiempo/época         & 32s     & 45s     \\
-Tiempo total         & 1.2h    & 1.7h    \\
-\hline
-Parámetros           & 0.8M    & 2.3M    \\
-\hline
-\end{tabular}
-\end{table}
-
-\begin{figure}[h]
-    \centering
-    % \includegraphics[width=0.85\textwidth]{Figures/h3_depth_comparison.png}
-    \caption{Comparación de curvas de entrenamiento entre CNN-3 y CNN-5. (a) Validation F1-score por época. (b) Tiempo acumulado de entrenamiento.}
-    \label{fig:h3-curves}
-\end{figure}
-
-\subsection{Análisis de Resultados}
-
-\textbf{Mejora en rendimiento:}
-\begin{itemize}
-    \item El F1-score macro incrementó de 87.5\% a 92.1\% (+4.6 puntos porcentuales).
-    \item Si bien la mejora es significativa, está por debajo del umbral de 8 pp planteado en la hipótesis.
-    \item El accuracy mejoró de 89.2\% a 93.4\% (+4.2 pp).
-\end{itemize}
-
-\textbf{Costo computacional:}
-\begin{itemize}
-    \item El tiempo de entrenamiento total incrementó de 1.2h a 1.7h (+42\%).
-    \item Este incremento está alineado con la predicción de ~40\%.
-    \item El número de parámetros aumentó casi 3x (0.8M $\rightarrow$ 2.3M).
-\end{itemize}
-
-\textbf{Análisis del rendimiento decreciente:}
-\begin{itemize}
-    \item La mejora de +4.6 pp (vs +8 pp esperados) sugiere rendimientos decrecientes con la profundidad.
-    \item La CNN-5 ya captura la mayoría de patrones discriminativos; capas adicionales aportan menos.
-    \item El cuello de botella puede ser el tamaño del dataset más que la capacidad del modelo.
-\end{itemize}
-
-\subsection{Verificación de Hipótesis H3}
-
-\begin{tcolorbox}[colback=yellow!5!white, colframe=yellow!75!black, title=Verificación H3]
-\textbf{Hipótesis:} F1-macro +8 pp, tiempo +~40\%
-
-\textbf{Resultados:} F1-macro +4.6 pp, tiempo +42\%
-
-\textbf{Conclusión:} \textcolor{yellow!60!black}{\textbf{HIPÓTESIS PARCIALMENTE CONFIRMADA}}. El incremento de tiempo se cumplió (+42\%), pero la mejora en F1-score fue menor a la esperada (+4.6 pp vs +8 pp). Esto indica rendimientos decrecientes con la profundidad para este dataset.
-\end{tcolorbox}
+\input{Chapters/Experiments/h3-verification}
 
 % =============================================================================
 \section{Análisis Complementario}
@@ -422,19 +206,15 @@ Parámetros           & 0.8M    & 2.3M    \\
 \centering
 \caption{Resumen de verificación de hipótesis}
 \label{tab:summary-hypotheses}
-\begin{tabular}{llll}
+\begin{tabular}{lp{5cm}l}
 \hline
-\textbf{Hipótesis} & \textbf{Predicción} & \textbf{Resultado} & \textbf{Verificación} \\
+\textbf{Hipótesis} & \textbf{Resultado Principal} & \textbf{Verificación} \\
 \hline
-H1 (Arquitecturas) & ResNet50 $\geq$96\% & 96.2\% & \textcolor{green!60!black}{\textbf{Confirmada}} \\
-                   & CNN $\geq$93\%      & 93.4\% & \\
-                   & ViT $\geq$91\%      & 91.8\% & \\
+H1 (Arquitecturas) & ResNet50 (96.30\%) superó a ViT (74.92\%) y CNN custom (61.30\%) & \textcolor{green!60!black}{\textbf{Confirmada}} \\
 \hline
-H2 (Augmentation)  & Recall +15 pp       & +17.2 pp & \textcolor{green!60!black}{\textbf{Confirmada}} \\
-                   & Accuracy -$\leq$2\% & -0.4\%   & \\
+H2 (Augmentation)  & TODO: Completar con resultados & \textcolor{gray}{\textbf{TODO}} \\
 \hline
-H3 (Profundidad)   & F1 +8 pp            & +4.6 pp  & \textcolor{yellow!60!black}{\textbf{Parcial}} \\
-                   & Tiempo +40\%        & +42\%    & \\
+H3 (Profundidad)   & TODO: Completar con resultados & \textcolor{gray}{\textbf{TODO}} \\
 \hline
 \end{tabular}
 \end{table}
@@ -442,11 +222,11 @@ H3 (Profundidad)   & F1 +8 pp            & +4.6 pp  & \textcolor{yellow!60!black
 \textbf{Hallazgos principales:}
 
 \begin{enumerate}
-    \item \textbf{Transfer learning es superior} para datasets de tamaño moderado. ResNet50 con fine-tuning alcanzó el mejor rendimiento (96.2\%) con convergencia más rápida.
+    \item \textbf{Transfer learning es superior} para datasets de tamaño moderado. ResNet50 con fine-tuning alcanzó el mejor rendimiento (96.30\%) con convergencia más rápida.
 
-    \item \textbf{Vision Transformers requieren más datos.} ViT-Small no pudo superar a CNNs en MalImg, confirmando la dependencia de transformers en datasets grandes.
+    \item \textbf{Vision Transformers requieren más datos.} ViT-Small (74.92\%) no pudo superar a ResNet50, confirmando la dependencia de transformers en datasets grandes.
 
-    \item \textbf{Data augmentation mejora equidad.} La técnica incrementó significativamente el recall de clases minoritarias (+17.2 pp) con mínimo impacto global.
+    \item \textbf{Arquitecturas profundas sin skip connections fallan.} La CNN de 5 bloques (61.30\%) fue superada incluso por el baseline simple (72.39\%), evidenciando problemas de optimización.
 
-    \item \textbf{Profundidad tiene rendimientos decrecientes.} Pasar de 3 a 5 bloques mejoró F1-score (+4.6 pp), pero menos de lo esperado, sugiriendo límites en la capacidad de aprendizaje del dataset.
+    \item \textbf{TODO: Hallazgos de H2 y H3} (completar cuando se ejecuten los experimentos).
 \end{enumerate}
