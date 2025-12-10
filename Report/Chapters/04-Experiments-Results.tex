@@ -146,7 +146,6 @@ Verificar la hipótesis H3: \textit{``Incrementar la profundidad de una CNN cust
 
 Se compararon dos arquitecturas CNN con diferente profundidad, manteniendo la misma estructura de bloque (Conv + BN + ReLU + MaxPool) y clasificador.
 
-El objetivo central de este experimento es verificar empíricamente la hipótesis H3: \textit{``Incrementar la profundidad de una CNN custom mejorará el rendimiento del modelo, pero con rendimientos decrecientes y mayor costo computacional.''} 
 
 Para abordar esta hipótesis, se diseñó un enfoque metodológico sistemático que involucra:
 \begin{enumerate}
@@ -163,14 +162,14 @@ La lógica experimental se basa en el principio de \textit{ceteris paribus} (tod
 
 \begin{figure}[h]
 \centering
-\includegraphics[width=0.45\textwidth]{Figures/H3/c1.jpg}
-\includegraphics[width=0.45\textwidth]{Figures/H3/c2.jpg}
-\caption{Comparación de curvaturas de entrenamiento para el Experimento 3: Accuracy (izquierda) y Loss (derecha).}
+\includegraphics[width=0.45\textwidth,height=5cm]{Figures/H3/c1.jpg}
+\includegraphics[width=0.45\textwidth,height=5cm]{Figures/H3/c2.jpg}
+\caption{Configuración para los diferentes modelos}
 \label{fig:curves-exp3}
 \end{figure}
 
 
-\subsection{Configuración de Arquitecturas y Entrenamiento}
+\subsection{Configuración Entrenamiento}
 
 \subsubsection{Especificaciones Técnicas Detalladas}
 
@@ -180,31 +179,34 @@ Las arquitecturas comparadas comparten una filosofía de diseño modular basada 
 \centering
 \caption{Análisis técnico detallado de las arquitecturas CNN comparadas}
 \label{tab:h3-architectures-detailed}
-\begin{tabular}{|l|p{6.5cm}|p{6.5cm}|}
+\begin{tabularx}{\textwidth}{|l|X|X|}
 \hline
 \textbf{Aspecto} & \textbf{H2\_MOD.A (9 capas)} & \textbf{Arquitectura de 12 Capas} \\
 \hline
-\textbf{Filosofía de Diseño} & Arquitectura moderadamente profunda con 2 bloques convolucionales. Enfoque en extracción jerárquica de características sin complejidad excesiva. & Extensión profunda con 3 bloques convolucionales para mayor capacidad de representación. \\
-\hline
-\textbf{Flujo de Datos} & 
-Entrada $\rightarrow$ Bloque1(Conv+Conv+Pool) $\rightarrow$ Bloque2(Conv+Conv+Pool) $\rightarrow$ Regularización(Dropout) $\rightarrow$ Clasificador(Flatten+Dense) $\rightarrow$ Salida & 
-Entrada $\rightarrow$ Bloque1(Conv+Conv+Pool) $\rightarrow$ Bloque2(Conv+Conv+Pool) $\rightarrow$ Bloque3(Conv+Conv+Pool) $\rightarrow$ Regularización(Dropout) $\rightarrow$ Clasificador(Flatten+Dense) $\rightarrow$ Salida \\
-\hline
-\textbf{Capacidad de Representación} & 210,000 parámetros entrenables aprox. & 280,000 parámetros entrenables aprox. (+33\%). \\
-\hline
-\textbf{Regularización} & Dropout único del 25\%. & Dropout del 25\% aplicado al tercer bloque. \\
-\hline
-\textbf{Hiperparámetros Comunes} & 
-\begin{itemize}
-    \item Optimizador: Adam (lr=0.001)
-    \item Épocas: 10
-    \item Batch Size: 32
-    \item Loss: Categorical Crossentropy
-    \item Activación: ReLU
-\end{itemize} & Idéntica configuración \\
-\hline
-\end{tabular}
+\textbf{Filosofía de Diseño} & 
+Arquitectura moderadamente profunda con 2 bloques convolucionales. Enfoque en extracción jerárquica de características sin complejidad excesiva. &
+Extensión profunda con 3 bloques convolucionales para mayor capacidad de representación. 
+\\ \hline
+
+\textbf{Flujo de Datos} &
+Entrada $\rightarrow$ Bloque1(Conv+Conv+Pool) $\rightarrow$ Bloque2(Conv+Conv+Pool) $\rightarrow$ Regularización(Dropout) $\rightarrow$ Clasificador(Flatten+Dense) $\rightarrow$ Salida &
+Entrada $\rightarrow$ Bloque1(Conv+Conv+Pool) $\rightarrow$ Bloque2(Conv+Conv+Pool) $\rightarrow$ Bloque3(Conv+Conv+Pool) $\rightarrow$ Regularización(Dropout) $\rightarrow$ Clasificador(Flatten+Dense) $\rightarrow$ Salida
+\\ \hline
+
+\textbf{Capacidad de Representación} & 210,000 parámetros entrenables aprox. & 280,000 parámetros entrenables aprox. (+33\%). 
+\\ \hline
+
+\textbf{Regularización} & Dropout único del 25\%. & Dropout del 25\% aplicado al tercer bloque. 
+\\ \hline
+
+\textbf{Hiperparámetros Comunes} &
+Optimizador Adam (lr=0.001), 10 épocas, Batch Size 32, activación ReLU, función de pérdida Categorical Crossentropy. &
+Idéntica configuración.
+\\ \hline
+
+\end{tabularx}
 \end{table}
+
 
 \subsubsection{Consideraciones de Implementación}
 
@@ -218,29 +220,37 @@ Ambos modelos fueron implementados en TensorFlow 2.x con inicialización He norm
 \centering
 \caption{Análisis cuantitativo detallado del rendimiento por arquitectura}
 \label{tab:h3-results-detailed}
-\begin{tabular}{|p{4cm}|c|c|c|c|}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|p{3.5cm}|c|c|c|p{6cm}|}
 \hline
-\textbf{Categoría} & \textbf{Métrica} & \textbf{H2\_MOD.A (9 capas)} & \textbf{12 Capas} & \textbf{Interpretación} \\
-\hline
-\multirow{2}{*}{Precisión} & Val Accuracy (\%) & \textbf{85.29} & 83.45 & Disminución con mayor profundidad \\
- & Test Accuracy (\%) & N/D & \textbf{85.58} & Generaliza moderadamente bien \\
-\hline
-\multirow{2}{*}{Pérdida} & Val Loss & \textbf{0.3677} & 0.4095 & Mayor error residual en modelo profundo \\
- & Train Loss & 0.2644 & 0.3061 & Dificultad de optimización \\
-\hline
-\multirow{3}{*}{Generalización} & Brecha (pp) & 2.86 & 4.13 & Aumento de sobreajuste \\
- & Ratio Train/Val Loss & 1.39 & 1.33 & Menor estabilidad \\
- & Consistencia Épocas Finales & Alta & Media & Volatilidad \\
-\hline
-\multirow{3}{*}{Métricas por Clase} & Macro F1 (\%) & N/D & 83.54 & Rendimiento no equilibrado \\
- & Weighted F1 (\%) & N/D & 85.54 & Dominado por clases mayoritarias \\
- & Desviación Std F1 & N/D & $\sim$8.2 & Variabilidad entre clases \\
-\hline
-\multirow{2}{*}{Eficiencia} & Duración Entrenamiento & 33m 48s & $\sim$45m & +33\% estimado \\
- & Memoria GPU & $\sim$3.2GB & $\sim$4.1GB & +28\% estimado \\
-\hline
+\textbf{Categoría} & \textbf{Métrica} & \textbf{H2\_MOD.A (9 capas)} & \textbf{12 Capas} & \textbf{Interpretación} \\ \hline
+
+\multirow{2}{*}{Precisión} 
+& Val Accuracy (\%) & \textbf{85.29} & 83.45 & Disminución con mayor profundidad \\ \cline{2-5}
+& Test Accuracy (\%) & N/D & \textbf{85.58} & Generaliza moderadamente bien \\ \hline
+
+\multirow{2}{*}{Pérdida}
+& Val Loss & \textbf{0.3677} & 0.4095 & Mayor error residual en modelo profundo \\ \cline{2-5}
+& Train Loss & 0.2644 & 0.3061 & Dificultad de optimización \\ \hline
+
+\multirow{3}{*}{Generalización}
+& Brecha (pp) & 2.86 & 4.13 & Aumento de sobreajuste \\ \cline{2-5}
+& Ratio Train/Val Loss & 1.39 & 1.33 & Menor estabilidad \\ \cline{2-5}
+& Consistencia Épocas Finales & Alta & Media & Volatilidad \\ \hline
+
+\multirow{3}{*}{Métricas por Clase}
+& Macro F1 (\%) & N/D & 83.54 & Rendimiento no equilibrado \\ \cline{2-5}
+& Weighted F1 (\%) & N/D & 85.54 & Dominado por clases mayoritarias \\ \cline{2-5}
+& Desviación Std F1 & N/D & $\sim$8.2 & Variabilidad entre clases \\ \hline
+
+\multirow{2}{*}{Eficiencia}
+& Duración Entrenamiento & 33m 48s & $\sim$45m & +33\% estimado \\ \cline{2-5}
+& Memoria GPU & $\sim$3.2GB & $\sim$4.1GB & +28\% estimado \\ \hline
+
 \end{tabular}
+}
 \end{table}
+
 
 \subsubsection{Curvas de Aprendizaje}
 
@@ -260,17 +270,11 @@ Ambos modelos fueron implementados en TensorFlow 2.x con inicialización He norm
 
 
 \begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{Figures/H3/ima1.jpg}
-    \caption{ Loss: Train vs Validation }
-    \label{fig:acc-exp3}
-\end{figure}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=0.7\textwidth]{Figures/H3/ima2.jpg}
-    \caption{Loss: Train vs Validation}
-    \label{fig:acc-exp3}
+\centering
+\includegraphics[width=0.45\textwidth,height=5cm]{Figures/H3/ima2.jpg}
+\includegraphics[width=0.45\textwidth,height=5cm]{Figures/H3/ima2.jpg}
+\caption{Comparación de curvaturas de entrenamiento para el Experimento: Accuracy (izquierda) y Loss (derecha).}
+\label{fig:curves-exp3}
 \end{figure}
 
 \subsubsection{Análisis de la Brecha de Generalización}
@@ -328,16 +332,7 @@ La brecha se incrementó 44.4\% (2.86pp a 4.13pp), atribuible a:
 \end{tabular}
 \end{table}
 
-\subsection{Conclusiones y Perspectivas}
 
-\subsubsection{Conclusiones}
-
-\begin{enumerate}
-    \item H3 se confirma parcialmente: la profundidad no garantizó mejora.
-    \item Punto óptimo en 9 capas bajo esta configuración.
-    \item Regularización insuficiente para arquitecturas profundas.
-    \item El trade-off precisión–eficiencia es cuantificable.
-\end{enumerate}
 
 
 
