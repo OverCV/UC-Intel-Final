@@ -11,16 +11,16 @@
 % Comparación de curvas de entrenamiento
 \begin{figure}[htbp]
     \centering
-    % \includegraphics[width=0.85\textwidth]{Figures/H2/augmentation_comparison.png}
-    \caption{Comparación de curvas de entrenamiento con y sin data augmentation. Se observa [TODO: describir diferencias en convergencia y overfitting].}
+    \includegraphics[width=0.85\textwidth]{Figures/H2/augmentation_comparison.png}
+    \caption{Comparación de curvas de entrenamiento con y sin data augmentation. El modelo sin augmentation (exp\_ddde3a41) converge más rápido en 18 épocas con mejor val\_accuracy (99.3\%), mientras que el modelo con augmentation (exp\_10ed8760) requiere 24 épocas y alcanza menor rendimiento (98.8\%).}
     \label{fig:h2-augmentation-comparison}
 \end{figure}
 
 % Gráfico de recall por clase minoritaria
 \begin{figure}[htbp]
     \centering
-    % \includegraphics[width=0.8\textwidth]{Figures/H2/minority_recall.png}
-    \caption{Comparación de recall por clase minoritaria. Las barras azules representan el modelo sin augmentation; las verdes, con augmentation moderada.}
+    \includegraphics[width=0.8\textwidth]{Figures/H2/minority_recall.png}
+    \caption{Comparación de recall por clase minoritaria (17 clases con $\leq$30 muestras). Las barras azules representan el modelo sin augmentation (promedio 99.4\%); las barras naranjas, con augmentation (promedio 97.1\%). Se observa degradación en 4 clases: Swizzor.gen!I ($-$15.4 pp), Swizzor.gen!E ($-$10.0 pp), Rbot!gen ($-$7.7 pp) y C2LOP.P ($-$5.9 pp).}
     \label{fig:h2-minority-recall}
 \end{figure}
 
@@ -28,6 +28,6 @@
 % \begin{figure}[htbp]
 %     \centering
 %     \includegraphics[width=0.85\textwidth]{Figures/H2/confusion_matrix_aug.png}
-%     \caption{Matriz de confusión del modelo entrenado con data augmentation.}
+%     \caption{Matriz de confusión del modelo entrenado con data augmentation. Se observan errores de clasificación concentrados en las clases Swizzor.gen!I y C2LOP.P.}
 %     \label{fig:h2-confusion-matrix}
 % \end{figure}

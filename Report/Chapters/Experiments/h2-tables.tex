@@ -11,30 +11,44 @@
 \hline
 \textbf{Métrica} & \textbf{Sin Augmentation} & \textbf{Con Augmentation} \\
 \hline
-Accuracy global              & TODO\%  & TODO\%  \\
-F1-macro global              & TODO\%  & TODO\%  \\
-Tiempo de entrenamiento      & TODO min & TODO min \\
+Accuracy global              & 99.3\%  & 98.8\%  \\
+F1-macro global              & 98.7\%  & 97.5\%  \\
+Recall macro                 & 99.5\%  & 97.9\%  \\
+Precision macro              & 98.2\%  & 97.2\%  \\
+Épocas entrenadas            & 18      & 24      \\
+Tiempo de entrenamiento      & $\sim$28 min & $\sim$39 min \\
 \hline
 \end{tabular}
 \end{table}
 
-% Tabla de recall por clase minoritaria
+% Tabla de recall por clase minoritaria (17 clases con ≤30 muestras)
 \begin{table}[h]
 \centering
-\caption{Recall por clase minoritaria antes y después de augmentation}
+\caption{Recall por clase minoritaria antes y después de augmentation (17 clases con $\leq$30 muestras)}
 \label{tab:h2-per-class}
 \begin{tabular}{lccc}
 \hline
-\textbf{Familia} & \textbf{Sin Aug} & \textbf{Con Aug} & \textbf{$\Delta$} \\
+\textbf{Familia (Support)} & \textbf{Sin Aug} & \textbf{Con Aug} & \textbf{$\Delta$} \\
 \hline
-% TODO: Completar con las 5 familias minoritarias
-Familia 1 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
-Familia 2 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
-Familia 3 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
-Familia 4 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
-Familia 5 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
+Obfuscator.AD (30)      & 100.0\%  & 100.0\%  & 0 pp \\
+Swizzor.gen!E (30)      & 100.0\%  & 90.0\%   & $-$10.0 pp \\
+Alueron.gen!J (29)      & 100.0\%  & 100.0\%  & 0 pp \\
+C2LOP.gen!g (28)        & 100.0\%  & 100.0\%  & 0 pp \\
+Rbot!gen (26)           & 100.0\%  & 92.3\%   & $-$7.7 pp \\
+Dontovo.A (26)          & 100.0\%  & 100.0\%  & 0 pp \\
+Autorun.K (21)          & 100.0\%  & 100.0\%  & 0 pp \\
+Malex.gen!J (20)        & 95.0\%   & 95.0\%   & 0 pp \\
+Lolyda.AA2 (20)         & 100.0\%  & 100.0\%  & 0 pp \\
+Lolyda.AA3 (19)         & 94.7\%   & 94.7\%   & 0 pp \\
+Lolyda.AT (19)          & 100.0\%  & 100.0\%  & 0 pp \\
+C2LOP.P (17)            & 100.0\%  & 94.1\%   & $-$5.9 pp \\
+Skintrim.N (17)         & 100.0\%  & 100.0\%  & 0 pp \\
+Adialer.C (16)          & 100.0\%  & 100.0\%  & 0 pp \\
+Swizzor.gen!I (13)      & 100.0\%  & 84.6\%   & $-$15.4 pp \\
+Agent.FYI (12)          & 100.0\%  & 100.0\%  & 0 pp \\
+Wintrim.BX (10)         & 100.0\%  & 100.0\%  & 0 pp \\
 \hline
-\textbf{Promedio} & \textbf{TODO\%} & \textbf{TODO\%} & \textbf{+TODO pp} \\
+\textbf{Promedio (17 clases)} & \textbf{99.4\%} & \textbf{97.1\%} & \textbf{$-$2.3 pp} \\
 \hline
 \end{tabular}
 \end{table}
@@ -48,10 +62,11 @@ Familia 5 (N muestras)  & TODO\%  & TODO\%  & +TODO pp \\
 \hline
 \textbf{Transformación} & \textbf{Parámetros} \\
 \hline
-Rotación aleatoria     & $\pm$TODO° \\
-Flip horizontal        & probabilidad TODO \\
-Variación de brillo    & $\pm$TODO\% \\
-Variación de contraste & $\pm$TODO\% \\
+Rotaciones ortogonales & 90°, 180°, 270° (selección aleatoria) \\
+Flip horizontal        & probabilidad 0.5 \\
+Flip vertical          & probabilidad 0.5 \\
+Variación de brillo    & $\pm$20\% \\
+Variación de contraste & $\pm$20\% \\
 \hline
 \end{tabular}
 \end{table}

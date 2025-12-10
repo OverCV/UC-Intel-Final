@@ -4,33 +4,50 @@
 
 \subsection{Análisis de Resultados}
 
-\subsubsection{Mejora en Clases Minoritarias}
+\subsubsection{Efecto en Clases Minoritarias}
 
-% TODO: Completar con datos reales
+Contrariamente a lo esperado, data augmentation no mejoró el recall de las clases minoritarias, sino que lo deterioró:
+
 \begin{itemize}
-    \item El recall promedio de las clases minoritarias incrementó de TODO\% a TODO\% (+TODO puntos porcentuales).
+    \item El recall promedio de las 17 clases minoritarias ($\leq$30 muestras) \textbf{disminuyó} de 99.4\% a 97.1\% ($-$2.3 puntos porcentuales).
 
-    \item La clase con mayor mejora fue [TODO: nombre de familia] (+TODO pp), que era la más afectada por el desbalance.
+    \item De las 17 clases minoritarias, 4 experimentaron degradación: \textbf{Swizzor.gen!I} ($-$15.4 pp), \textbf{Swizzor.gen!E} ($-$10.0 pp), \textbf{Rbot!gen} ($-$7.7 pp), y \textbf{C2LOP.P} ($-$5.9 pp).
 
-    \item Todas las clases minoritarias mostraron mejoras significativas en recall.
+    \item Las restantes 13 clases minoritarias mantuvieron su rendimiento sin cambios significativos.
 \end{itemize}
 
 \subsubsection{Impacto en Rendimiento Global}
 
 \begin{itemize}
-    \item El accuracy global [aumentó/disminuyó] de TODO\% a TODO\% (TODO pp).
+    \item El accuracy global \textbf{disminuyó} de 99.3\% a 98.8\% ($-$0.5 pp).
 
-    \item El F1-score macro [aumentó/disminuyó] de TODO\% a TODO\%.
+    \item El F1-score macro \textbf{disminuyó} de 98.7\% a 97.5\% ($-$1.2 pp).
 
-    \item El trade-off entre rendimiento global y mejora en minoritarias fue [favorable/desfavorable]: [TODO: explicar].
+    \item El recall macro \textbf{disminuyó} de 99.5\% a 97.9\% ($-$1.6 pp).
+
+    \item Todas las métricas mostraron degradación con augmentation, indicando que las transformaciones aplicadas introdujeron ruido perjudicial.
 \end{itemize}
+
+\subsubsection{Análisis de Causas}
+
+El resultado negativo de data augmentation puede explicarse por varios factores:
+
+\begin{enumerate}
+    \item \textbf{Rendimiento base excepcionalmente alto:} El modelo sin augmentation ya alcanzaba 99.4\% de recall promedio en clases minoritarias, dejando poco margen de mejora.
+
+    \item \textbf{Naturaleza estructural de imágenes de malware:} A diferencia de imágenes naturales, las visualizaciones de malware representan bytes de ejecutables donde cada píxel tiene significado semántico. Las transformaciones geométricas pueden alterar patrones discriminativos específicos de cada familia.
+
+    \item \textbf{Sensibilidad variable entre familias:} Las familias Swizzor (gen!I y gen!E), Rbot!gen, y C2LOP.P mostraron mayor sensibilidad a las transformaciones, posiblemente porque sus patrones visuales distintivos se ven más afectados por rotaciones y volteos.
+
+    \item \textbf{Overfitting a variantes artificiales:} El modelo con augmentation entrenó más épocas (24 vs 18) pero con datos transformados que podrían no representar variantes reales de malware.
+\end{enumerate}
 
 \subsubsection{Observaciones sobre el Entrenamiento}
 
 \begin{itemize}
-    \item El modelo con augmentation [convergió más lento/más rápido] debido a la mayor variabilidad en los datos.
+    \item El modelo con augmentation requirió más épocas para converger (24 vs 18), indicando mayor dificultad de optimización.
 
-    \item El gap train-validation [aumentó/disminuyó], indicando [mayor/menor] capacidad de generalización.
+    \item A pesar del entrenamiento más prolongado, el modelo con augmentation no logró igualar el rendimiento del modelo base.
 
-    \item [TODO: Agregar observaciones adicionales sobre curvas de entrenamiento].
+    \item El gap entre train loss y val loss fue similar en ambos casos, sugiriendo que el problema no es overfitting sino degradación de la señal discriminativa.
 \end{itemize}
