@@ -159,6 +159,17 @@ Para abordar esta hipótesis, se diseñó un enfoque metodológico sistemático 
 
 La lógica experimental se basa en el principio de \textit{ceteris paribus} (todo lo demás constante), donde solo la profundidad de la red varía entre condiciones, permitiendo aislar su efecto específico sobre el rendimiento y eficiencia.
 
+
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.45\textwidth]{Figures/H3/c1.jpg}
+\includegraphics[width=0.45\textwidth]{Figures/H3/c2.jpg}
+\caption{Comparación de curvaturas de entrenamiento para el Experimento 3: Accuracy (izquierda) y Loss (derecha).}
+\label{fig:curves-exp3}
+\end{figure}
+
+
 \subsection{Configuración de Arquitecturas y Entrenamiento}
 
 \subsubsection{Especificaciones Técnicas Detalladas}
@@ -247,6 +258,21 @@ Ambos modelos fueron implementados en TensorFlow 2.x con inicialización He norm
     \caption{Comparación visual de dinámicas de aprendizaje}
 \end{figure}
 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figures/H3/ima1.jpg}
+    \caption{ Loss: Train vs Validation }
+    \label{fig:acc-exp3}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\textwidth]{Figures/H3/ima2.jpg}
+    \caption{Loss: Train vs Validation}
+    \label{fig:acc-exp3}
+\end{figure}
+
 \subsubsection{Análisis de la Brecha de Generalización}
 
 La brecha se incrementó 44.4\% (2.86pp a 4.13pp), atribuible a:
@@ -318,3 +344,6 @@ La brecha se incrementó 44.4\% (2.86pp a 4.13pp), atribuible a:
 \subsubsection{Conclusión Final}
 
 Este experimento demuestra que incrementar la profundidad sin técnicas complementarias no garantiza mayor rendimiento. La profundidad aporta capacidad, pero también costos y riesgo de saturación temprana. La efectividad se encuentra en un balance entre profundidad, generalización y eficiencia computacional.
+
+
+
