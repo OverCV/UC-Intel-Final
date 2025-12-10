@@ -4,29 +4,29 @@
 
 \subsection{Verificación de Hipótesis H2}
 
-% TODO: Cambiar colores según resultado (green=confirmada, yellow=parcial, red=rechazada)
-\begin{tcolorbox}[colback=gray!5!white, colframe=gray!75!black, title=Verificación H2]
-\textbf{Hipótesis:} Data augmentation mejorará significativamente el recall de clases minoritarias sin degradar sustancialmente el accuracy global.
+\begin{tcolorbox}[colback=red!5!white, colframe=red!75!black, title=Verificación H2]
+\textbf{Hipótesis:} Data augmentation mejorará el recall de clases minoritarias en $\geq$15 puntos porcentuales sin degradar el accuracy global en más de 2\%.
 
 \textbf{Resultados obtenidos:}
 \begin{itemize}
-    \item Recall promedio minoritarias: TODO\% $\rightarrow$ TODO\% (+TODO pp)
-    \item Accuracy global: TODO\% $\rightarrow$ TODO\% (TODO pp)
-    \item F1-macro: TODO\% $\rightarrow$ TODO\%
+    \item Recall promedio de 17 clases minoritarias: 99.4\% $\rightarrow$ 97.1\% ($-$2.3 pp)
+    \item Accuracy global: 99.3\% $\rightarrow$ 98.8\% ($-$0.5 pp)
+    \item F1-macro: 98.7\% $\rightarrow$ 97.5\% ($-$1.2 pp)
 \end{itemize}
 
-\textbf{Conclusión:} \textcolor{gray}{\textbf{TODO: CONFIRMADA / PARCIAL / RECHAZADA}}
+\textbf{Conclusión:} \textcolor{red!60!black}{\textbf{HIPÓTESIS RECHAZADA}}
 
-% TODO: Escribir conclusión basada en resultados
-[Descripción de por qué la hipótesis se confirma o rechaza]
+Data augmentation no mejoró el recall de clases minoritarias; por el contrario, lo redujo en $-$2.3 pp. El resultado está muy lejos del umbral esperado de +15 pp. Aunque el impacto en accuracy global ($-$0.5 pp) cumple el criterio de no degradar más de 2\%, la premisa fundamental de mejora en clases minoritarias no se cumplió.
 \end{tcolorbox}
 
 \subsubsection{Implicaciones Prácticas}
 
 \begin{itemize}
-    \item [TODO: Implicación 1 sobre cuándo usar augmentation]
+    \item \textbf{Data augmentation no es universalmente beneficioso:} Para datasets de malware visualizado donde el modelo base ya alcanza alto rendimiento, las técnicas de augmentation pueden ser contraproducentes.
 
-    \item [TODO: Implicación 2 sobre configuración recomendada]
+    \item \textbf{La naturaleza del dominio importa:} Las imágenes de malware tienen características estructurales únicas que difieren de imágenes naturales. Las transformaciones geométricas diseñadas para fotografías pueden destruir patrones discriminativos en visualizaciones de binarios.
 
-    \item [TODO: Implicación 3 sobre limitaciones]
+    \item \textbf{Evaluar antes de aplicar:} En dominios especializados, es esencial evaluar empíricamente el impacto de augmentation en lugar de asumirlo como beneficioso por defecto.
+
+    \item \textbf{Considerar augmentation específica de dominio:} Futuras investigaciones podrían explorar técnicas de augmentation diseñadas específicamente para malware, como perturbaciones a nivel de bytes que preserven la funcionalidad maliciosa.
 \end{itemize}

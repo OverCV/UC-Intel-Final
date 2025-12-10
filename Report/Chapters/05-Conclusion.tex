@@ -19,7 +19,7 @@ Se implementó un pipeline completo que incluye:
     \item Estudio del efecto de profundidad en arquitecturas CNN
 \end{itemize}
 
-Los experimentos demostraron que el enfoque basado en visión por computador es viable y efectivo para la clasificación de malware, logrando accuracy de 96.2\% con ResNet50, comparable con el estado del arte en la literatura. Dos de las tres hipótesis fueron completamente confirmadas, y la tercera fue parcialmente confirmada.
+Los experimentos demostraron que el enfoque basado en visión por computador es viable y efectivo para la clasificación de malware, logrando accuracy de 96.2\% con ResNet50, comparable con el estado del arte en la literatura. Una hipótesis fue completamente confirmada (H1), una parcialmente confirmada (H3), y una rechazada (H2).
 
 % =============================================================================
 \section{Principales Hallazgos}
@@ -35,14 +35,14 @@ Los resultados confirman que ResNet50 con fine-tuning (96.2\% accuracy) supera s
     \item Los Vision Transformers requieren datasets significativamente más grandes para competir con CNNs, confirmando la literatura reciente.
 \end{itemize}
 
-\subsection{H2: Data Augmentation Mejora Equidad sin Sacrificar Rendimiento Global}
+\subsection{H2: Data Augmentation No Mejora Rendimiento en Malware Visualizado}
 
-La aplicación de augmentation moderada incrementó el recall de clases minoritarias en +17.2 puntos porcentuales mientras el accuracy global apenas disminuyó (-0.4\%). Este resultado demuestra que:
+Contrario a lo esperado, la aplicación de augmentation moderada \textbf{redujo} el recall de las 17 clases minoritarias en $-$2.3 puntos porcentuales (de 99.4\% a 97.1\%) y el accuracy global en $-$0.5 pp. Este resultado inesperado demuestra que:
 
 \begin{itemize}
-    \item Las técnicas de augmentation son efectivas para mitigar el desbalance de clases en datasets de malware.
-    \item El trade-off entre equidad (recall de minoritarias) y rendimiento global es favorable.
-    \item Las clases más afectadas por el desbalance (Lolyda.AA 3, Malex.gen!J) fueron las más beneficiadas.
+    \item Las técnicas de augmentation diseñadas para imágenes naturales pueden ser contraproducentes en el dominio de malware visualizado.
+    \item Cuando el modelo base ya alcanza rendimiento casi óptimo (99.4\% recall en minoritarias), las transformaciones introducen ruido perjudicial.
+    \item De las 17 clases minoritarias, 4 fueron afectadas negativamente: Swizzor.gen!I ($-$15.4 pp), Swizzor.gen!E ($-$10.0 pp), Rbot!gen ($-$7.7 pp) y C2LOP.P ($-$5.9 pp).
 \end{itemize}
 
 \subsection{H3: Rendimientos Decrecientes con la Profundidad}
@@ -89,12 +89,12 @@ A continuación se presenta la verificación formal de las tres hipótesis plant
 
 \textbf{Resultados obtenidos:}
 \begin{itemize}
-    \item Recall promedio de 5 clases minoritarias: 61.2\% $\rightarrow$ 78.4\% (+17.2 pp)
-    \item Accuracy global: 96.2\% $\rightarrow$ 95.8\% (-0.4 pp)
-    \item Todas las clases minoritarias mejoraron $\geq$15 pp
+    \item Recall promedio de 17 clases minoritarias: 99.4\% $\rightarrow$ 97.1\% ($-$2.3 pp)
+    \item Accuracy global: 99.3\% $\rightarrow$ 98.8\% ($-$0.5 pp)
+    \item 4 clases afectadas negativamente: Swizzor.gen!I ($-$15.4 pp), Swizzor.gen!E ($-$10.0 pp), Rbot!gen ($-$7.7 pp), C2LOP.P ($-$5.9 pp)
 \end{itemize}
 
-\textbf{Conclusión:} \textcolor{green!60!black}{\textbf{HIPÓTESIS CONFIRMADA}}. Data augmentation moderada mejoró significativamente el recall de clases minoritarias (+17.2 pp, superando el umbral de +15 pp) mientras el impacto en accuracy global fue mínimo (-0.4 pp, muy por debajo del límite de -2\%).
+\textbf{Conclusión:} \textcolor{red!60!black}{\textbf{HIPÓTESIS RECHAZADA}}. Data augmentation no mejoró el recall de clases minoritarias; por el contrario, lo redujo en $-$2.3 pp, muy lejos del umbral esperado de +15 pp. Aunque el impacto en accuracy global ($-$0.5 pp) cumple el criterio de no degradar más de 2\%, la premisa fundamental de mejora no se cumplió.
 
 \subsection{H3: Efecto de la Profundidad en CNN Custom}
 
@@ -118,7 +118,7 @@ A continuación se presenta la verificación formal de las tres hipótesis plant
 \textbf{Hipótesis} & \textbf{Predicción} & \textbf{Resultado} & \textbf{Estado} \\
 \hline
 H1 & ResNet50 $\geq$96\% & 96.2\% & \textcolor{green!60!black}{\textbf{Confirmada}} \\
-H2 & Recall +15 pp & +17.2 pp & \textcolor{green!60!black}{\textbf{Confirmada}} \\
+H2 & Recall +15 pp & $-$2.3 pp & \textcolor{red!60!black}{\textbf{Rechazada}} \\
 H3 & F1 +8 pp & +4.6 pp & \textcolor{yellow!60!black}{\textbf{Parcial}} \\
 \hline
 \end{tabular}
@@ -349,7 +349,7 @@ Durante el desarrollo de este proyecto se adquirieron varias lecciones valiosas:
 \begin{itemize}
     \item \textbf{Importancia del preprocesamiento:} La calidad de las imágenes generadas impacta significativamente el rendimiento final.
     \item \textbf{Balance entre complejidad y datos:} Modelos muy profundos pueden no ser necesarios con datasets limitados.
-    \item \textbf{Regularización esencial:} Dropout y data augmentation son críticos para evitar overfitting en este dominio.
+    \item \textbf{Data augmentation específico de dominio:} Las técnicas de augmentation diseñadas para imágenes naturales pueden ser contraproducentes en malware visualizado; se requiere evaluación empírica caso por caso.
     \item \textbf{Transfer learning valioso:} Las características de bajo nivel de ImageNet son sorprendentemente transferibles.
 \end{itemize}
 
